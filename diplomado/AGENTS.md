@@ -11,6 +11,20 @@ ERP modular, multi-empresa (multi-tenant) y API-first. Debe resolver los problem
 - Móvil pobre → una sola app React Native + React Native Web con soporte offline.
 - Fiscal mexicano ausente → módulo `fiscal-mx` nativo (CFDI 4.0 vía PAC).
 
+## Arquitectura v2
+
+- `apps/api/src/platform/` contiene el núcleo técnico: autenticación, tenants, companies, users, RBAC, settings, audit, numbering, attachments, notifications, events, jobs y custom-fields.
+- `apps/api/src/modules/` contiene únicamente módulos de negocio.
+- Cada módulo expone un único `index.ts` público con su servicio y tipos de eventos. Ningún consumidor importa archivos internos de otro módulo.
+- El aislamiento de tenant se implementará con `AsyncLocalStorage` y un plugin global de Mongoose. Solo colecciones marcadas `global: true`, como catálogos SAT, quedan exentas.
+- El `tenantId` se obtiene exclusivamente del token; nunca del body, query o headers controlados por el cliente.
+- Los eventos se persistirán mediante outbox en la misma transacción del documento y serán despachados por Agenda con handlers idempotentes.
+- Los documentos de negocio usarán una máquina de estados compartida y permisos por transición.
+- Los impuestos se configurarán desde `settings`; las tasas no se escriben fijas en código.
+- El timbrado se consumirá mediante `PacProvider`; XML y PDF se almacenarán mediante `StorageProvider`.
+- Los permisos siguen el formato de tres niveles `modulo:recurso:accion`.
+- Las pruebas transaccionales usarán `MongoMemoryReplSet` y cada módulo nuevo agregará una prueba en `apps/api/test/tenant-isolation/`.
+
 ## Stack obligatorio
 - Lenguaje: TypeScript en todo (modo `strict: true`). Prohibido `any` salvo justificación en comentario.
 - Monorepo: pnpm workspaces + Turborepo.
