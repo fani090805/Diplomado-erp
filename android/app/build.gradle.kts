@@ -21,12 +21,12 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.75:4000/api/v1/\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://diplomado-cte0.onrender.com/api/v1/\"")
     }
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://192.168.1.75:4000/api/v1/\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://diplomado-cte0.onrender.com/api/v1/\"")
             isMinifyEnabled = false
         }
         release {
