@@ -84,6 +84,10 @@ app.get('/health', (req, res) => {
 
 const router = express.Router();
 
+router.get('/health', (req, res) => {
+  res.json({ success: true, data: { status: 'ok', uptime: process.uptime() } });
+});
+
 // 1) Autenticación ANTES del audit global (su service audita a mano).
 router.use('/auth', authRoutes);
 
