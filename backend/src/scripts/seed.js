@@ -299,7 +299,11 @@ async function ensureDemoTenant(password) {
     });
     console.log(`[seed] Administrador de empresa demo creado: ${adminUser.email}`);
   } else {
-    console.log(`[seed] Administrador demo (${DEMO_ADMIN_EMAIL}): ya existe.`);
+    adminUser.status = 'active';
+    adminUser.failedLoginAttempts = 0;
+    adminUser.passwordHash = await hashPassword(password);
+    await adminUser.save();
+    console.log(`[seed] Administrador demo (${DEMO_ADMIN_EMAIL}): desbloqueado, contraseña sincronizada y activo.`);
   }
 
   return { company, adminUser };
