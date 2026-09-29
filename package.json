@@ -9,7 +9,7 @@
     "web:frontend": "npm --prefix frontend run web",
     "web:build": "npm --prefix frontend run export:web",
     "build:cloudflare": "npm --prefix frontend install && npm --prefix frontend run export:web",
-    "deploy:cloudflare": "npx wrangler pages deploy frontend/dist --project-name=tectode-erp --branch=main",
+    "deploy:cloudflare": "npx wrangler pages deploy frontend/dist --project-name=diplomado1 --branch=main",
     "web:serve": "node frontend/serve.js",
     "seed": "npm --prefix backend run seed",
     "indexes": "npm --prefix backend run indexes",
