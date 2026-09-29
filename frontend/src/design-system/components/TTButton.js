@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
@@ -27,12 +27,13 @@ export function TTButton({
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
+      hitSlop={8}
       style={({ hovered, pressed }) => [
         styles.base,
         styles[`size_${size}`],
         styles[`variant_${variant}`],
-        hovered && styles[`variant_${variant}_hover`],
-        pressed && styles.pressed,
+        hovered && !disabled && styles[`variant_${variant}_hover`],
+        pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
         style,
       ]}
@@ -40,13 +41,14 @@ export function TTButton({
     >
       {loading ? (
         <ActivityIndicator
-          size={size === 'sm' ? 'small' : 'small'}
+          size="small"
           color={variant === 'primary' ? COLORS.textDark : COLORS.textPrimary}
         />
       ) : (
         <>
           {iconLeft ? iconLeft : null}
           <Text
+            pointerEvents="none"
             style={[
               styles.text,
               styles[`textSize_${size}`],
@@ -73,6 +75,9 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: 'transparent',
+    ...Platform.select({
+      web: { cursor: 'pointer', userSelect: 'none' },
+    }),
   },
 
   // Tamaños
@@ -125,7 +130,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   variant_ghost_hover: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
 
   variant_danger: {
@@ -137,12 +142,15 @@ const styles = StyleSheet.create({
   },
 
   pressed: {
-    opacity: 0.85,
+    opacity: 0.8,
     transform: [{ scale: 0.98 }],
   },
 
   disabled: {
     opacity: 0.4,
+    ...Platform.select({
+      web: { cursor: 'not-allowed' },
+    }),
   },
 
   // Textos

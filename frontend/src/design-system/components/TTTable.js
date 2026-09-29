@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -138,13 +139,16 @@ export function TTTable({
                         <Pressable
                           key={action.label}
                           onPress={action.onPress}
-                          style={({ hovered }) => [
+                          hitSlop={6}
+                          style={({ hovered, pressed }) => [
                             styles.actionBtn,
                             action.danger && styles.actionDanger,
                             hovered && (action.danger ? styles.actionDangerHover : styles.actionBtnHover),
+                            pressed && styles.actionPressed,
                           ]}
                         >
                           <Text
+                            pointerEvents="none"
                             style={[
                               styles.actionText,
                               action.danger && styles.actionDangerText,
@@ -313,6 +317,12 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
     paddingHorizontal: SPACING.md - 2,
     paddingVertical: SPACING.xs + 1,
+    ...Platform.select({
+      web: { cursor: 'pointer', userSelect: 'none' },
+    }),
+  },
+  actionPressed: {
+    opacity: 0.75,
   },
   actionBtnHover: {
     borderColor: COLORS.primary,
