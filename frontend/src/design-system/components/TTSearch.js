@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTSearch - Campo de búsqueda rápido TECTODE ERP
+ * TTSearch - Campo de búsqueda rápido Tec[ode ERP
  */
 export function TTSearch({ value, onChangeText, onClear, placeholder = 'Buscar en Tec[ode…', style }) {
   const [focused, setFocused] = useState(false);
 
   return (
     <View style={[styles.wrapper, focused && styles.focused, style]}>
-      <Text style={styles.searchIcon}>🔍</Text>
+      <Text pointerEvents="none" style={styles.searchIcon}>🔍</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -22,13 +22,18 @@ export function TTSearch({ value, onChangeText, onClear, placeholder = 'Buscar e
       />
       {value ? (
         <Pressable
-          style={styles.clearBtn}
+          hitSlop={8}
+          style={({ hovered, pressed }) => [
+            styles.clearBtn,
+            hovered && styles.clearBtnHovered,
+            pressed && styles.clearBtnPressed,
+          ]}
           onPress={() => {
             if (onChangeText) onChangeText('');
             if (onClear) onClear();
           }}
         >
-          <Text style={styles.clearIcon}>✕</Text>
+          <Text pointerEvents="none" style={styles.clearIcon}>✕</Text>
         </Pressable>
       ) : null}
     </View>
@@ -65,6 +70,16 @@ const styles = StyleSheet.create({
   },
   clearBtn: {
     padding: SPACING.xs,
+    borderRadius: RADIUS.pill,
+    ...Platform.select({
+      web: { cursor: 'pointer', userSelect: 'none' },
+    }),
+  },
+  clearBtnHovered: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  clearBtnPressed: {
+    opacity: 0.7,
   },
   clearIcon: {
     color: COLORS.textMuted,
