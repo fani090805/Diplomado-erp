@@ -5,7 +5,7 @@
   "description": "API REST multiempresa del ERP (Node.js + Express + MongoDB Atlas)",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "node src/scripts/seed.js --demo && node src/server.js",
     "dev": "nodemon src/server.js",
     "seed": "node src/scripts/seed.js",
     "migrate:master-data": "node src/scripts/migrate-master-data.js",
