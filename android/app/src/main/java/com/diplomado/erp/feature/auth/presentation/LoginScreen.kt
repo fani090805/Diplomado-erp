@@ -59,14 +59,14 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Text(
-                        text = "Iniciar Sesión",
+                        text = "ERP Constructor",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = TecodeTextPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Ingrese sus credenciales para acceder al ecosistema.",
+                        text = "Plataforma Móvil para Gestión de Obras y Construcción",
                         fontSize = 13.sp,
                         color = TecodeTextMuted
                     )
@@ -122,7 +122,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "Tec[ode ERP Multiempresa · Sistema Seguro SSL",
+                        text = "Tec[ode] ERP Constructor · Sistema Seguro SSL",
                         fontSize = 11.sp,
                         color = TecodeTextMuted,
                         modifier = Modifier.align(Alignment.CenterHorizontally)

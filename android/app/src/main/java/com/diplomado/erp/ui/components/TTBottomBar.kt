@@ -13,11 +13,11 @@ import com.diplomado.erp.ui.theme.*
 
 sealed class NavItem(val route: String, val title: String, val icon: ImageVector, val permission: String?) {
     data object Dashboard : NavItem("dashboard", "Inicio", Icons.Default.Bolt, null)
-    data object Products : NavItem("products", "Productos", Icons.Default.Inventory2, "products.read")
+    data object Products : NavItem("products", "Materiales", Icons.Default.Category, "products.read")
     data object Stock : NavItem("stock", "Existencias", Icons.Default.BarChart, "inventory.read")
     data object Purchases : NavItem("purchases", "Compras", Icons.Default.ShoppingCart, "purchases.read")
     data object Sales : NavItem("sales", "Ventas", Icons.Default.LocalOffer, "sales.orders.read")
-    data object Finance : NavItem("finance", "Finanzas", Icons.Default.AccountBalance, "finance.accounts.read")
+    data object Finance : NavItem("finance", "Gastos", Icons.Default.AccountBalance, "finance.accounts.read")
     data object More : NavItem("more", "Menú", Icons.Default.Menu, null)
 }
 

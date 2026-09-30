@@ -8,7 +8,7 @@
         android:name=".ErpApplication"
         android:allowBackup="false"
         android:icon="@android:drawable/sym_def_app_icon"
-        android:label="Diplomado ERP"
+        android:label="ERP Constructor"
         android:roundIcon="@android:drawable/sym_def_app_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.DiplomadoERP"
@@ -17,7 +17,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="Diplomado ERP"
+            android:label="ERP Constructor"
             android:theme="@style/Theme.DiplomadoERP"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>

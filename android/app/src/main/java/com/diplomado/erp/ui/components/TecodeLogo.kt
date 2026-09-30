@@ -103,7 +103,7 @@ fun TecodeLogo(
             }
             if (showTagline) {
                 Text(
-                    text = "ERP ENTERPRISE",
+                    text = "ERP CONSTRUCTOR",
                     color = TecodeAccent,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
