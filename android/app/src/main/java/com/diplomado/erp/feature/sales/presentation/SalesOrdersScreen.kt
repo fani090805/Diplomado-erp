@@ -24,10 +24,10 @@ fun SalesOrdersScreen(
 
     Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
         when (val state = uiState) {
-            is SalesOrdersUiState.Loading -> TTLoading(text = "Cargando pedidos de venta...")
+            is SalesOrdersUiState.Loading -> TTLoading(text = "Cargando estimaciones y contratos de obra...")
             is SalesOrdersUiState.Error -> {
                 TTEmptyState(
-                    title = "Error de ventas",
+                    title = "Error de contratos",
                     description = state.message,
                     actionLabel = "Reintentar",
                     onAction = { viewModel.loadOrders() }
@@ -35,14 +35,14 @@ fun SalesOrdersScreen(
             }
             is SalesOrdersUiState.Success -> {
                 TTDataTable(
-                    title = "Pedidos de Venta",
-                    subtitle = "${state.orders.size} pedidos",
+                    title = "Contratos y Estimaciones",
+                    subtitle = "${state.orders.size} estimaciones registradas",
                     items = state.orders,
                     onCreateClick = if (PermissionChecker.hasPermission("sales.orders.create")) {
-                        { /* Crear pedido */ }
+                        { /* Crear contrato */ }
                     } else null,
-                    createLabel = "Nuevo pedido",
-                    emptyText = "Sin pedidos de venta."
+                    createLabel = "Nueva estimación",
+                    emptyText = "Sin estimaciones ni contratos registrados."
                 ) { order ->
                     TTCard(modifier = Modifier.fillMaxWidth()) {
                         Column {
@@ -60,7 +60,7 @@ fun SalesOrdersScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "Cliente: ${order.customer?.name ?: "Demo"} • Total: $${String.format("%.2f", order.total)}",
+                                        text = "Cliente Contratante: ${order.customer?.name ?: "Desarrolladora"} • Total: $${String.format("%.2f", order.total)}",
                                         fontSize = 13.sp,
                                         color = TecodeTextMuted
                                     )
@@ -71,7 +71,7 @@ fun SalesOrdersScreen(
                             if (order.status == "DRAFT" && PermissionChecker.hasPermission("sales.orders.approve")) {
                                 Spacer(modifier = Modifier.height(12.dp))
                                 TTButton(
-                                    text = "Aprobar Pedido",
+                                    text = "Aprobar Estimación",
                                     onClick = { viewModel.approveOrder(order.id) },
                                     variant = TTButtonVariant.Primary,
                                     modifier = Modifier.fillMaxWidth()
