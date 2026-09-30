@@ -68,10 +68,11 @@ const PERMISSIONS = {
   // --- Reportes (FASE 5) ---
   REPORTS: ['reports.read', 'reports.export'],
 
-  // --- CRM / RRHH / Producción (FASE 6) ---
+  // --- CRM / RRHH / Producción / Obras (FASE 6) ---
   CRM: ['crm.read', 'crm.create', 'crm.update'],
   HR: ['hr.read', 'hr.create', 'hr.update'],
   PRODUCTION: ['production.read', 'production.create', 'production.update'],
+  PROJECTS: ['projects.read', 'projects.create', 'projects.update', 'projects.delete'],
 };
 
 const ALL_PERMISSIONS = Object.freeze(Object.values(PERMISSIONS).flat());

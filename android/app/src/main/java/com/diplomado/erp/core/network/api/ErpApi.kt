@@ -172,4 +172,31 @@ interface ErpApi {
     // Audit
     @GET("audit")
     suspend fun getAuditLogs(@Query("limit") limit: Int = 20): Response<ApiResponse<List<AuditLogDto>>>
+
+    // Obras & Centros de Costo (ERP Constructor)
+    @GET("projects")
+    suspend fun getProjects(
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20,
+        @Query("status") status: String? = null,
+        @Query("search") search: String? = null
+    ): Response<ApiResponse<List<ProjectDto>>>
+
+    @GET("projects/{id}")
+    suspend fun getProjectById(@Path("id") id: String): Response<ApiResponse<ProjectDto>>
+
+    @POST("projects")
+    suspend fun createProject(@Body project: Map<String, @JvmSuppressWildcards Any?>): Response<ApiResponse<ProjectDto>>
+
+    @PATCH("projects/{id}")
+    suspend fun updateProject(@Path("id") id: String, @Body project: Map<String, @JvmSuppressWildcards Any?>): Response<ApiResponse<ProjectDto>>
+
+    @GET("cost-centers")
+    suspend fun getCostCenters(
+        @Query("projectId") projectId: String? = null,
+        @Query("search") search: String? = null
+    ): Response<ApiResponse<List<CostCenterDto>>>
+
+    @POST("cost-centers")
+    suspend fun createCostCenter(@Body costCenter: Map<String, @JvmSuppressWildcards Any?>): Response<ApiResponse<CostCenterDto>>
 }

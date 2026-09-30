@@ -173,6 +173,32 @@ data class AuditLogDto(
     @SerializedName("createdAt") val createdAt: String? = null
 )
 
+// Obras / Proyectos ERP Constructor
+data class ProjectDto(
+    @SerializedName("_id") val id: String,
+    @SerializedName("code") val code: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("description") val description: String? = "",
+    @SerializedName("location") val location: String? = "",
+    @SerializedName("budget") val budget: Double = 0.0,
+    @SerializedName("executedAmount") val executedAmount: Double = 0.0,
+    @SerializedName("status") val status: String = "PLANEADA",
+    @SerializedName("managerName") val managerName: String? = "",
+    @SerializedName("startDate") val startDate: String? = null,
+    @SerializedName("estimatedEndDate") val estimatedEndDate: String? = null
+)
+
+data class CostCenterDto(
+    @SerializedName("_id") val id: String,
+    @SerializedName("projectId") val projectId: String,
+    @SerializedName("code") val code: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("category") val category: String = "MATERIALES",
+    @SerializedName("budget") val budget: Double = 0.0,
+    @SerializedName("executedAmount") val executedAmount: Double = 0.0,
+    @SerializedName("status") val status: String = "active"
+)
+
 // KPIs Response
 data class KpisDataDto(
     @SerializedName("sales") val sales: CountTotalDto? = null,

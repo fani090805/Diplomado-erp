@@ -36,11 +36,13 @@ const expenseRoutes = require('./modules/expenses/expense.routes');
 const budgetRoutes = require('./modules/budgets/budget.routes');
 const reportRoutes = require('./modules/reports/report.routes');
 
-// 7) Módulos FASE 6 (CRM/RRHH/producción).
+// 7) Módulos FASE 6 (CRM/RRHH/producción/obras).
 const leadRoutes = require('./modules/crm/lead.routes');
 const employeeRoutes = require('./modules/hr/employee.routes');
 const bomRoutes = require('./modules/production/bom.routes');
 const productionOrderRoutes = require('./modules/production/production_order.routes');
+const projectRoutes = require('./modules/projects/project.routes');
+const costCenterRoutes = require('./modules/cost-centers/cost_center.routes');
 
 /**
  * Aplicación Express (sin listen — el arranque vive en server.js;
@@ -121,11 +123,13 @@ router.use('/finance/expenses', expenseRoutes);
 router.use('/finance/budgets', budgetRoutes);
 router.use('/reports', reportRoutes);
 
-// 7) Módulos FASE 6 (CRM/RRHH/producción).
+// 7) Módulos FASE 6 (CRM/RRHH/producción/obras).
 router.use('/crm/leads', leadRoutes);
 router.use('/hr/employees', employeeRoutes);
 router.use('/production/boms', bomRoutes);
 router.use('/production/orders', productionOrderRoutes);
+router.use('/projects', projectRoutes);
+router.use('/cost-centers', costCenterRoutes);
 
 app.use(env.apiPrefix, apiLimiter, router);
 

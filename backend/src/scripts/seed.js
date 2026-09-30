@@ -38,6 +38,8 @@ const User = require('../modules/users/user.model');
 const { nextSequence, formatCode } = require('../common/sequence');
 const Lead = require('../modules/crm/lead.model');
 const Employee = require('../modules/hr/employee.model');
+const Project = require('../modules/projects/project.model');
+const CostCenter = require('../modules/cost-centers/cost_center.model');
 const Bom = require('../modules/production/bom.model');
 
 const DEMO_COMPANY_NAME = 'Empresa Demo S.A.';
@@ -304,6 +306,67 @@ async function ensureDemoTenant(password) {
     adminUser.passwordHash = await hashPassword(password);
     await adminUser.save();
     console.log(`[seed] Administrador demo (${DEMO_ADMIN_EMAIL}): desbloqueado, contraseña sincronizada y activo.`);
+  }
+
+  // --- Obras Semilla ERP Constructor ---
+  let p1 = await Project.findOne({ companyId: company._id, code: 'OBRA-001' });
+  if (!p1) {
+    p1 = await Project.create({
+      companyId: company._id,
+      code: 'OBRA-001',
+      name: 'Edificio Centro - Torre A',
+      description: 'Construcción de torre residencial de 12 niveles',
+      location: 'Av. Paseo de la Reforma 120, CDMX',
+      budget: 1850000.0,
+      executedAmount: 920000.0,
+      status: 'EN_PROCESO',
+      managerName: 'Ing. Carlos Mendoza',
+      startDate: new Date('2026-01-15'),
+      estimatedEndDate: new Date('2026-12-20'),
+    });
+    console.log(`[seed] Obra demo creada: ${p1.code} - ${p1.name}`);
+  }
+
+  let p2 = await Project.findOne({ companyId: company._id, code: 'OBRA-002' });
+  if (!p2) {
+    p2 = await Project.create({
+      companyId: company._id,
+      code: 'OBRA-002',
+      name: 'Residencial Los Pinos',
+      description: 'Desarrollo horizontal de 24 viviendas',
+      location: 'Calle Los Pinos 45, Guadalajara, JAL',
+      budget: 2400000.0,
+      executedAmount: 480000.0,
+      status: 'EN_PROCESO',
+      managerName: 'Ing. Sofia Ramírez',
+      startDate: new Date('2026-03-01'),
+      estimatedEndDate: new Date('2027-02-28'),
+    });
+    console.log(`[seed] Obra demo creada: ${p2.code} - ${p2.name}`);
+  }
+
+  // Centros de Costo
+  let cc1 = await CostCenter.findOne({ companyId: company._id, projectId: p1._id, code: 'CC-MAT-01' });
+  if (!cc1) {
+    await CostCenter.create({
+      companyId: company._id,
+      projectId: p1._id,
+      code: 'CC-MAT-01',
+      name: 'Partida Materiales y Estructura',
+      category: 'MATERIALES',
+      budget: 1000000.0,
+      executedAmount: 550000.0,
+    });
+    await CostCenter.create({
+      companyId: company._id,
+      projectId: p1._id,
+      code: 'CC-MOB-01',
+      name: 'Partida Mano de Obra y Cuadrillas',
+      category: 'MANO_DE_OBRA',
+      budget: 500000.0,
+      executedAmount: 270000.0,
+    });
+    console.log(`[seed] Centros de costo demo creados para ${p1.code}`);
   }
 
   return { company, adminUser };

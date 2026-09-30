@@ -13,6 +13,7 @@ import com.diplomado.erp.ui.theme.*
 
 sealed class NavItem(val route: String, val title: String, val icon: ImageVector, val permission: String?) {
     data object Dashboard : NavItem("dashboard", "Inicio", Icons.Default.Bolt, null)
+    data object Projects : NavItem("projects", "Mis Obras", Icons.Default.Apartment, "projects.read")
     data object Products : NavItem("products", "Materiales", Icons.Default.Category, "products.read")
     data object Stock : NavItem("stock", "Existencias", Icons.Default.BarChart, "inventory.read")
     data object Purchases : NavItem("purchases", "Compras", Icons.Default.ShoppingCart, "purchases.read")
@@ -29,6 +30,7 @@ fun TTBottomBar(
 ) {
     val allItems = listOf(
         NavItem.Dashboard,
+        NavItem.Projects,
         NavItem.Products,
         NavItem.Stock,
         NavItem.Purchases,

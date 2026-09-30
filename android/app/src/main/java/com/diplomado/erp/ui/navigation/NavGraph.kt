@@ -9,6 +9,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.diplomado.erp.core.security.TokenStorage
 import com.diplomado.erp.feature.auth.presentation.LoginScreen
 import com.diplomado.erp.feature.configuration.presentation.AuditScreen
@@ -17,6 +19,8 @@ import com.diplomado.erp.feature.finance.presentation.AccountsScreen
 import com.diplomado.erp.feature.inventory.movements.presentation.MovementsScreen
 import com.diplomado.erp.feature.inventory.products.presentation.ProductsScreen
 import com.diplomado.erp.feature.inventory.stock.presentation.StockScreen
+import com.diplomado.erp.feature.projects.presentation.ProjectDetailScreen
+import com.diplomado.erp.feature.projects.presentation.ProjectsScreen
 import com.diplomado.erp.feature.purchases.presentation.PurchaseOrdersScreen
 import com.diplomado.erp.feature.sales.presentation.SalesOrdersScreen
 import com.diplomado.erp.ui.components.TTBottomBar
@@ -95,6 +99,23 @@ fun MainContainer(
         ) {
             composable(NavDestination.Dashboard.route) {
                 DashboardScreen(onNavigate = { route -> innerNavController.navigate(route) })
+            }
+            composable(NavDestination.Projects.route) {
+                ProjectsScreen(
+                    onProjectClick = { projectId ->
+                        innerNavController.navigate(NavDestination.ProjectDetail.createRoute(projectId))
+                    }
+                )
+            }
+            composable(
+                route = NavDestination.ProjectDetail.route,
+                arguments = listOf(navArgument("projectId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val projectId = backStackEntry.arguments?.getString("projectId") ?: ""
+                ProjectDetailScreen(
+                    projectId = projectId,
+                    onBackClick = { innerNavController.popBackStack() }
+                )
             }
             composable(NavDestination.Products.route) {
                 ProductsScreen()
