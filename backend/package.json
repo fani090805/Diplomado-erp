@@ -6,6 +6,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
+    "build": "echo 'No build step required for Express backend'",
     "dev": "nodemon src/server.js",
     "seed": "node src/scripts/seed.js",
     "migrate:master-data": "node src/scripts/migrate-master-data.js",
