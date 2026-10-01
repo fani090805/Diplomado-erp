@@ -23,10 +23,10 @@ fun AccountsScreen(
 
     Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
         when (val state = uiState) {
-            is AccountsUiState.Loading -> TTLoading(text = "Cargando cuentas financieras...")
+            is AccountsUiState.Loading -> TTLoading(text = "Cargando cajas chicas y cuentas de tesorería...")
             is AccountsUiState.Error -> {
                 TTEmptyState(
-                    title = "Error de cuentas",
+                    title = "Error de finanzas de obra",
                     description = state.message,
                     actionLabel = "Reintentar",
                     onAction = { viewModel.loadAccounts() }
@@ -34,10 +34,10 @@ fun AccountsScreen(
             }
             is AccountsUiState.Success -> {
                 TTDataTable(
-                    title = "Cuentas Financieras",
-                    subtitle = "${state.accounts.size} cuentas de tesorería",
+                    title = "Finanzas & Cajas Chicas",
+                    subtitle = "${state.accounts.size} cuentas de tesorería y fondos de obra",
                     items = state.accounts,
-                    emptyText = "Sin cuentas financieras."
+                    emptyText = "Sin cuentas ni cajas chicas registradas."
                 ) { account ->
                     TTCard(modifier = Modifier.fillMaxWidth()) {
                         Row(
@@ -66,6 +66,7 @@ fun AccountsScreen(
                                     fontWeight = FontWeight.ExtraBold,
                                     color = TecodeAccent
                                 )
+                                Spacer(modifier = Modifier.height(2.dp))
                                 TTBadge(status = account.status)
                             }
                         }
