@@ -61,7 +61,8 @@ fun ProjectsScreen(
                 searchQuery = it
                 viewModel.loadProjects(searchQuery.ifEmpty { null })
             },
-            placeholder = "Buscar obra por código, nombre o ubicación..."
+            label = "Buscar Obra",
+            placeholder = "Buscar por código, nombre o ubicación..."
         )
 
         when (val state = uiState) {
@@ -162,7 +163,7 @@ fun ProjectCard(
                 }
 
                 LinearProgressIndicator(
-                    progress = { progress },
+                    progress = progress,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)

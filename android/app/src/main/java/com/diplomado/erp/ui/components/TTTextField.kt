@@ -22,7 +22,7 @@ import com.diplomado.erp.ui.theme.*
 fun TTTextField(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
+    label: String = "",
     modifier: Modifier = Modifier,
     placeholder: String = "",
     error: String? = null,
