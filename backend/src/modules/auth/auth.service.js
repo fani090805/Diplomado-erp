@@ -11,6 +11,7 @@ const roleRepository = require('../roles/role.repository');
 const companyRepository = require('../companies/company.repository');
 const branchRepository = require('../branches/branch.repository');
 const auditService = require('../audit/audit.service');
+const { sendLoginNotification } = require('../../services/email.service');
 
 const MAX_FAILED_ATTEMPTS = 5;
 function hashSessionId(sessionId) {
@@ -147,6 +148,13 @@ const authService = {
       accessToken: signAccessToken(tokenUser),
       refreshToken: await issueRefreshToken(user),
     };
+
+    // Envío de notificación de inicio de sesión por correo electrónico en segundo plano vía Resend (no bloqueante)
+    sendLoginNotification({
+      email: user.email,
+      name: `${user.name || ''} ${user.lastName || ''}`.trim(),
+      ip: meta.ip || meta.remoteAddress || '',
+    }).catch(() => {});
 
     await auditService.log({
       module: 'auth',
