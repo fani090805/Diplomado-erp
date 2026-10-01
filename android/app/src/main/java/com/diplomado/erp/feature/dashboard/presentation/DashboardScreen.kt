@@ -52,7 +52,7 @@ fun DashboardScreen(
                     item {
                         TTCard {
                             Column {
-                                TTBadge(status = "active", customLabel = "TEC[ODE] ERP CONSTRUCTOR")
+                                TTBadge(status = "active", customLabel = "TEC[ODE ERP CONSTRUCTOR")
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Buenos días, $userName",
@@ -134,7 +134,7 @@ fun DashboardScreen(
 
                     // SALUD DEL SISTEMA
                     item {
-                        TTCard(title = "Estado Operativo de Obras Tec[ode]") {
+                        TTCard(title = "Estado Operativo de Obras Tec[ode") {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),

@@ -1,6 +1,6 @@
-# PLAN DE ADAPTACIÓN Y ARQUITECTURA ANDROID: ERP CONSTRUCTOR (Tec[ode])
+# PLAN DE ADAPTACIÓN Y ARQUITECTURA ANDROID: ERP CONSTRUCTOR (Tec[ode)
 
-Este documento define la estrategia técnica, análisis de componentes y mapa de ruta para convertir la aplicación del repositorio `https://github.com/nenegamer542-tech/Diplomado` en la aplicación móvil Android nativa **ERP Constructor** bajo la marca **Tec[ode]**.
+Este documento define la estrategia técnica, análisis de componentes y mapa de ruta para convertir la aplicación del repositorio `https://github.com/nenegamer542-tech/Diplomado` en la aplicación móvil Android nativa **ERP Constructor** bajo la marca **Tec[ode**.
 
 ---
 
@@ -30,7 +30,7 @@ Cada transacción importante (movimiento de material, orden de compra, gasto, av
 
 | Módulo Actual | Adaptación ERP Constructor | Reutilizar | Nuevo Endpoint / Extensión | Prioridad |
 | :--- | :--- | :--- | :--- | :--- |
-| **Autenticación (`/auth`)** | Autenticación Segura Tec[ode] con Keystore | 100% | Ninguno (Usa `/auth/login`, `/auth/refresh`, `/auth/me`) | Alta (Fase 1) |
+| **Autenticación (`/auth`)** | Autenticación Segura Tec[ode con Keystore | 100% | Ninguno (Usa `/auth/login`, `/auth/refresh`, `/auth/me`) | Alta (Fase 1) |
 | **Empresas (`/companies`)** | Empresa Constructora Multi-tenant | 100% | Ninguno (Usa `/companies/me`) | Alta (Fase 2) |
 | **Usuarios/Roles (`/users`, `/roles`)** | Responsables de Obra, Cuadrillas, Directores | 100% | Ninguno (RBAC existente) | Alta (Fase 2) |
 | **Obras (Nuevo)** | Módulo Central "Mis Obras" | Parcial (`/master-data`) | `/projects` (GET/POST/PATCH/DELETE) | Alta (Fase 3) |
@@ -59,7 +59,7 @@ Cada transacción importante (movimiento de material, orden de compra, gasto, av
 4. **Catálogo de Materiales, Proveedores, Clientes, Inventarios y Finanzas**: Módulos backend probados y funcionales.
 
 ### 3.2. Lo que se Renombra y Rediseña
-1. **Identidad Visual**: Marca **Tec[ode]**, Nombre de la Aplicación **ERP Constructor**.
+1. **Identidad Visual**: Marca **Tec[ode**, Nombre de la Aplicación **ERP Constructor**.
 2. **Productos → Materiales**: Los productos con atributos `sku`, `unit`, `trackingMode` (lote/serie) representan materiales de construcción (cemento, varilla, arena, etc.).
 3. **Dashboard Generico → Dashboard de Construcción**: Pantalla orientada a presupuesto de obras, gastos acumulados, avance financiero, alertas de stock bajo y compras pendientes.
 4. **Vistas de Detalle → Centro de Control de Obra ("Mis Obras")**: Tarjetas de obra con barra de progreso, presupuesto ejecutado vs. disponible y pestañas navegables.
@@ -103,15 +103,15 @@ android/app/src/main/java/com/diplomado/erp/
 ### FASE 1: BRANDING, ESTRUCTURA BASE Y AUTENTICACIÓN (EN EJECUCIÓN)
 - [x] Análisis del repositorio y creación del plan `ANDROID_ERP_CONSTRUCTOR_PLAN.md` y `ERP_CONSTRUCTOR_MODULES.md`.
 - [x] Configuración de la estructura nativa Android Kotlin + Jetpack Compose Material 3.
-- [x] Reutilización e integración del componente vector oficial **Tec[ode]** (`TecodeLogo.kt`).
+- [x] Reutilización e integración del componente vector oficial **Tec[ode** (`TecodeLogo.kt`).
 - [x] Nombre público visible de la aplicación: **ERP Constructor**.
-- [x] Splash Screen con marca **Tec[ode]** y nombre **ERP Constructor**.
+- [x] Splash Screen con marca **Tec[ode** y nombre **ERP Constructor**.
 - [x] Pantalla de Login con campos email/password, estado de carga, manejo de errores y consumo de la API REST de producción.
 - [x] Almacenamiento seguro de tokens JWT en **Android Keystore** (`TokenStorage`).
 - [x] Verificación de compilación y ejecución en dispositivo físico.
 
 ### FASES FUTURAS
-- **FASE 2**: Dashboard para Construcción, Navegación Adaptativa y Menú Lateral Tec[ode].
+- **FASE 2**: Dashboard para Construcción, Navegación Adaptativa y Menú Lateral Tec[ode.
 - **FASE 3**: Módulo "Mis Obras" y Centros de Costo.
 - **FASE 4**: Catálogo de Materiales e Inventario de Obra.
 - **FASE 5**: Compras para Obra, Proveedores y Clientes.

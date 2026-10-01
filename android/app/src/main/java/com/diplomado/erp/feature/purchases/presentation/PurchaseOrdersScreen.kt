@@ -82,7 +82,7 @@ fun PurchaseOrdersScreen(
                                     )
                                     TTButton(
                                         text = "Rechazar",
-                                        onClick = { viewModel.rejectOrder(order.id, "Rechazado desde App Tec[ode]") },
+                                        onClick = { viewModel.rejectOrder(order.id, "Rechazado desde App Tec[ode") },
                                         variant = TTButtonVariant.Danger,
                                         modifier = Modifier.weight(1f)
                                     )

@@ -122,7 +122,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "Tec[ode] ERP Constructor · Sistema Seguro SSL",
+                        text = "Tec[ode ERP Constructor · Sistema Seguro SSL",
                         fontSize = 11.sp,
                         color = TecodeTextMuted,
                         modifier = Modifier.align(Alignment.CenterHorizontally)

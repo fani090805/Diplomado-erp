@@ -1,13 +1,13 @@
-# DESCRIPCIÓN FUNCIONAL DE MÓDULOS: ERP CONSTRUCTOR (Tec[ode])
+# DESCRIPCIÓN FUNCIONAL DE MÓDULOS: ERP CONSTRUCTOR (Tec[ode)
 
-Este documento detalla la funcionalidad operativa, flujo de trabajo y mapeo de datos de cada módulo del sistema **ERP Constructor** bajo la marca **Tec[ode]**.
+Este documento detalla la funcionalidad operativa, flujo de trabajo y mapeo de datos de cada módulo del sistema **ERP Constructor** bajo la marca **Tec[ode**.
 
 ---
 
 ## 1. MÓDULO DE AUTENTICACIÓN Y SEGURIDAD
 
 - **Objetivo**: Garantizar el acceso seguro de usuarios según su rol y empresa asignada.
-- **Marca e Identidad**: Muestra el logo vector **Tec[ode]** con el título **ERP Constructor**.
+- **Marca e Identidad**: Muestra el logo vector **Tec[ode** con el título **ERP Constructor**.
 - **Funcionalidades**:
   - Inicio de sesión con correo electrónico y contraseña.
   - Validación de credenciales contra la API REST de producción (`/auth/login`).
