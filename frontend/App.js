@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/auth/AuthContext';
 import { RouterProvider, useNav } from './src/nav/RouterContext';
@@ -49,6 +49,15 @@ function Root() {
 }
 
 export default function App() {
+  useEffect(() => {
+    if (Platform.OS !== 'web' || document.querySelector('[data-craberp-fonts]')) return;
+    const fonts = document.createElement('link');
+    fonts.rel = 'stylesheet';
+    fonts.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap';
+    fonts.dataset.craberpFonts = 'true';
+    document.head.appendChild(fonts);
+  }, []);
+
   return (
     <AuthProvider>
       <StatusBar style="light" />

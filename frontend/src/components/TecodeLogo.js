@@ -3,27 +3,28 @@ import { StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS, TYPOGRAPHY } from '../design-system/tokens';
 
 /**
- * TecodeLogoIcon - Símbolo de insignia oficial Tec[ode
- * Polígono morado con T estilizada, brackets < > y barra inferior inclinada blanca.
+ * TecodeLogoIcon - Insignia geométrica de circuito CRABERP.
  */
 export function TecodeLogoIcon({ size = 40, style }) {
-  const scale = size / 40;
-
   return (
     <View style={[styles.iconWrapper, { width: size, height: size, borderRadius: size * 0.28 }, style]}>
-      <View style={styles.iconInner}>
-        <View style={styles.topRow}>
-          <Text style={[styles.tChar, { fontSize: Math.round(18 * scale) }]}>T</Text>
-          <Text style={[styles.codeChar, { fontSize: Math.round(14 * scale) }]}>&lt;&gt;</Text>
+      <View style={styles.crabCircuit}>
+        <View style={styles.clawLeft} />
+        <View style={styles.clawRight} />
+        <View style={styles.crabBody}>
+          <View style={styles.eyeRow}><View style={styles.eye} /><View style={styles.eye} /></View>
         </View>
-        <View style={[styles.slashBar, { height: Math.max(3, Math.round(4 * scale)) }]} />
+        <View style={styles.legRow}>
+          <View style={styles.legLeft} /><View style={styles.legCenterLeft} />
+          <View style={styles.legCenterRight} /><View style={styles.legRight} />
+        </View>
       </View>
     </View>
   );
 }
 
 /**
- * TecodeLogo - Logo completo oficial Tec[ode (Insignia + Wordmark Tec[ode)
+ * TecodeLogo - CRABERP wordmark and geometric crab mark.
  */
 export function TecodeLogo({ size = 'md', showTag = true, layout = 'horizontal', style }) {
   const isLg = size === 'lg';
@@ -35,12 +36,10 @@ export function TecodeLogo({ size = 'md', showTag = true, layout = 'horizontal',
 
       <View style={[styles.textGroup, layout === 'vertical' && styles.verticalTextGroup]}>
         <View style={styles.wordmarkRow}>
-          <Text style={[styles.wordText, isLg && styles.wordTextLg]}>Tec</Text>
-          <Text style={[styles.bracketText, isLg && styles.wordTextLg]}>[</Text>
-          <Text style={[styles.wordText, isLg && styles.wordTextLg]}>ode</Text>
+          <Text style={[styles.wordText, isLg && styles.wordTextLg]}>CRABERP</Text>
         </View>
         {showTag ? (
-          <Text style={[styles.tagline, isLg && styles.taglineLg]}>ERP Enterprise</Text>
+          <Text style={[styles.tagline, isLg && styles.taglineLg]}>Technologies</Text>
         ) : null}
       </View>
     </View>
@@ -50,48 +49,29 @@ export function TecodeLogo({ size = 'md', showTag = true, layout = 'horizontal',
 const styles = StyleSheet.create({
   // Icon Badge
   iconWrapper: {
-    backgroundColor: '#7C3AED',
-    borderWidth: 1.5,
-    borderColor: '#9333EA',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-    shadowColor: '#7C3AED',
+    shadowColor: '#15513E',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.18,
     shadowRadius: 6,
     elevation: 4,
   },
-  iconInner: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '85%',
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  tChar: {
-    fontFamily: 'serif',
-    fontWeight: '900',
-    color: '#080B14',
-    fontStyle: 'normal',
-  },
-  codeChar: {
-    fontFamily: TYPOGRAPHY.fontFamily.mono,
-    fontWeight: '900',
-    color: '#080B14',
-    letterSpacing: -1,
-  },
-  slashBar: {
-    width: '90%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: RADIUS.xs,
-    transform: [{ rotate: '-6deg' }],
-    marginTop: 1,
-  },
+  crabCircuit: { width: '76%', height: '70%', alignItems: 'center', justifyContent: 'center' },
+  crabBody: { width: '44%', height: '34%', borderRadius: 8, backgroundColor: '#F28C28', alignItems: 'center', justifyContent: 'center' },
+  eyeRow: { flexDirection: 'row', gap: 5 },
+  eye: { width: 2, height: 2, borderRadius: 1, backgroundColor: '#FFFFFF' },
+  clawLeft: { position: 'absolute', top: '18%', left: '12%', width: '26%', height: 2, backgroundColor: '#F28C28', transform: [{ rotate: '-34deg' }] },
+  clawRight: { position: 'absolute', top: '18%', right: '12%', width: '26%', height: 2, backgroundColor: '#F28C28', transform: [{ rotate: '34deg' }] },
+  legRow: { position: 'absolute', bottom: '15%', flexDirection: 'row', width: '100%', justifyContent: 'space-between' },
+  legLeft: { width: '20%', height: 2, backgroundColor: '#FFFFFF', transform: [{ rotate: '28deg' }] },
+  legCenterLeft: { width: '18%', height: 2, backgroundColor: '#FFFFFF', transform: [{ rotate: '12deg' }] },
+  legCenterRight: { width: '18%', height: 2, backgroundColor: '#FFFFFF', transform: [{ rotate: '-12deg' }] },
+  legRight: { width: '20%', height: 2, backgroundColor: '#FFFFFF', transform: [{ rotate: '-28deg' }] },
 
   // Full Logo Layout
   logoContainer: {
@@ -116,14 +96,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wordText: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: '800',
     fontFamily: TYPOGRAPHY.fontFamily.display,
-    letterSpacing: -0.5,
+    letterSpacing: 0,
   },
   bracketText: {
-    color: '#F8FAFC',
+    color: '#FFFFFF',
     fontSize: 20,
     fontWeight: '900',
     fontFamily: TYPOGRAPHY.fontFamily.display,
@@ -132,10 +112,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   tagline: {
-    color: COLORS.accent,
+    color: '#E8DDC8',
     fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 0.8,
+    letterSpacing: 0,
     textTransform: 'uppercase',
   },
   taglineLg: {

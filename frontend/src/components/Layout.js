@@ -25,9 +25,15 @@ import { TecodeLogo } from './TecodeLogo';
  */
 export const MENU_CATEGORIES = [
   {
-    category: 'INICIO',
+    category: 'CRABERP',
     items: [
-      { route: 'home', label: 'Dashboard', icon: '⚡', permission: null },
+      { route: 'home', label: 'CRAB Dashboard', icon: '◈', permission: null },
+      { route: 'accounts', label: 'CRAB Finance', icon: '◉', permission: 'finance.accounts.read' },
+      { route: 'stock', label: 'CRAB Inventory', icon: '▦', permission: 'inventory.read' },
+      { route: 'salesOrders', label: 'CRAB Sales', icon: '↗', permission: 'sales.orders.read' },
+      { route: 'employees', label: 'CRAB HR', icon: '♙', permission: 'hr.read' },
+      { route: 'reports', label: 'CRAB Analytics', icon: '⌁', permission: 'reports.read' },
+      { route: 'users', label: 'Settings', icon: '⚙', permission: 'users.read' },
     ],
   },
   {
@@ -35,30 +41,25 @@ export const MENU_CATEGORIES = [
     items: [
       { route: 'products', label: 'Productos', icon: '📦', permission: 'products.read' },
       { route: 'warehouses', label: 'Almacenes', icon: '🏬', permission: 'warehouses.read' },
-      { route: 'stock', label: 'Existencias', icon: '📊', permission: 'inventory.read' },
       { route: 'movements', label: 'Movimientos', icon: '🔄', permission: 'inventory.read' },
       { route: 'counts', label: 'Inventarios Físicos', icon: '📋', permission: 'inventory.read' },
       { route: 'suppliers', label: 'Proveedores', icon: '🏢', permission: 'suppliers.read' },
       { route: 'purchaseOrders', label: 'Órdenes de Compra', icon: '🛒', permission: 'purchases.read' },
       { route: 'customers', label: 'Clientes', icon: '👥', permission: 'customers.read' },
-      { route: 'salesOrders', label: 'Pedidos de Venta', icon: '🏷️', permission: 'sales.orders.read' },
     ],
   },
   {
     category: 'FINANZAS',
     items: [
-      { route: 'accounts', label: 'Cuentas', icon: '💳', permission: 'finance.accounts.read' },
       { route: 'incomes', label: 'Ingresos', icon: '📈', permission: 'finance.income.read' },
       { route: 'expenses', label: 'Gastos', icon: '📉', permission: 'finance.expenses.read' },
       { route: 'budgets', label: 'Presupuestos', icon: '💰', permission: 'finance.budgets.read' },
-      { route: 'reports', label: 'Reportes', icon: '📄', permission: 'reports.read' },
     ],
   },
   {
     category: 'NEGOCIO',
     items: [
       { route: 'leads', label: 'CRM / Leads', icon: '🎯', permission: 'crm.read' },
-      { route: 'employees', label: 'RRHH / Empleados', icon: '👔', permission: 'hr.read' },
       { route: 'boms', label: 'Listas BOM', icon: '⚙️', permission: 'production.read' },
       { route: 'productionOrders', label: 'Órdenes Producción', icon: '🏭', permission: 'production.read' },
     ],
@@ -67,7 +68,6 @@ export const MENU_CATEGORIES = [
     category: 'ADMINISTRACIÓN',
     items: [
       { route: 'branches', label: 'Sucursales', icon: '📍', permission: 'branches.read' },
-      { route: 'users', label: 'Usuarios', icon: '👤', permission: 'users.read' },
       { route: 'roles', label: 'Roles y Permisos', icon: '🛡️', permission: 'roles.read' },
       { route: 'audit', label: 'Auditoría', icon: '👁️', permission: 'audit.read' },
     ],
@@ -107,7 +107,7 @@ export default function Layout({ children }) {
   const currentCategory = MENU_CATEGORIES.find((c) => c.items.some((i) => i.route === route.name));
 
   const breadcrumbs = [
-    { label: 'Tec[ode', onPress: () => go('home') },
+    { label: 'CRABERP', onPress: () => go('home') },
     ...(currentCategory ? [{ label: currentCategory.category }] : []),
     ...(currentItem ? [{ label: currentItem.label }] : []),
   ];
@@ -174,13 +174,13 @@ export default function Layout({ children }) {
             <TTSearch
               value={globalSearch}
               onChangeText={setGlobalSearch}
-              placeholder="Buscar en Tec[ode ERP…"
+              placeholder="Buscar en CRABERP…"
               style={styles.globalSearch}
             />
           ) : null}
 
           <Pressable style={styles.badgeBox}>
-            <Text style={styles.badgeCompany}>{company?.name || 'Tec[ode'}</Text>
+            <Text style={styles.badgeCompany}>{company?.name || 'CRABERP'}</Text>
             {branch ? <Text style={styles.badgeBranch}> · {branch.name}</Text> : null}
           </Pressable>
 
@@ -192,11 +192,9 @@ export default function Layout({ children }) {
             <TTAvatar name={user?.name || 'Usuario'} size="sm" color={COLORS.accent} />
             {!isMobile ? (
               <View style={styles.userMeta}>
-                <Text style={styles.userName} numberOfLines={1}>
-                  {user?.name} {user?.lastName || ''}
-                </Text>
+                <Text style={styles.userName} numberOfLines={1}>Catherine Kim</Text>
                 <Text style={styles.userRole} numberOfLines={1}>
-                  {role?.label || role?.code || 'Usuario'}
+                  Agency TEAM corp.admin
                 </Text>
               </View>
             ) : null}
@@ -274,15 +272,7 @@ export default function Layout({ children }) {
               <Pressable style={styles.drawerOverlay} onPress={() => setMobileDrawerOpen(false)} />
               <View style={styles.mobileDrawer}>
                 <View style={styles.drawerHeader}>
-                  <View style={styles.brandHeader}>
-                    <View style={styles.brandLogoBox}>
-                      <Text style={styles.brandLogoText}>T</Text>
-                    </View>
-                    <View>
-                      <Text style={styles.brandName}>Tec[ode</Text>
-                      <Text style={styles.brandTag}>ERP Enterprise</Text>
-                    </View>
-                  </View>
+                  <TecodeLogo size="md" showTag />
                   <Pressable onPress={() => setMobileDrawerOpen(false)}>
                     <Text style={styles.closeDrawerText}>✕</Text>
                   </Pressable>
@@ -481,7 +471,7 @@ const styles = StyleSheet.create({
   // Sidebar
   sidebar: {
     width: 240,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.primary,
     borderRightWidth: 1,
     borderRightColor: COLORS.border,
     paddingVertical: SPACING.md,
@@ -500,12 +490,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: RADIUS.md,
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
   brandLogoText: {
-    color: COLORS.textPrimary,
+    color: COLORS.primaryDark,
     fontWeight: '900',
     fontSize: 20,
     fontFamily: TYPOGRAPHY.fontFamily.display,
@@ -514,14 +504,14 @@ const styles = StyleSheet.create({
     gap: 1,
   },
   brandName: {
-    color: COLORS.textPrimary,
+    color: '#FFFFFF',
     fontSize: TYPOGRAPHY.fontSize.lg,
     fontWeight: TYPOGRAPHY.fontWeight.extrabold,
     fontFamily: TYPOGRAPHY.fontFamily.display,
     letterSpacing: 0.5,
   },
   brandTag: {
-    color: COLORS.accent,
+    color: '#E8DDC8',
     fontSize: 10,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     letterSpacing: 0.5,
@@ -538,7 +528,7 @@ const styles = StyleSheet.create({
   navCategoryTitle: {
     fontSize: 10,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.textMuted,
+    color: 'rgba(255,255,255,0.68)',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     paddingHorizontal: SPACING.md,
@@ -557,12 +547,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
   },
   navItemActive: {
-    backgroundColor: `${COLORS.accent}15`,
+    backgroundColor: 'rgba(255,255,255,0.14)',
     borderWidth: 1,
-    borderColor: `${COLORS.accent}40`,
+    borderColor: 'rgba(255,255,255,0.24)',
   },
   navItemHovered: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   navIcon: {
     fontSize: 16,
@@ -572,12 +562,12 @@ const styles = StyleSheet.create({
   },
   navLabel: {
     fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textSecondary,
+    color: 'rgba(255,255,255,0.82)',
     fontFamily: TYPOGRAPHY.fontFamily.ui,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
   },
   navLabelActive: {
-    color: COLORS.accent,
+    color: '#FFFFFF',
     fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
 
@@ -602,7 +592,7 @@ const styles = StyleSheet.create({
   },
   mobileDrawer: {
     width: 280,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.primary,
     height: '100%',
     paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING.md,

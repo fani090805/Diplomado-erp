@@ -1,46 +1,45 @@
 /**
- * TECTODE Design Tokens - Colors
- * Paleta de colores oficial TECTODE ERP (Dark Theme)
+ * CRABERP Design Tokens - Colors
  */
 export const COLORS = {
   // Structure & Elevation
-  background: '#080B14',
-  surface: '#0D111C',
-  card: '#111622',
-  cardElevated: '#151B28',
-  border: '#252D3D',
-  borderHover: '#3B475D',
-  borderFocus: '#7C3AED',
+  background: '#E8DDC8',
+  surface: '#FFFFFF',
+  card: '#FFFFFF',
+  cardElevated: '#FFFFFF',
+  border: '#DED8CC',
+  borderHover: '#B8C9BE',
+  borderFocus: '#48A67E',
 
   // Brand
-  primary: '#7C3AED',       // Morado TECTODE
-  primaryLight: '#9333EA',
-  primaryDark: '#5B21B6',
-  primaryGlow: 'rgba(124, 58, 237, 0.25)',
+  primary: '#1D6B52',
+  primaryLight: '#48A67E',
+  primaryDark: '#15513E',
+  primaryGlow: 'rgba(29, 107, 82, 0.16)',
 
   // Highlights & Actions
-  accent: '#B6FF00',        // Lime/Verde TECTODE (CTAs primarios, activos)
-  accentHover: '#A2E000',
-  accentGlow: 'rgba(182, 255, 0, 0.2)',
+  accent: '#F28C28',
+  accentHover: '#D97716',
+  accentGlow: 'rgba(242, 140, 40, 0.18)',
 
-  info: '#00D9FF',          // Cyan (Métricas, información)
-  infoGlow: 'rgba(0, 217, 255, 0.2)',
+  info: '#48A67E',
+  infoGlow: 'rgba(72, 166, 126, 0.16)',
 
   // States
-  success: '#B6FF00',
-  successDark: '#047857',
-  warning: '#F59E0B',
-  warningGlow: 'rgba(245, 158, 11, 0.2)',
-  error: '#EF4444',
-  errorGlow: 'rgba(239, 68, 68, 0.2)',
+  success: '#1D6B52',
+  successDark: '#15513E',
+  warning: '#F28C28',
+  warningGlow: 'rgba(242, 140, 40, 0.16)',
+  error: '#C44B3F',
+  errorGlow: 'rgba(196, 75, 63, 0.14)',
 
   // Text
-  textPrimary: '#F8FAFC',
-  textSecondary: '#CBD5E1',
-  textMuted: '#94A3B8',
-  textDark: '#080B14',       // Para botones sobre acento Lime
-  textInverted: '#080B14',
+  textPrimary: '#444444',
+  textSecondary: '#5B5B56',
+  textMuted: '#77766F',
+  textDark: '#33200D',
+  textInverted: '#FFFFFF',
 
   // Overlay
-  backdrop: 'rgba(8, 11, 20, 0.85)',
+  backdrop: 'rgba(26, 39, 32, 0.62)',
 };

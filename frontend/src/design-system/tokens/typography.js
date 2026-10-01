@@ -4,14 +4,14 @@
 import { Platform } from 'react-native';
 
 const fontFamilyDisplay = Platform.select({
-  web: "'Space Grotesk', 'Sora', system-ui, -apple-system, sans-serif",
+  web: "'Montserrat', system-ui, sans-serif",
   ios: 'System',
   android: 'sans-serif-medium',
   default: 'System',
 });
 
 const fontFamilyUI = Platform.select({
-  web: "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  web: "'Poppins', system-ui, sans-serif",
   ios: 'System',
   android: 'sans-serif',
   default: 'System',

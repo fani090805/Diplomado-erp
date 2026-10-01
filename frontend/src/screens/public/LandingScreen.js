@@ -16,8 +16,7 @@ import { TTBadge, TTButton, TTCard } from '../../design-system/components';
 import { TecodeLogo } from '../../components/TecodeLogo';
 
 /**
- * LandingScreen - Landing Page Pública TECTODE ERP
- * Estética Tech / Gaming / SaaS Premium
+ * LandingScreen - Public CRABERP product page.
  */
 export default function LandingScreen({ onGoLogin }) {
   const [activeTab, setActiveTab] = useState('ERP');
@@ -50,15 +49,15 @@ export default function LandingScreen({ onGoLogin }) {
       {/* HERO SECTION */}
       <View style={styles.heroSection}>
         <View style={styles.heroBadgeBox}>
-          <TTBadge value="active" label="TEC[ODE ENTERPRISE 2026" variant="accent" />
+          <TTBadge value="active" label="CRABERP TECHNOLOGIES" variant="accent" />
         </View>
 
         <Text style={styles.heroTitle}>
-          GESTIONA. <Text style={styles.heroHighlight}>CRECE.</Text> DOMINA.
+          CRABERP
         </Text>
 
         <Text style={styles.heroSubtitle}>
-          El ecosistema tecnológico definitivo para operar, controlar y escalar tu empresa con velocidad y precisión sin precedentes.
+          Conectando procesos, impulsando empresas. Una plataforma integrada para operar, controlar y escalar tu negocio.
         </Text>
 
         <View style={styles.heroCtaRow}>
@@ -66,7 +65,7 @@ export default function LandingScreen({ onGoLogin }) {
             Comenzar Ahora →
           </TTButton>
           <TTButton variant="secondary" size="lg" onPress={onGoLogin}>
-            Conocer Tec[ode
+            Explorar módulos
           </TTButton>
         </View>
 
@@ -150,7 +149,7 @@ export default function LandingScreen({ onGoLogin }) {
               <View style={[styles.dot, styles.dotYellow]} />
               <View style={[styles.dot, styles.dotGreen]} />
             </View>
-            <Text style={styles.mockupUrl}>https://tec-ode.app/dashboard</Text>
+            <Text style={styles.mockupUrl}>craberp.app/dashboard</Text>
           </View>
 
           <View style={styles.mockupBody}>
@@ -177,7 +176,7 @@ export default function LandingScreen({ onGoLogin }) {
 
       {/* VENTAJAS COMPETITIVAS */}
       <View style={styles.section}>
-        <Text style={styles.sectionPre}>POR QUÉ TEC[ODE</Text>
+        <Text style={styles.sectionPre}>POR QUÉ CRABERP</Text>
         <Text style={styles.sectionTitle}>Ventajas estratégicas para tu operación.</Text>
 
         <View style={styles.advantagesGrid}>
@@ -230,7 +229,7 @@ export default function LandingScreen({ onGoLogin }) {
 
       {/* FOOTER */}
       <View style={styles.footer}>
-        <Text style={styles.footerBrand}>Tec[ode ERP Enterprise © 2026</Text>
+        <Text style={styles.footerBrand}>CRABERP Technologies © 2026</Text>
         <Text style={styles.footerSub}>Todos los derechos reservados.</Text>
       </View>
     </ScrollView>
