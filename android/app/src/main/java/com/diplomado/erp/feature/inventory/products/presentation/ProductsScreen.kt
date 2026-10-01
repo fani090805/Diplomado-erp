@@ -76,9 +76,10 @@ fun ProductsScreen(
                             }
                             Column(horizontalAlignment = Alignment.End) {
                                 TTBadge(status = material.status)
-                                if (!material.trackingMode.isNullOrEmpty() && material.trackingMode != "none") {
+                                val mode = material.trackingMode ?: "none"
+                                if (mode != "none" && mode.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    TTBadge(status = "active", customLabel = "Control ${material.trackingMode.uppercase()}")
+                                    TTBadge(status = "active", customLabel = "Control ${mode.uppercase()}")
                                 }
                             }
                         }

@@ -13,6 +13,7 @@ data class ProductDto(
     @SerializedName("salePrice") val salePrice: Double? = 0.0,
     @SerializedName("minStock") val minStock: Double? = 0.0,
     @SerializedName("maxStock") val maxStock: Double? = 0.0,
+    @SerializedName("trackingMode") val trackingMode: String? = "none",
     @SerializedName("status") val status: String = "active",
     @SerializedName("description") val description: String? = null
 )
