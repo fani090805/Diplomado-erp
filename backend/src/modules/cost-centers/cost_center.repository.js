@@ -1,6 +1,6 @@
 'use strict';
 
-const BaseRepository = require('../../common/base.repository');
+const BaseRepository = require('../../common/BaseRepository');
 const CostCenter = require('./cost_center.model');
 
 class CostCenterRepository extends BaseRepository {
