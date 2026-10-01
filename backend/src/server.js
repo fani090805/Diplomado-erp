@@ -11,9 +11,16 @@ const app = require('./app');
 const env = require('./config/env');
 const logger = require('./config/logger');
 const { connectDatabase, disconnectDatabase } = require('./config/database');
+const { runSeed } = require('./scripts/seed');
 
 async function main() {
   await connectDatabase();
+
+  try {
+    await runSeed({ withDemo: true });
+  } catch (seedErr) {
+    logger.warn({ err: seedErr.message }, 'Advertencia al ejecutar semilla inicial');
+  }
 
   const server = app.listen(env.port, () => {
     logger.info(

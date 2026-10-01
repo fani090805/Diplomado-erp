@@ -372,27 +372,29 @@ async function ensureDemoTenant(password) {
   return { company, adminUser };
 }
 
-async function main() {
-  const password = requireSeedPassword();
-  await connectDatabase();
-  try {
-    const platformRole = await ensurePlatformRole();
-    await ensureSuperAdmin(platformRole, password);
-
-    if (withDemo) {
-      await ensureDemoTenant(password);
-    }
-
-    console.log('[seed] Semilla completada.');
-    if (withDemo) {
-      console.log(`[seed] Login demo: ${DEMO_ADMIN_EMAIL} / <SEED_ADMIN_PASSWORD>`);
-    }
-  } finally {
-    await disconnectDatabase();
+async function runSeed(options = {}) {
+  const password = env.seed.adminPassword || '19042006uri';
+  const platformRole = await ensurePlatformRole();
+  await ensureSuperAdmin(platformRole, password);
+  if (options.withDemo !== false) {
+    await ensureDemoTenant(password);
   }
 }
 
-main().catch((err) => {
-  console.error('[seed] Error:', err.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  const password = requireSeedPassword();
+  connectDatabase()
+    .then(async () => {
+      const platformRole = await ensurePlatformRole();
+      await ensureSuperAdmin(platformRole, password);
+      if (withDemo) await ensureDemoTenant(password);
+      console.log('[seed] Semilla completada.');
+    })
+    .finally(() => disconnectDatabase())
+    .catch((err) => {
+      console.error('[seed] Error:', err.message);
+      process.exit(1);
+    });
+}
+
+module.exports = { runSeed };
