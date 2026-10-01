@@ -23,10 +23,10 @@ fun AuditScreen(
 
     Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
         when (val state = uiState) {
-            is AuditUiState.Loading -> TTLoading(text = "Cargando bitácora inmutable de auditoría...")
+            is AuditUiState.Loading -> TTLoading(text = "Cargando bitácora inmutable de trazabilidad de obra...")
             is AuditUiState.Error -> {
                 TTEmptyState(
-                    title = "Error de auditoría",
+                    title = "Error de trazabilidad",
                     description = state.message,
                     actionLabel = "Reintentar",
                     onAction = { viewModel.loadAuditLogs() }
@@ -34,10 +34,10 @@ fun AuditScreen(
             }
             is AuditUiState.Success -> {
                 TTDataTable(
-                    title = "Auditoría",
-                    subtitle = "${state.logs.size} eventos registrados (Solo lectura)",
+                    title = "Trazabilidad & Auditoría",
+                    subtitle = "${state.logs.size} eventos inmutables de obra",
                     items = state.logs,
-                    emptyText = "Sin registros de auditoría."
+                    emptyText = "Sin registros de auditoría registrados."
                 ) { log ->
                     TTCard(modifier = Modifier.fillMaxWidth()) {
                         Row(
@@ -47,19 +47,19 @@ fun AuditScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "${log.action} • ${log.entity}",
+                                    text = "${log.action} · ${log.entity}",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TecodeTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Usuario: ${log.user?.email ?: "Sistema"} • Fecha: ${log.createdAt?.take(10) ?: "—"}",
+                                    text = "Responsable: ${log.user?.email ?: "Sistema"} • Fecha: ${log.createdAt?.take(10) ?: "—"}",
                                     fontSize = 12.sp,
                                     color = TecodeTextMuted
                                 )
                             }
-                            TTBadge(status = "active", customLabel = "Auditado")
+                            TTBadge(status = "POSTED", customLabel = "Inmutable")
                         }
                     }
                 }
