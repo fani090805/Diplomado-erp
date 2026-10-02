@@ -163,7 +163,59 @@ async function sendWelcomeEmail({ email, name, companyName, roleName }) {
   });
 }
 
+function getLoginNotificationHtml({ name, email, date, ip }) {
+  return `
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Inicio de Sesión Detectado - Tec[ode ERP</title></head>
+<body style="margin: 0; padding: 0; background-color: #080B14; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #F3F4F6;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #080B14; padding: 40px 10px;">
+    <tr><td align="center">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #111622; border: 1px solid #252D3D; border-radius: 16px; overflow: hidden; padding: 32px;">
+        <tr>
+          <td>
+            <div style="margin-bottom: 20px;">
+              <span style="font-size: 22px; font-weight: 800; color: #FFFFFF;">Tec<span style="color: #B6FF00;">[</span>ode</span>
+              <br><span style="font-size: 10px; font-weight: 800; color: #B6FF00; letter-spacing: 1px;">ERP CONSTRUCTOR</span>
+            </div>
+            <h2 style="color: #FFFFFF; font-size: 20px; margin: 0 0 12px 0;">Inicio de Sesión Detectado 🔐</h2>
+            <p style="color: #9CA3AF; font-size: 14px; line-height: 1.5; margin: 0 0 20px 0;">
+              Hola <strong style="color: #FFFFFF;">${name || email}</strong>, se ha iniciado sesión correctamente en tu cuenta de <strong style="color: #FFFFFF;">Tec[ode ERP Constructor</strong>.
+            </p>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #151B28; border: 1px solid #252D3D; border-radius: 10px; padding: 16px; margin-bottom: 20px;">
+              <tr>
+                <td>
+                  <p style="margin: 4px 0; color: #E5E7EB; font-size: 13px;"><strong style="color: #9CA3AF;">Correo:</strong> ${email}</p>
+                  <p style="margin: 4px 0; color: #E5E7EB; font-size: 13px;"><strong style="color: #9CA3AF;">Fecha y Hora:</strong> ${date}</p>
+                  ${ip ? `<p style="margin: 4px 0; color: #E5E7EB; font-size: 13px;"><strong style="color: #9CA3AF;">Dirección IP:</strong> ${ip}</p>` : ''}
+                </td>
+              </tr>
+            </table>
+            <p style="color: #6B7280; font-size: 12px; line-height: 1.5; margin: 0;">
+              Si fuiste tú, puedes ignorar este mensaje. Si no reconoces esta actividad, te recomendamos cambiar tu contraseña de inmediato.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+  `;
+}
+
+async function sendLoginNotification({ email, name, ip }) {
+  const date = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+  const html = getLoginNotificationHtml({ name, email, date, ip });
+  return sendEmail({
+    to: email,
+    subject: '🔐 Notificación de Inicio de Sesión - Tec[ode ERP Constructor',
+    html,
+  });
+}
+
 module.exports = {
   sendEmail,
   sendWelcomeEmail,
+  sendLoginNotification,
 };

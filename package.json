@@ -4,6 +4,7 @@
   "private": true,
   "description": "ERP multiempresa modular (React Native + RN Web / Node.js + Express / MongoDB Atlas)",
   "scripts": {
+    "build": "echo 'No build step required for root'",
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend start",
     "web:frontend": "npm --prefix frontend run web",

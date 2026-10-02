@@ -79,6 +79,19 @@ app.use(
   })
 );
 
+/** Root greeting endpoint para Render health pings. */
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      app: 'Tec[ode ERP Constructor',
+      status: 'online',
+      apiPrefix: env.apiPrefix,
+      health: `${env.apiPrefix}/health`
+    }
+  });
+});
+
 /** Health check público para monitoreo/load balancer. */
 app.get('/health', (req, res) => {
   res.json({ success: true, data: { status: 'ok', uptime: process.uptime() } });
