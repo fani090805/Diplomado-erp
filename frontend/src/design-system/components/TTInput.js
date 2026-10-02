@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
+import { TTIcon } from './TTIcon';
 
 /**
  * TTInput - Campo de entrada de FAI Solution ERP
@@ -71,7 +72,11 @@ export function TTInput({
 
         {isPassword ? (
           <Pressable style={styles.passwordToggle} onPress={() => setShowPassword((s) => !s)}>
-            <Text style={styles.passwordToggleText}>{showPassword ? '🙈' : '👁️'}</Text>
+            <TTIcon
+              name={showPassword ? 'ocultar' : 'ver'}
+              size={18}
+              color={COLORS.textMuted}
+            />
           </Pressable>
         ) : iconRight ? (
           <View style={styles.iconRight}>{iconRight}</View>
@@ -163,9 +168,6 @@ const styles = StyleSheet.create({
   passwordToggle: {
     padding: SPACING.xs,
     marginLeft: SPACING.xs,
-  },
-  passwordToggleText: {
-    fontSize: TYPOGRAPHY.fontSize.md,
   },
   errorText: {
     fontSize: TYPOGRAPHY.fontSize.xs,

@@ -2,12 +2,13 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 import { TTButton } from './TTButton';
+import { TTIcon } from './TTIcon';
 
 /**
  * TTEmptyState - Estado vacío estilizado de FAI Solution ERP
  */
 export function TTEmptyState({
-  icon = '📂',
+  icon = 'carpetaVacia',
   title = 'Sin información',
   description = 'No se encontraron registros para mostrar.',
   actionLabel,
@@ -17,7 +18,7 @@ export function TTEmptyState({
   return (
     <View style={[styles.container, style]}>
       <View style={styles.iconWrapper}>
-        <Text style={styles.icon}>{icon}</Text>
+        <TTIcon name={icon} size={40} color={COLORS.textMuted} />
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.description}>{description}</Text>
@@ -55,9 +56,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.xs,
-  },
-  icon: {
-    fontSize: 22,
   },
   title: {
     fontSize: TYPOGRAPHY.fontSize.lg,

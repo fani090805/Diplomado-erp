@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FlatList, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
+import { TTIcon } from './TTIcon';
 
 /**
  * TTSelect - Desplegable selector de FAI Solution ERP
@@ -51,7 +52,12 @@ export function TTSelect({
         <Text style={[styles.valueText, !selectedOption && styles.placeholderText]} numberOfLines={1}>
           {selectedOption ? selectedOption.label : placeholder}
         </Text>
-        <Text style={styles.caret}>{open ? '▴' : '▾'}</Text>
+        <TTIcon
+          name={open ? 'chevronArriba' : 'chevronAbajo'}
+          size={16}
+          color={COLORS.textMuted}
+          style={styles.caret}
+        />
       </Pressable>
 
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -64,7 +70,7 @@ export function TTSelect({
               <View style={styles.panelHeader}>
                 <Text style={styles.panelTitle}>{label || 'Seleccionar'}</Text>
                 <Pressable onPress={() => setOpen(false)}>
-                  <Text style={styles.closeIcon}>✕</Text>
+                  <TTIcon name="cerrar" size={18} color={COLORS.textMuted} />
                 </Pressable>
               </View>
 
@@ -102,7 +108,7 @@ export function TTSelect({
                       <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
                         {item.label}
                       </Text>
-                      {isSelected ? <Text style={styles.checkMark}>✓</Text> : null}
+                      {isSelected ? <TTIcon name="check" size={16} color={COLORS.primary} /> : null}
                     </Pressable>
                   );
                 }}
@@ -170,8 +176,6 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
   caret: {
-    color: COLORS.textMuted,
-    fontSize: TYPOGRAPHY.fontSize.xs + 2,
     marginLeft: SPACING.sm,
   },
   errorText: {
@@ -213,11 +217,6 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     color: COLORS.textPrimary,
     fontFamily: TYPOGRAPHY.fontFamily.display,
-  },
-  closeIcon: {
-    color: COLORS.textMuted,
-    fontSize: 16,
-    padding: SPACING.xs,
   },
   filterWrapper: {
     padding: SPACING.sm,
@@ -270,9 +269,5 @@ const styles = StyleSheet.create({
   optionTextSelected: {
     color: COLORS.primary,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
-  },
-  checkMark: {
-    color: COLORS.primary,
-    fontWeight: '700',
   },
 });

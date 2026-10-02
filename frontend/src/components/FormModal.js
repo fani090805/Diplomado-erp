@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
 import { TTButton, TTInput, TTSelect } from '../design-system/components';
+import { TTIcon } from '../design-system/components/TTIcon';
 
 /**
  * FormModal - Modal de formulario dinámico de FAI Solution ERP.
@@ -147,13 +148,19 @@ function LinesEditor({ field, rows, onChange }) {
             </View>
           ))}
           <Pressable style={styles.lineRemove} onPress={() => onChange(rows.filter((_, i) => i !== idx))}>
-            <Text style={styles.lineRemoveText}>✕</Text>
+            <TTIcon name="cerrar" size={15} color={COLORS.error} />
           </Pressable>
         </View>
       ))}
 
-      <TTButton variant="secondary" size="sm" onPress={add} style={styles.lineAddBtn}>
-        + Agregar línea
+      <TTButton
+        variant="secondary"
+        size="sm"
+        onPress={add}
+        style={styles.lineAddBtn}
+        iconLeft={<TTIcon name="agregar" size={15} color={COLORS.textPrimary} />}
+      >
+        Agregar línea
       </TTButton>
     </View>
   );
@@ -163,7 +170,7 @@ function Checkbox({ checked, onChange, label }) {
   return (
     <Pressable style={styles.checkRow} onPress={() => onChange(!checked)}>
       <View style={[styles.box, checked && styles.boxOn]}>
-        {checked ? <Text style={styles.boxMark}>✓</Text> : null}
+        {checked ? <TTIcon name="check" size={13} color={COLORS.textInverted} /> : null}
       </View>
       <Text style={styles.checkLabel}>{label}</Text>
     </Pressable>
@@ -329,7 +336,8 @@ export default function FormModal({ visible, title, fields = [], initial = null,
 
             {error ? (
               <View style={styles.errorBox}>
-                <Text style={styles.errorText}>⚠️ {error}</Text>
+                <TTIcon name="alerta" size={18} color={COLORS.error} />
+                <Text style={styles.errorText}>{error}</Text>
               </View>
             ) : null}
           </ScrollView>
@@ -396,6 +404,9 @@ const styles = StyleSheet.create({
     marginTop: SPACING.xs,
   },
   errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
     backgroundColor: `${COLORS.error}15`,
     borderColor: `${COLORS.error}40`,
     borderWidth: 1,

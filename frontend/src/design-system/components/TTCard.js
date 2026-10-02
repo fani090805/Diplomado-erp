@@ -1,11 +1,12 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
+import { TTIcon } from './TTIcon';
 
 /**
  * TTCard - Contenedor en tarjeta de FAI Solution ERP
  */
-export function TTCard({ children, title, subtitle, action, elevated = false, style, contentStyle, onPress }) {
+export function TTCard({ children, title, subtitle, titleIcon, action, elevated = false, style, contentStyle, onPress }) {
   const Container = onPress ? Pressable : View;
 
   return (
@@ -21,8 +22,11 @@ export function TTCard({ children, title, subtitle, action, elevated = false, st
       {title || subtitle || action ? (
         <View style={styles.header}>
           <View style={styles.titleArea}>
-            {title ? <Text style={styles.title}>{title}</Text> : null}
-            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+            {titleIcon ? <TTIcon name={titleIcon} size={18} color={COLORS.primary} /> : null}
+            <View style={styles.titleTextArea}>
+              {title ? <Text style={styles.title}>{title}</Text> : null}
+              {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+            </View>
           </View>
           {action ? <View style={styles.action}>{action}</View> : null}
         </View>
@@ -35,7 +39,7 @@ export function TTCard({ children, title, subtitle, action, elevated = false, st
 /**
  * TTStatCard - Tarjeta KPI empresarial de FAI Solution ERP
  */
-export function TTStatCard({ label, value, trend, trendType = 'neutral', icon, accentColor = COLORS.info, style }) {
+export function TTStatCard({ label, value, trend, trendType = 'neutral', icon, style }) {
   const isPositive = trendType === 'positive';
   const isNegative = trendType === 'negative';
 
@@ -43,27 +47,32 @@ export function TTStatCard({ label, value, trend, trendType = 'neutral', icon, a
     <View style={[styles.statCard, style]}>
       <View style={styles.statHeader}>
         <Text style={styles.statLabel}>{label}</Text>
-        {icon ? <Text style={styles.statIcon}>{icon}</Text> : null}
+        {icon ? (
+          <View style={styles.statIconWrap}>
+            <TTIcon name={icon} size={18} color={COLORS.primary} />
+          </View>
+        ) : null}
       </View>
 
       <Text style={[styles.statValue, { color: COLORS.textPrimary }]}>{value}</Text>
 
       {trend ? (
         <View style={styles.trendRow}>
-          <Text
-            style={[
-              styles.trendText,
-              isPositive && styles.trendPositive,
-              isNegative && styles.trendNegative,
-            ]}
-          >
-            {isPositive ? '↑ ' : isNegative ? '↓ ' : ''}
-            {trend}
-          </Text>
+          <View style={styles.trendContent}>
+            {isPositive || isNegative ? (
+              <TTIcon
+                name={isPositive ? 'tendenciaArriba' : 'tendenciaAbajo'}
+                size={14}
+                color={isPositive ? COLORS.success : COLORS.error}
+              />
+            ) : null}
+            <Text style={[styles.trendText, isPositive && styles.trendPositive, isNegative && styles.trendNegative]}>
+              {trend}
+            </Text>
+          </View>
         </View>
       ) : null}
 
-      <View style={[styles.topBorderGlow, { backgroundColor: accentColor }]} />
     </View>
   );
 }
@@ -98,6 +107,12 @@ const styles = StyleSheet.create({
   },
   titleArea: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SPACING.sm,
+  },
+  titleTextArea: {
+    flex: 1,
     gap: SPACING.xs / 2,
   },
   title: {
@@ -124,13 +139,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderTopWidth: 3,
-    borderTopColor: COLORS.primary,
     borderRadius: RADIUS.xl,
     padding: SPACING.lg,
     minWidth: 170,
     flex: 1,
-    gap: SPACING.xs,
+    gap: SPACING.sm,
     position: 'relative',
     overflow: 'hidden',
     shadowColor: COLORS.primary,
@@ -145,22 +158,36 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     ...TYPOGRAPHY.kpiLabel,
+    flex: 1,
+    minWidth: 0,
+    paddingRight: SPACING.sm,
     fontWeight: TYPOGRAPHY.fontWeight.medium,
     color: COLORS.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  statIcon: {
-    fontSize: 16,
+  statIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primaryGlow,
+    flexShrink: 0,
   },
   statValue: {
     ...TYPOGRAPHY.kpiValue,
     color: COLORS.textPrimary,
-    marginVertical: SPACING.xs / 2,
+    marginVertical: 0,
   },
   trendRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  trendContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
   },
   trendText: {
     fontSize: TYPOGRAPHY.fontSize.xs,
@@ -172,13 +199,5 @@ const styles = StyleSheet.create({
   },
   trendNegative: {
     color: COLORS.trendDownText,
-  },
-  topBorderGlow: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    opacity: 0.8,
   },
 });

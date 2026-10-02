@@ -12,6 +12,7 @@ import { TTButton } from './TTButton';
 import { TTEmptyState } from './TTEmptyState';
 import { TTLoading } from './TTLoading';
 import { TTSearch } from './TTSearch';
+import { TTIcon } from './TTIcon';
 
 /**
  * TTTable - Tabla de datos empresarial de FAI Solution ERP
@@ -34,7 +35,7 @@ export function TTTable({
   createLabel = 'Nuevo',
   rowActions,
   emptyText = 'No hay datos registrados en este módulo.',
-  emptyIcon = '📊',
+  emptyIcon = 'carpetaVacia',
 }) {
   const [searchDraft, setSearchDraft] = useState(search);
 
@@ -66,14 +67,23 @@ export function TTTable({
           ) : null}
 
           {onRefresh ? (
-            <TTButton variant="secondary" size="md" onPress={onRefresh}>
-              ↻
-            </TTButton>
+            <TTButton
+              variant="secondary"
+              size="md"
+              onPress={onRefresh}
+              iconLeft={<TTIcon name="refrescar" size={18} color={COLORS.textPrimary} />}
+              accessibilityLabel="Actualizar"
+            />
           ) : null}
 
           {onCreate ? (
-            <TTButton variant="primary" size="md" onPress={onCreate}>
-              + {createLabel}
+            <TTButton
+              variant="primary"
+              size="md"
+              onPress={onCreate}
+              iconLeft={<TTIcon name="agregar" size={16} color={COLORS.textInverted} />}
+            >
+              {createLabel}
             </TTButton>
           ) : null}
         </View>
@@ -82,7 +92,8 @@ export function TTTable({
       {/* Banner de Error */}
       {error ? (
         <View style={styles.errorBox}>
-          <Text style={styles.errorText}>⚠️ {error}</Text>
+          <TTIcon name="alerta" size={18} color={COLORS.error} />
+          <Text style={styles.errorText}>{error}</Text>
         </View>
       ) : null}
 
@@ -186,7 +197,10 @@ export function TTTable({
                 hovered && page > 1 && styles.pageHovered,
               ]}
             >
-              <Text style={styles.pageBtnText}>‹ Prev</Text>
+              <View style={styles.pageBtnContent}>
+                <TTIcon name="flechaIzquierda" size={14} color={COLORS.textSecondary} />
+                <Text style={styles.pageBtnText}>Prev</Text>
+              </View>
             </Pressable>
 
             <Pressable
@@ -198,7 +212,10 @@ export function TTTable({
                 hovered && page < totalPages && styles.pageHovered,
               ]}
             >
-              <Text style={styles.pageBtnText}>Sig ›</Text>
+              <View style={styles.pageBtnContent}>
+                <Text style={styles.pageBtnText}>Sig</Text>
+                <TTIcon name="flechaDerecha" size={14} color={COLORS.textSecondary} />
+              </View>
             </Pressable>
           </View>
         ) : null}
@@ -246,6 +263,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
     backgroundColor: `${COLORS.error}15`,
     borderColor: `${COLORS.error}40`,
     borderWidth: 1,
@@ -374,6 +394,11 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs + 2,
+  },
+  pageBtnContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
   },
   pageHovered: {
     borderColor: COLORS.borderHover,

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 import { TTButton } from './TTButton';
+import { TTIcon } from './TTIcon';
 
 /**
  * useTTConfirm - Hook de confirmación reutilizable
@@ -50,7 +51,11 @@ export function TTConfirmModal({
         <View style={styles.card}>
           <View style={styles.header}>
             <View style={[styles.iconWrapper, isError ? styles.iconError : styles.iconInfo]}>
-              <Text style={styles.icon}>{isError ? '⚠️' : '❓'}</Text>
+              <TTIcon
+                name={isError ? 'alerta' : 'ayuda'}
+                size={20}
+                color={isError ? COLORS.error : COLORS.accent}
+              />
             </View>
             <View style={styles.headerText}>
               <Text style={styles.title}>{title}</Text>
@@ -115,9 +120,6 @@ const styles = StyleSheet.create({
   },
   iconError: {
     backgroundColor: `${COLORS.error}20`,
-  },
-  icon: {
-    fontSize: 20,
   },
   headerText: {
     flex: 1,

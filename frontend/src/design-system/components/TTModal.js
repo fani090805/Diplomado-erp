@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
+import { TTIcon } from './TTIcon';
 
 /**
  * TTModal - Ventana modal de FAI Solution ERP
@@ -42,7 +43,7 @@ export function TTModal({
               </View>
               {onClose ? (
                 <Pressable style={styles.closeBtn} onPress={onClose}>
-                  <Text style={styles.closeText}>✕</Text>
+                  <TTIcon name="cerrar" size={18} color={COLORS.textMuted} />
                 </Pressable>
               ) : null}
             </View>
@@ -109,11 +110,6 @@ const styles = StyleSheet.create({
   closeBtn: {
     padding: SPACING.xs,
     marginLeft: SPACING.md,
-  },
-  closeText: {
-    color: COLORS.textMuted,
-    fontSize: 18,
-    fontWeight: '700',
   },
   body: {
     gap: SPACING.md,

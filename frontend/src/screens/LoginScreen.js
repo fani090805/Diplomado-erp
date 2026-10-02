@@ -15,7 +15,7 @@ import {
   SPACING,
   TYPOGRAPHY,
 } from '../design-system/tokens';
-import { TTButton, TTInput } from '../design-system/components';
+import { TTButton, TTIcon, TTInput } from '../design-system/components';
 import { FaiLogo } from '../components/FaiLogo';
 
 /** Pantalla de inicio de sesión de FAI Solution ERP. */
@@ -96,7 +96,8 @@ export default function LoginScreen({ onGoRegister, onGoBack }) {
 
             {error ? (
               <View style={styles.errorBox}>
-                <Text style={styles.errorText}>⚠️ {error}</Text>
+                <TTIcon name="alerta" size={18} color={COLORS.error} />
+                <Text style={styles.errorText}>{error}</Text>
               </View>
             ) : null}
 
@@ -237,6 +238,9 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.xs,
   },
   errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
     backgroundColor: COLORS.errorGlow,
     borderColor: `${COLORS.error}40`,
     borderWidth: 1,

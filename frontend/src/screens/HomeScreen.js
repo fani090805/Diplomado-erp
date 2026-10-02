@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } fr
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { COLORS, RADIUS, TYPOGRAPHY } from '../design-system/tokens';
+import { TTIcon } from '../design-system/components';
 import { useNav } from '../nav/RouterContext';
 
 const currency = new Intl.NumberFormat('es-MX', {
@@ -79,7 +80,16 @@ function TrendPill({ value, positive, compact = false }) {
 
   return (
     <View style={[styles.trendPill, direction ? styles.trendPillPositive : styles.trendPillNegative, compact && styles.trendPillCompact]}>
-      <Text style={styles.trendPillText}>{direction ? '↗' : '↘'} {delta.toFixed(1)}%</Text>
+      <View style={styles.trendPillContent}>
+        <TTIcon
+          name={direction ? 'tendenciaArriba' : 'tendenciaAbajo'}
+          size={14}
+          color={direction ? COLORS.success : COLORS.error}
+        />
+        <Text style={[styles.trendPillText, direction ? styles.trendPillTextPositive : styles.trendPillTextNegative]}>
+          {delta.toFixed(1)}%
+        </Text>
+      </View>
     </View>
   );
 }
@@ -92,7 +102,7 @@ function KPIStat({ label, value, trend, positive, detail, icon }) {
       <View style={styles.kpiHeader}>
         <Text style={styles.kpiLabel}>{label}</Text>
         <View style={styles.kpiIconWrap}>
-          <Text style={styles.kpiIcon}>{icon}</Text>
+          <TTIcon name={icon} size={18} color={COLORS.primary} />
         </View>
       </View>
 
@@ -229,7 +239,7 @@ export default function HomeScreen() {
               trend={salesTrend}
               positive={salesTrend !== null ? salesTrend >= 0 : true}
               detail={salesTotal != null ? 'Ventas aprobadas' : 'Sin ventas registradas'}
-              icon="↗"
+              icon="ventas"
             />
             <KPIStat
               label="Compras del mes"
@@ -237,7 +247,7 @@ export default function HomeScreen() {
               trend={purchasesTrend}
               positive={purchasesTrend !== null ? purchasesTrend >= 0 : true}
               detail={purchasesTotal != null ? 'Compras en operación' : 'Sin compras registradas'}
-              icon="↘"
+              icon="compras"
             />
             <KPIStat
               label="Neto"
@@ -245,7 +255,7 @@ export default function HomeScreen() {
               trend={netTotal != null ? 0 : null}
               positive={true}
               detail={financeNet != null ? 'Resultado financiero' : 'Sin datos de finanzas'}
-              icon="◎"
+              icon="dinero"
             />
           </View>
 
@@ -493,17 +503,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   kpiIconWrap: {
-    width: 30,
-    height: 30,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.infoGlow,
-  },
-  kpiIcon: {
-    color: COLORS.primary,
-    fontSize: 15,
-    fontWeight: '700',
+    backgroundColor: COLORS.primaryGlow,
   },
   kpiValue: {
     ...TYPOGRAPHY.kpiValue,
@@ -544,10 +549,20 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   trendPillText: {
-    color: COLORS.primary,
     fontSize: 10,
     fontWeight: '700',
     fontFamily: TYPOGRAPHY.fontFamily.ui,
+  },
+  trendPillContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
+  trendPillTextPositive: {
+    color: COLORS.success,
+  },
+  trendPillTextNegative: {
+    color: COLORS.error,
   },
   trendPillTextMuted: {
     color: COLORS.textMuted,

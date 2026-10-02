@@ -10,7 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
-import { TTButton, TTInput } from '../design-system/components';
+import { TTButton, TTIcon, TTInput } from '../design-system/components';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
 import { FaiLogo } from '../components/FaiLogo';
 
@@ -211,14 +211,11 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
             <View style={styles.requirements}>
               {passwordRequirements.map((requirement) => (
                 <View key={requirement.label} style={styles.requirementRow}>
-                  <Text
-                    style={[
-                      styles.requirementMark,
-                      requirement.met ? styles.requirementMet : styles.requirementUnmet,
-                    ]}
-                  >
-                    {requirement.met ? '✓' : '•'}
-                  </Text>
+                  <TTIcon
+                    name={requirement.met ? 'check' : 'punto'}
+                    size={requirement.met ? 14 : 8}
+                    color={requirement.met ? COLORS.successText : COLORS.textMuted}
+                  />
                   <Text
                     style={[
                       styles.requirementText,
@@ -365,12 +362,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.sm,
-  },
-  requirementMark: {
-    width: SPACING.lg,
-    textAlign: 'center',
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
   requirementText: {
     fontSize: TYPOGRAPHY.fontSize.xs,

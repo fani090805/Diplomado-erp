@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
+import { TTIcon } from './TTIcon';
 
 /**
  * TTSearch - Campo de búsqueda rápida de FAI Solution ERP
@@ -10,7 +11,7 @@ export function TTSearch({ value, onChangeText, onClear, placeholder = 'Buscar e
 
   return (
     <View style={[styles.wrapper, focused && styles.focused, style]}>
-      <Text pointerEvents="none" style={styles.searchIcon}>🔍</Text>
+      <TTIcon name="buscar" size={16} color={COLORS.textMuted} style={styles.searchIcon} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -33,7 +34,7 @@ export function TTSearch({ value, onChangeText, onClear, placeholder = 'Buscar e
             if (onClear) onClear();
           }}
         >
-          <Text pointerEvents="none" style={styles.clearIcon}>✕</Text>
+          <TTIcon name="cerrar" size={14} color={COLORS.textMuted} />
         </Pressable>
       ) : null}
     </View>
@@ -67,9 +68,7 @@ const styles = StyleSheet.create({
     }),
   },
   searchIcon: {
-    fontSize: 13,
     marginRight: SPACING.xs + 2,
-    opacity: 0.7,
   },
   input: {
     flex: 1,

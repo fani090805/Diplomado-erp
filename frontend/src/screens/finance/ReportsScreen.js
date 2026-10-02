@@ -158,17 +158,17 @@ export default function ReportsScreen() {
       return (
         <>
           <View style={styles.cards}>
-            <TTStatCard label="Ventas Aprobadas" value={money(d.sales?.total)} icon="📈" accentColor={COLORS.accent} />
-            <TTStatCard label="Compras Aprobadas" value={money(d.purchases?.total)} icon="🛒" accentColor={COLORS.info} />
-            <TTStatCard label="Ingresos" value={money(d.income?.total)} icon="💰" accentColor={COLORS.accent} />
-            <TTStatCard label="Gastos" value={money(d.expense?.total)} icon="📉" accentColor={COLORS.error} />
-            <TTStatCard label="Resultado Neto" value={money(d.net)} icon="📊" accentColor={(d.net ?? 0) >= 0 ? COLORS.accent : COLORS.error} />
+            <TTStatCard label="Ventas Aprobadas" value={money(d.sales?.total)} icon="ventas" />
+            <TTStatCard label="Compras Aprobadas" value={money(d.purchases?.total)} icon="compras" />
+            <TTStatCard label="Ingresos" value={money(d.income?.total)} icon="dinero" />
+            <TTStatCard label="Gastos" value={money(d.expense?.total)} icon="gastos" />
+            <TTStatCard label="Resultado Neto" value={money(d.net)} icon="analitica" />
           </View>
           <View style={styles.cards}>
-            <TTStatCard label="Productos Activos" value={String(d.catalog?.products ?? 0)} icon="📦" />
-            <TTStatCard label="Clientes" value={String(d.catalog?.customers ?? 0)} icon="👥" />
-            <TTStatCard label="Proveedores" value={String(d.catalog?.suppliers ?? 0)} icon="🏢" />
-            <TTStatCard label="Stock Bajo" value={String(d.catalog?.lowStock ?? 0)} icon="⚠️" accentColor={COLORS.error} />
+            <TTStatCard label="Productos Activos" value={String(d.catalog?.products ?? 0)} icon="productos" />
+            <TTStatCard label="Clientes" value={String(d.catalog?.customers ?? 0)} icon="clientes" />
+            <TTStatCard label="Proveedores" value={String(d.catalog?.suppliers ?? 0)} icon="proveedores" />
+            <TTStatCard label="Stock Bajo" value={String(d.catalog?.lowStock ?? 0)} icon="alerta" />
           </View>
         </>
       );
@@ -206,10 +206,10 @@ export default function ReportsScreen() {
       return (
         <>
           <View style={styles.cards}>
-            <TTStatCard label="Ingresos" value={money(d.income?.total)} icon="📈" accentColor={COLORS.accent} />
-            <TTStatCard label="Gastos" value={money(d.expense?.total)} icon="📉" accentColor={COLORS.error} />
-            <TTStatCard label="Neto" value={money(d.net)} icon="💰" accentColor={(d.net ?? 0) >= 0 ? COLORS.accent : COLORS.error} />
-            <TTStatCard label="Saldo en Cuentas" value={money(d.cash?.accountsBalance)} icon="💳" />
+            <TTStatCard label="Ingresos" value={money(d.income?.total)} icon="dinero" />
+            <TTStatCard label="Gastos" value={money(d.expense?.total)} icon="gastos" />
+            <TTStatCard label="Neto" value={money(d.net)} icon="analitica" />
+            <TTStatCard label="Saldo en Cuentas" value={money(d.cash?.accountsBalance)} icon="tarjeta" />
           </View>
           <Text style={styles.h2}>Ingresos por categoría</Text>
           <Table
@@ -251,9 +251,9 @@ export default function ReportsScreen() {
       return (
         <>
           <View style={styles.cards}>
-            <TTStatCard label="Planeado" value={money(d.totals?.planned)} icon="📋" />
-            <TTStatCard label="Ejecutado" value={money(d.totals?.executed)} icon="💸" accentColor={COLORS.error} />
-            <TTStatCard label="Variación" value={money(d.totals?.variance)} icon="📊" accentColor={(d.totals?.variance ?? 0) >= 0 ? COLORS.accent : COLORS.error} />
+            <TTStatCard label="Planeado" value={money(d.totals?.planned)} icon="documento" />
+            <TTStatCard label="Ejecutado" value={money(d.totals?.executed)} icon="gastos" />
+            <TTStatCard label="Variación" value={money(d.totals?.variance)} icon="analitica" />
           </View>
           <Table
             columns={[
@@ -279,9 +279,9 @@ export default function ReportsScreen() {
     return (
       <>
         <View style={styles.cards}>
-          <TTStatCard label="Valor a costo" value={money(d.totalValue)} icon="💰" />
-          <TTStatCard label="Unidades" value={String(d.totalQuantity ?? 0)} icon="📦" />
-          <TTStatCard label="Stock bajo" value={String(d.lowStock ?? 0)} icon="⚠️" accentColor={COLORS.error} />
+          <TTStatCard label="Valor a costo" value={money(d.totalValue)} icon="dinero" />
+          <TTStatCard label="Unidades" value={String(d.totalQuantity ?? 0)} icon="productos" />
+          <TTStatCard label="Stock bajo" value={String(d.lowStock ?? 0)} icon="alerta" />
         </View>
         <Table
           columns={[

@@ -12,7 +12,7 @@ import {
   SPACING,
   TYPOGRAPHY,
 } from '../../design-system/tokens';
-import { TTBadge, TTButton, TTCard } from '../../design-system/components';
+import { TTBadge, TTButton, TTCard, TTIcon } from '../../design-system/components';
 import { FaiLogo } from '../../components/FaiLogo';
 
 /**
@@ -61,8 +61,14 @@ export default function LandingScreen({ onGoLogin, onGoRegister }) {
         </Text>
 
         <View style={styles.heroCtaRow}>
-          <TTButton variant="primary" size="lg" onPress={onGoRegister} style={styles.ctaMain}>
-            Comenzar Ahora →
+          <TTButton
+            variant="primary"
+            size="lg"
+            onPress={onGoRegister}
+            style={styles.ctaMain}
+            iconRight={<TTIcon name="flechaDerecha" size={18} color={COLORS.textInverted} />}
+          >
+            Comenzar Ahora
           </TTButton>
           <TTButton variant="secondary" size="lg" onPress={onGoLogin}>
             Explorar módulos
@@ -99,37 +105,37 @@ export default function LandingScreen({ onGoLogin, onGoRegister }) {
         </Text>
 
         <View style={styles.ecosystemGrid}>
-          <TTCard title="⚡ ERP CORE" subtitle="Gestión Central & RBAC" style={styles.ecoCard}>
+          <TTCard titleIcon="escudo" title="ERP CORE" subtitle="Gestión Central & RBAC" style={styles.ecoCard}>
             <Text style={styles.ecoText}>
               Control de roles, permisos finos, sucursales y auditoría inmutable de cada transacción.
             </Text>
           </TTCard>
 
-          <TTCard title="📦 INVENTARIO" subtitle="Multidepósito & Trazabilidad" style={styles.ecoCard}>
+          <TTCard titleIcon="inventario" title="INVENTARIO" subtitle="Multidepósito & Trazabilidad" style={styles.ecoCard}>
             <Text style={styles.ecoText}>
               Kardex en tiempo real, alertas de stock mínimo y trazabilidad de movimientos.
             </Text>
           </TTCard>
 
-          <TTCard title="💰 FINANZAS" subtitle="Cuentas & Presupuestos" style={styles.ecoCard}>
+          <TTCard titleIcon="finanzas" title="FINANZAS" subtitle="Cuentas & Presupuestos" style={styles.ecoCard}>
             <Text style={styles.ecoText}>
               Ingresos, gastos, presupuestos por categoría y estados financieros automáticos.
             </Text>
           </TTCard>
 
-          <TTCard title="🎯 CRM" subtitle="Leads & Conversión" style={styles.ecoCard}>
+          <TTCard titleIcon="objetivo" title="CRM" subtitle="Leads & Conversión" style={styles.ecoCard}>
             <Text style={styles.ecoText}>
               Embudo de oportunidades comerciales y seguimiento de interacción con clientes.
             </Text>
           </TTCard>
 
-          <TTCard title="⚙️ PRODUCCIÓN" subtitle="BOM & Órdenes de Trabajo" style={styles.ecoCard}>
+          <TTCard titleIcon="fabrica" title="PRODUCCIÓN" subtitle="BOM & Órdenes de Trabajo" style={styles.ecoCard}>
             <Text style={styles.ecoText}>
               Explosión de insumos de materiales (BOM) y consumo directo de materias primas.
             </Text>
           </TTCard>
 
-          <TTCard title="👔 RRHH" subtitle="Gestión de Personal" style={styles.ecoCard}>
+          <TTCard titleIcon="rrhh" title="RRHH" subtitle="Gestión de Personal" style={styles.ecoCard}>
             <Text style={styles.ecoText}>
               Expediente digital de empleados, departamentos y ciclos de vida de colaboradores.
             </Text>
@@ -157,12 +163,18 @@ export default function LandingScreen({ onGoLogin, onGoRegister }) {
               <View style={styles.mockKpi}>
                 <Text style={styles.mockKpiLabel}>Ventas del Mes</Text>
                 <Text style={styles.mockKpiVal}>$128,450.00</Text>
-                <Text style={styles.mockKpiTrend}>↑ +12.4% este periodo</Text>
+                <View style={styles.mockKpiTrendRow}>
+                  <TTIcon name="tendenciaArriba" size={13} color={COLORS.success} />
+                  <Text style={styles.mockKpiTrend}>+12.4% este periodo</Text>
+                </View>
               </View>
               <View style={styles.mockKpi}>
                 <Text style={styles.mockKpiLabel}>Resultado Neto</Text>
                 <Text style={styles.mockKpiVal}>$94,200.00</Text>
-                <Text style={styles.mockKpiTrend}>↑ +8.1% este periodo</Text>
+                <View style={styles.mockKpiTrendRow}>
+                  <TTIcon name="tendenciaArriba" size={13} color={COLORS.success} />
+                  <Text style={styles.mockKpiTrend}>+8.1% este periodo</Text>
+                </View>
               </View>
               <View style={styles.mockKpi}>
                 <Text style={styles.mockKpiLabel}>Salud Inventario</Text>
@@ -181,7 +193,7 @@ export default function LandingScreen({ onGoLogin, onGoRegister }) {
 
         <View style={styles.advantagesGrid}>
           <View style={styles.advantageItem}>
-            <Text style={styles.advIcon}>🕹️</Text>
+            <TTIcon name="objetivo" size={28} color={COLORS.primary} />
             <Text style={styles.advTitle}>Control Total</Text>
             <Text style={styles.advText}>
               Visibilidad completa de stock, dinero y operaciones desde cualquier dispositivo.
@@ -189,7 +201,7 @@ export default function LandingScreen({ onGoLogin, onGoRegister }) {
           </View>
 
           <View style={styles.advantageItem}>
-            <Text style={styles.advIcon}>⚡</Text>
+            <TTIcon name="tendenciaArriba" size={28} color={COLORS.primary} />
             <Text style={styles.advTitle}>Velocidad Instantánea</Text>
             <Text style={styles.advText}>
               Arquitectura ultra-rápida construida sobre React Native y APIs de baja latencia.
@@ -197,7 +209,7 @@ export default function LandingScreen({ onGoLogin, onGoRegister }) {
           </View>
 
           <View style={styles.advantageItem}>
-            <Text style={styles.advIcon}>🤖</Text>
+            <TTIcon name="ajuste" size={28} color={COLORS.primary} />
             <Text style={styles.advTitle}>Automatización</Text>
             <Text style={styles.advText}>
               Validaciones estrictas y conciliaciones atómicas para evitar errores humanos.
@@ -205,7 +217,7 @@ export default function LandingScreen({ onGoLogin, onGoRegister }) {
           </View>
 
           <View style={styles.advantageItem}>
-            <Text style={styles.advIcon}>📈</Text>
+            <TTIcon name="analitica" size={28} color={COLORS.primary} />
             <Text style={styles.advTitle}>Escalabilidad</Text>
             <Text style={styles.advText}>
               Diseñado para soportar múltiples empresas, sucursales y miles de transacciones.
@@ -222,8 +234,14 @@ export default function LandingScreen({ onGoLogin, onGoRegister }) {
           Eleva la gestión de tu empresa con la plataforma más moderna del mercado.
         </Text>
 
-        <TTButton variant="primary" size="lg" onPress={onGoRegister} style={styles.ctaBtn}>
-          Comenzar Ahora →
+        <TTButton
+          variant="primary"
+          size="lg"
+          onPress={onGoRegister}
+          style={styles.ctaBtn}
+          iconRight={<TTIcon name="flechaDerecha" size={18} color={COLORS.textInverted} />}
+        >
+          Comenzar Ahora
         </TTButton>
       </View>
 
@@ -481,6 +499,11 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.xs,
     color: COLORS.trendUpText,
   },
+  mockKpiTrendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+  },
 
   // Advantages Grid
   advantagesGrid: {
@@ -498,10 +521,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
     gap: SPACING.xs,
-  },
-  advIcon: {
-    fontSize: 28,
-    marginBottom: SPACING.xs,
   },
   advTitle: {
     fontSize: TYPOGRAPHY.fontSize.lg,

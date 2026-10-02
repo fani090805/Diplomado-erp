@@ -18,7 +18,7 @@ import {
   TYPOGRAPHY,
   getResponsiveLayout,
 } from '../design-system/tokens';
-import { TTAvatar, TTSearch } from '../design-system/components';
+import { TTAvatar, TTIcon, TTSearch } from '../design-system/components';
 import { useNav } from '../nav/RouterContext';
 import { FaiLogo, FaiLogoIcon } from './FaiLogo';
 
@@ -27,49 +27,49 @@ export const MENU_CATEGORIES = [
   {
     category: 'PRINCIPAL',
     items: [
-      { route: 'home', label: 'Dashboard', icon: '◈', permission: null },
-      { route: 'accounts', label: 'Finanzas', icon: '◉', permission: 'finance.accounts.read' },
-      { route: 'stock', label: 'Inventario', icon: '▦', permission: 'inventory.read' },
-      { route: 'salesOrders', label: 'Ventas', icon: '↗', permission: 'sales.orders.read' },
-      { route: 'employees', label: 'Recursos Humanos', icon: '♙', permission: 'hr.read' },
-      { route: 'reports', label: 'Analítica', icon: '⌁', permission: 'reports.read' },
-      { route: 'users', label: 'Configuración', icon: '⚙', permission: 'users.read' },
+      { route: 'home', label: 'Dashboard', icon: 'dashboard', permission: null },
+      { route: 'accounts', label: 'Finanzas', icon: 'finanzas', permission: 'finance.accounts.read' },
+      { route: 'stock', label: 'Inventario', icon: 'inventario', permission: 'inventory.read' },
+      { route: 'salesOrders', label: 'Ventas', icon: 'ventas', permission: 'sales.orders.read' },
+      { route: 'employees', label: 'Recursos Humanos', icon: 'rrhh', permission: 'hr.read' },
+      { route: 'reports', label: 'Analítica', icon: 'analitica', permission: 'reports.read' },
+      { route: 'users', label: 'Configuración', icon: 'configuracion', permission: 'users.read' },
     ],
   },
   {
     category: 'OPERACIONES',
     items: [
-      { route: 'products', label: 'Productos', icon: '📦', permission: 'products.read' },
-      { route: 'warehouses', label: 'Almacenes', icon: '🏬', permission: 'warehouses.read' },
-      { route: 'movements', label: 'Movimientos', icon: '🔄', permission: 'inventory.read' },
-      { route: 'counts', label: 'Inventarios Físicos', icon: '📋', permission: 'inventory.read' },
-      { route: 'suppliers', label: 'Proveedores', icon: '🏢', permission: 'suppliers.read' },
-      { route: 'purchaseOrders', label: 'Órdenes de Compra', icon: '🛒', permission: 'purchases.read' },
-      { route: 'customers', label: 'Clientes', icon: '👥', permission: 'customers.read' },
+      { route: 'products', label: 'Productos', icon: 'productos', permission: 'products.read' },
+      { route: 'warehouses', label: 'Almacenes', icon: 'almacen', permission: 'warehouses.read' },
+      { route: 'movements', label: 'Movimientos', icon: 'intercambio', permission: 'inventory.read' },
+      { route: 'counts', label: 'Inventarios Físicos', icon: 'documento', permission: 'inventory.read' },
+      { route: 'suppliers', label: 'Proveedores', icon: 'proveedores', permission: 'suppliers.read' },
+      { route: 'purchaseOrders', label: 'Órdenes de Compra', icon: 'ordenes', permission: 'purchases.read' },
+      { route: 'customers', label: 'Clientes', icon: 'clientes', permission: 'customers.read' },
     ],
   },
   {
     category: 'FINANZAS',
     items: [
-      { route: 'incomes', label: 'Ingresos', icon: '📈', permission: 'finance.income.read' },
-      { route: 'expenses', label: 'Gastos', icon: '📉', permission: 'finance.expenses.read' },
-      { route: 'budgets', label: 'Presupuestos', icon: '💰', permission: 'finance.budgets.read' },
+      { route: 'incomes', label: 'Ingresos', icon: 'dinero', permission: 'finance.income.read' },
+      { route: 'expenses', label: 'Gastos', icon: 'gastos', permission: 'finance.expenses.read' },
+      { route: 'budgets', label: 'Presupuestos', icon: 'documento', permission: 'finance.budgets.read' },
     ],
   },
   {
     category: 'NEGOCIO',
     items: [
-      { route: 'leads', label: 'CRM / Leads', icon: '🎯', permission: 'crm.read' },
-      { route: 'boms', label: 'Listas BOM', icon: '⚙️', permission: 'production.read' },
-      { route: 'productionOrders', label: 'Órdenes Producción', icon: '🏭', permission: 'production.read' },
+      { route: 'leads', label: 'CRM / Leads', icon: 'objetivo', permission: 'crm.read' },
+      { route: 'boms', label: 'Listas BOM', icon: 'fabrica', permission: 'production.read' },
+      { route: 'productionOrders', label: 'Órdenes Producción', icon: 'fabrica', permission: 'production.read' },
     ],
   },
   {
     category: 'ADMINISTRACIÓN',
     items: [
-      { route: 'branches', label: 'Sucursales', icon: '📍', permission: 'branches.read' },
-      { route: 'roles', label: 'Roles y Permisos', icon: '🛡️', permission: 'roles.read' },
-      { route: 'audit', label: 'Auditoría', icon: '👁️', permission: 'audit.read' },
+      { route: 'branches', label: 'Sucursales', icon: 'ubicacion', permission: 'branches.read' },
+      { route: 'roles', label: 'Roles y Permisos', icon: 'escudo', permission: 'roles.read' },
+      { route: 'audit', label: 'Auditoría', icon: 'ver', permission: 'audit.read' },
     ],
   },
 ];
@@ -152,7 +152,7 @@ export default function Layout({ children }) {
             accessibilityState={{ expanded: isExpanded }}
           >
             <Text style={styles.navCategoryTitle}>{category.category}</Text>
-            <Text style={styles.navCategoryChevron}>{isExpanded ? '⌄' : '›'}</Text>
+            <TTIcon name={isExpanded ? 'chevronAbajo' : 'flechaDerecha'} size={16} color={COLORS.sidebarTextMuted} />
           </Pressable>
         ) : null}
         {isExpanded ? category.items.map((item) => {
@@ -170,7 +170,11 @@ export default function Layout({ children }) {
               accessibilityRole="button"
               accessibilityLabel={item.label}
             >
-              <Text style={[styles.navIcon, isActive && styles.navIconActive]}>{item.icon}</Text>
+              <TTIcon
+                name={item.icon}
+                size={20}
+                color={isActive ? COLORS.sidebarActiveIndicator : COLORS.sidebarText}
+              />
               {!isSidebarCollapsed ? (
                 <Text style={[styles.navLabel, isActive && styles.navLabelActive]} numberOfLines={1}>
                   {item.label}
@@ -186,11 +190,11 @@ export default function Layout({ children }) {
   const renderHelpLinks = (iconsOnly = false) => (
     <View style={[styles.helpLinks, iconsOnly && styles.helpLinksCollapsed]}>
       <Pressable disabled style={styles.helpLink} accessibilityState={{ disabled: true }}>
-        <Text style={styles.helpIcon}>ⓘ</Text>
+        <TTIcon name="documento" size={18} color={COLORS.sidebarTextMuted} />
         {!iconsOnly ? <Text style={styles.helpText}>Guía de usuario</Text> : null}
       </Pressable>
       <Pressable disabled style={styles.helpLink} accessibilityState={{ disabled: true }}>
-        <Text style={styles.helpIcon}>?</Text>
+        <TTIcon name="ayuda" size={18} color={COLORS.sidebarTextMuted} />
         {!iconsOnly ? <Text style={styles.helpText}>Soporte</Text> : null}
       </Pressable>
     </View>
@@ -209,7 +213,7 @@ export default function Layout({ children }) {
           <Text style={styles.profileEmail} numberOfLines={1}>{user?.email || roleName}</Text>
         </View>
       ) : null}
-      {!compact ? <Text style={styles.profileChevron}>⌄</Text> : null}
+      {!compact ? <TTIcon name="chevronAbajo" size={16} color={COLORS.sidebarTextMuted} /> : null}
     </Pressable>
   );
 
@@ -224,7 +228,7 @@ export default function Layout({ children }) {
                 <TTAvatar name={displayName} size="sm" color={COLORS.sidebarText} />
               </Pressable>
               <Pressable style={styles.mobileMenuButton} onPress={() => setMobileDrawerOpen(true)} accessibilityLabel="Abrir navegación">
-                <Text style={styles.mobileMenuIcon}>☰</Text>
+                <TTIcon name="menu" size={20} color={COLORS.sidebarText} />
               </Pressable>
             </View>
           </>
@@ -233,7 +237,10 @@ export default function Layout({ children }) {
             <View style={styles.headerDesktopLeft}>
               {canGoBack && route.name !== 'home' ? (
                 <Pressable style={styles.backBtn} onPress={back}>
-                  <Text style={styles.backBtnText}>‹ Volver</Text>
+                  <View style={styles.backBtnContent}>
+                    <TTIcon name="flechaIzquierda" size={15} color={COLORS.primary} />
+                    <Text style={styles.backBtnText}>Volver</Text>
+                  </View>
                 </Pressable>
               ) : null}
               <View style={styles.headerTitles}>
@@ -255,7 +262,7 @@ export default function Layout({ children }) {
               </View>
               <Pressable style={styles.languageSelector} disabled accessibilityLabel="Idioma: español">
                 <Text style={styles.languageText}>ES</Text>
-                <Text style={styles.languageChevron}>⌄</Text>
+                <TTIcon name="chevronAbajo" size={14} color={COLORS.textMuted} />
               </Pressable>
               <Pressable style={styles.headerAvatar} onPress={() => setUserMenuOpen((open) => !open)} accessibilityLabel="Abrir menú de usuario">
                 <TTAvatar name={displayName} size="sm" color={COLORS.accentText} />
@@ -281,7 +288,10 @@ export default function Layout({ children }) {
                   go('home');
                 }}
               >
-                <Text style={styles.dropdownItemText}>◈ Dashboard</Text>
+                <View style={styles.dropdownItemContent}>
+                  <TTIcon name="dashboard" size={16} color={COLORS.textSecondary} />
+                  <Text style={styles.dropdownItemText}>Dashboard</Text>
+                </View>
               </Pressable>
               {can('users.read') ? (
                 <Pressable
@@ -291,7 +301,10 @@ export default function Layout({ children }) {
                     go('users');
                   }}
                 >
-                  <Text style={styles.dropdownItemText}>⚙ Configuración</Text>
+                  <View style={styles.dropdownItemContent}>
+                    <TTIcon name="configuracion" size={16} color={COLORS.textSecondary} />
+                    <Text style={styles.dropdownItemText}>Configuración</Text>
+                  </View>
                 </Pressable>
               ) : null}
               <Pressable
@@ -322,7 +335,7 @@ export default function Layout({ children }) {
               )}
               {!isTablet ? (
                 <Pressable style={styles.collapseButton} onPress={() => setCollapsed((value) => !value)} accessibilityLabel={isSidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'}>
-                  <Text style={styles.collapseButtonText}>{isSidebarCollapsed ? '›' : '‹'}</Text>
+                  <TTIcon name={isSidebarCollapsed ? 'flechaDerecha' : 'flechaIzquierda'} size={18} color={COLORS.sidebarText} />
                 </Pressable>
               ) : null}
             </View>
@@ -346,7 +359,7 @@ export default function Layout({ children }) {
                     <Text style={styles.sidebarCompanyName} numberOfLines={1}>{companyName}</Text>
                   </View>
                   <Pressable onPress={closeMobileDrawer} accessibilityLabel="Cerrar navegación">
-                    <Text style={styles.closeDrawerText}>✕</Text>
+                    <TTIcon name="cerrar" size={20} color={COLORS.sidebarText} />
                   </Pressable>
                 </View>
                 <ScrollView style={styles.drawerBody}>
@@ -447,6 +460,7 @@ const styles = StyleSheet.create({
   },
   globalSearch: { width: 220, maxWidth: 220 },
   backBtn: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderRadius: RADIUS.sm, backgroundColor: COLORS.background },
+  backBtnContent: { flexDirection: 'row', alignItems: 'center', gap: SPACING.xs },
   backBtnText: { color: COLORS.primary, fontSize: TYPOGRAPHY.fontSize.xs + 1, fontWeight: TYPOGRAPHY.fontWeight.semibold },
   menuBackdrop: { flex: 1, alignItems: 'flex-end', paddingTop: 84, paddingHorizontal: SPACING.md },
   userDropdown: {
@@ -465,6 +479,7 @@ const styles = StyleSheet.create({
   dropdownSub: { color: COLORS.textMuted, fontSize: TYPOGRAPHY.fontSize.xs },
   dropdownRole: { color: COLORS.accentText, fontSize: TYPOGRAPHY.fontSize.xs, marginTop: 4 },
   dropdownItem: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.md - 2, borderRadius: RADIUS.md },
+  dropdownItemContent: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   dropdownItemText: { color: COLORS.textSecondary, fontSize: TYPOGRAPHY.fontSize.sm, fontWeight: TYPOGRAPHY.fontWeight.medium },
   dropdownLogout: { backgroundColor: COLORS.trendDownBg, marginTop: SPACING.xs },
   logoutText: { color: COLORS.error, fontWeight: TYPOGRAPHY.fontWeight.semibold, fontSize: TYPOGRAPHY.fontSize.sm },

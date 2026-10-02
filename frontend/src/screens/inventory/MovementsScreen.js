@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS } from '../../design-system/tokens';
+import { TTIcon } from '../../design-system/components';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/DataTable';
@@ -106,21 +107,25 @@ export default function MovementsScreen() {
         {can('inventory.movements.create') ? (
           <>
             <Pressable style={styles.btn} onPress={() => setKind('ENTRY')}>
-              <Text style={styles.btnText}>＋ Entrada</Text>
+              <TTIcon name="entrada" size={16} color={COLORS.textInverted} />
+              <Text style={styles.btnText}>Entrada</Text>
             </Pressable>
             <Pressable style={styles.btn} onPress={() => setKind('EXIT')}>
-              <Text style={styles.btnText}>－ Salida</Text>
+              <TTIcon name="salida" size={16} color={COLORS.textInverted} />
+              <Text style={styles.btnText}>Salida</Text>
             </Pressable>
           </>
         ) : null}
         {can('inventory.adjustments.create') ? (
           <Pressable style={styles.btn} onPress={() => setKind('ADJUSTMENT')}>
-            <Text style={styles.btnText}>⟳ Ajuste</Text>
+            <TTIcon name="ajuste" size={16} color={COLORS.textInverted} />
+            <Text style={styles.btnText}>Ajuste</Text>
           </Pressable>
         ) : null}
         {can('inventory.transfers.create') ? (
           <Pressable style={styles.btn} onPress={() => setKind('TRANSFER')}>
-            <Text style={styles.btnText}>⇄ Transferencia</Text>
+            <TTIcon name="intercambio" size={16} color={COLORS.textInverted} />
+            <Text style={styles.btnText}>Transferencia</Text>
           </Pressable>
         ) : null}
       </View>
@@ -189,7 +194,7 @@ export default function MovementsScreen() {
 const styles = StyleSheet.create({
   wrap: { gap: 12 },
   actions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  btn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.sm, paddingHorizontal: 14, paddingVertical: 9 },
+  btn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.sm, paddingHorizontal: 14, paddingVertical: 9 },
   btnText: { color: COLORS.textInverted, fontWeight: '600', fontSize: 14 },
   filter: { minWidth: 220, maxWidth: 320, gap: 4 },
   label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
