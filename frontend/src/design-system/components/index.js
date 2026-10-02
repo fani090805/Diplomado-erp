@@ -1,4 +1,5 @@
 export { TTButton } from './TTButton';
+export { TTIcon } from './TTIcon';
 export { TTInput } from './TTInput';
 export { TTSearch } from './TTSearch';
 export { TTCard, TTStatCard } from './TTCard';
