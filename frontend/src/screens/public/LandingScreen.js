@@ -18,7 +18,7 @@ import { FaiLogo } from '../../components/FaiLogo';
 /**
  * LandingScreen - Public FAI Solution ERP product page.
  */
-export default function LandingScreen({ onGoLogin }) {
+export default function LandingScreen({ onGoLogin, onGoRegister }) {
   const [activeTab, setActiveTab] = useState('ERP');
 
   return (
@@ -40,7 +40,7 @@ export default function LandingScreen({ onGoLogin }) {
           <TTButton variant="ghost" size="sm" onPress={onGoLogin}>
             Iniciar Sesión
           </TTButton>
-          <TTButton variant="primary" size="sm" onPress={onGoLogin}>
+          <TTButton variant="primary" size="sm" onPress={onGoRegister}>
             Comenzar
           </TTButton>
         </View>
@@ -61,7 +61,7 @@ export default function LandingScreen({ onGoLogin }) {
         </Text>
 
         <View style={styles.heroCtaRow}>
-          <TTButton variant="primary" size="lg" onPress={onGoLogin} style={styles.ctaMain}>
+          <TTButton variant="primary" size="lg" onPress={onGoRegister} style={styles.ctaMain}>
             Comenzar Ahora →
           </TTButton>
           <TTButton variant="secondary" size="lg" onPress={onGoLogin}>
@@ -222,7 +222,7 @@ export default function LandingScreen({ onGoLogin }) {
           Eleva la gestión de tu empresa con la plataforma más moderna del mercado.
         </Text>
 
-        <TTButton variant="primary" size="lg" onPress={onGoLogin} style={styles.ctaBtn}>
+        <TTButton variant="primary" size="lg" onPress={onGoRegister} style={styles.ctaBtn}>
           Comenzar Ahora →
         </TTButton>
       </View>

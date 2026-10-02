@@ -24,6 +24,8 @@ const router = Router();
 
 router.post('/login', authLimiter, validate({ body: schemas.loginSchema }), controller.login);
 
+router.post('/register', authLimiter, validate({ body: schemas.registerSchema }), controller.register);
+
 router.post('/refresh', validate({ body: schemas.refreshSchema }), controller.refresh);
 
 router.post('/logout', authenticate, controller.logout);

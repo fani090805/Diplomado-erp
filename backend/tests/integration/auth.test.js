@@ -59,6 +59,73 @@ describeIfDb('API /auth (integración)', () => {
     expect(res.body.data.user.tokenVersion).toBe(0);
   });
 
+  test('registro público crea empresa y administrador, y devuelve tokens', async () => {
+    const res = await request(app).post('/api/v1/auth/register').send({
+      name: 'Nuevo',
+      lastName: 'Administrador',
+      companyName: 'Empresa Registro Auth',
+      email: 'nuevo-registro@test.local',
+      password: 'Registro123',
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.accessToken).toBeDefined();
+    expect(res.body.data.refreshToken).toBeDefined();
+    expect(res.body.data.user.email).toBe('nuevo-registro@test.local');
+    expect(res.body.data.user.passwordHash).toBeUndefined();
+
+    const me = await request(app)
+      .get('/api/v1/auth/me')
+      .set(auth(res.body.data.accessToken));
+    expect(me.status).toBe(200);
+    expect(me.body.data.role.code).toBe('administrador');
+    expect(me.body.data.company.name).toBe('Empresa Registro Auth');
+    expect(me.body.data.branch.name).toBe('Principal');
+    expect(me.body.data.user.isPlatformAdmin).toBe(false);
+  });
+
+  test('registro con correo duplicado → 409', async () => {
+    const res = await request(app).post('/api/v1/auth/register').send({
+      name: 'Nuevo',
+      companyName: 'Otra Empresa Registro',
+      email: 'admin-auth@test.local',
+      password: 'Registro123',
+    });
+
+    expect(res.status).toBe(409);
+    expect(res.body.error.message).toBe('Ya existe una cuenta con este correo.');
+  });
+
+  test('registro con contraseña débil → error de validación', async () => {
+    const res = await request(app).post('/api/v1/auth/register').send({
+      name: 'Nuevo',
+      companyName: 'Empresa Contraseña Débil',
+      email: 'debil@test.local',
+      password: '12345678',
+    });
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.details.body[0].field).toBe('password');
+  });
+
+  test('registro deshabilitado → 403', async () => {
+    const previousValue = process.env.ALLOW_PUBLIC_SIGNUP;
+    process.env.ALLOW_PUBLIC_SIGNUP = 'false';
+    try {
+      const res = await request(app).post('/api/v1/auth/register').send({
+        name: 'Nuevo',
+        companyName: 'Empresa Registro Cerrado',
+        email: 'cerrado@test.local',
+        password: 'Registro123',
+      });
+      expect(res.status).toBe(403);
+      expect(res.body.error.message).toBe('El registro público está deshabilitado.');
+    } finally {
+      if (previousValue === undefined) delete process.env.ALLOW_PUBLIC_SIGNUP;
+      else process.env.ALLOW_PUBLIC_SIGNUP = previousValue;
+    }
+  });
+
   test('contraseña incorrecta → 401 con mensaje genérico (anti-enumeración)', async () => {
     const res = await request(app)
       .post('/api/v1/auth/login')

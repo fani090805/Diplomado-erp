@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -18,7 +19,7 @@ import { TTButton, TTInput } from '../design-system/components';
 import { FaiLogo } from '../components/FaiLogo';
 
 /** Pantalla de inicio de sesión de FAI Solution ERP. */
-export default function LoginScreen() {
+export default function LoginScreen({ onGoRegister }) {
   const { login } = useAuth();
   const { width } = useWindowDimensions();
   const isMobile = width < 768;
@@ -99,6 +100,11 @@ export default function LoginScreen() {
             >
               Acceder al Sistema
             </TTButton>
+
+            <Pressable onPress={onGoRegister} style={styles.registerLink}>
+              <Text style={styles.registerPrompt}>¿No tienes cuenta? </Text>
+              <Text style={styles.registerAction}>Crear cuenta</Text>
+            </Pressable>
 
             <Text style={styles.footerNote}>
               FAI Solution ERP · Sistema Seguro SSL / TLS
@@ -199,6 +205,23 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     marginTop: SPACING.sm,
+  },
+  registerLink: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    paddingVertical: SPACING.xs,
+  },
+  registerPrompt: {
+    color: COLORS.textMuted,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+  },
+  registerAction: {
+    color: COLORS.primary,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
   },
   footerNote: {
     fontSize: TYPOGRAPHY.fontSize.xs,

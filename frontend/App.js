@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './src/auth/AuthContext';
 import { RouterProvider, useNav } from './src/nav/RouterContext';
 import Layout from './src/components/Layout';
 import LoginScreen from './src/screens/LoginScreen';
+import RegisterScreen from './src/screens/RegisterScreen';
 import LandingScreen from './src/screens/public/LandingScreen';
 import { SCREENS } from './src/screens';
 import { COLORS } from './src/design-system/tokens';
@@ -36,9 +37,22 @@ function Root() {
 
   if (!session) {
     if (viewState === 'landing') {
-      return <LandingScreen onGoLogin={() => setViewState('login')} />;
+      return (
+        <LandingScreen
+          onGoLogin={() => setViewState('login')}
+          onGoRegister={() => setViewState('register')}
+        />
+      );
     }
-    return <LoginScreen />;
+    if (viewState === 'register') {
+      return (
+        <RegisterScreen
+          onGoLogin={() => setViewState('login')}
+          onGoBack={() => setViewState('landing')}
+        />
+      );
+    }
+    return <LoginScreen onGoRegister={() => setViewState('register')} />;
   }
 
   return (

@@ -14,6 +14,11 @@ const login = asyncHandler(async (req, res) => {
   return ok(res, data);
 });
 
+const register = asyncHandler(async (req, res) => {
+  const data = await authService.register(req.body, auditMeta(req));
+  return ok(res, data);
+});
+
 const refresh = asyncHandler(async (req, res) => {
   const data = await authService.refresh(req.body);
   return ok(res, data);
@@ -34,4 +39,4 @@ const changePassword = asyncHandler(async (req, res) => {
   return ok(res, data);
 });
 
-module.exports = { login, refresh, logout, me, changePassword };
+module.exports = { login, register, refresh, logout, me, changePassword };

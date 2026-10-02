@@ -34,10 +34,10 @@ export function AuthProvider({ children }) {
     // TODO: si hay tokens guardados → /auth/me para restaurar la sesión.
   }, []);
 
-  const login = useCallback(async (email, password) => {
-    const data = await api('/auth/login', {
+  const establishSession = useCallback(async (path, body) => {
+    const data = await api(path, {
       method: 'POST',
-      body: { email, password },
+      body,
       auth: false,
     });
     setTokens({ access: data.accessToken, refresh: data.refreshToken });
@@ -46,14 +46,24 @@ export function AuthProvider({ children }) {
     return me;
   }, []);
 
+  const login = useCallback(
+    (email, password) => establishSession('/auth/login', { email, password }),
+    [establishSession]
+  );
+
+  const register = useCallback(
+    (body) => establishSession('/auth/register', body),
+    [establishSession]
+  );
+
   const can = useCallback(
     (permission) => Boolean(session?.role?.permissions?.includes(permission)),
     [session]
   );
 
   const value = useMemo(
-    () => ({ session, initializing, login, logout, can }),
-    [session, initializing, login, logout, can]
+    () => ({ session, initializing, login, register, logout, can }),
+    [session, initializing, login, register, logout, can]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

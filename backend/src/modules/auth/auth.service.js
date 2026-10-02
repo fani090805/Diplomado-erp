@@ -1,6 +1,8 @@
 'use strict';
 
 const ApiError = require('../../utils/ApiError');
+const { ConflictError, ForbiddenError } = require('../../common/errors');
+const logger = require('../../config/logger');
 const { hashPassword, verifyPassword } = require('../../utils/password');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../utils/tokens');
 const { randomUUID, createHash } = require('crypto');
@@ -9,6 +11,7 @@ const Session = require('./session.model');
 const userRepository = require('../users/user.repository');
 const roleRepository = require('../roles/role.repository');
 const companyRepository = require('../companies/company.repository');
+const companyService = require('../companies/company.service');
 const branchRepository = require('../branches/branch.repository');
 const auditService = require('../audit/audit.service');
 const { sendLoginNotification } = require('../../services/email.service');
@@ -71,6 +74,91 @@ function stripSecrets(user) {
 }
 
 const authService = {
+  async register({ name, lastName, companyName, email, password }, meta = {}) {
+    let provisioned = null;
+    let user = null;
+    let failure = null;
+
+    try {
+      if (process.env.ALLOW_PUBLIC_SIGNUP === 'false') {
+        throw new ForbiddenError('El registro público está deshabilitado.');
+      }
+
+      if (await userRepository.findByEmail(email)) {
+        throw new ConflictError('Ya existe una cuenta con este correo.');
+      }
+
+      provisioned = await companyService.create({ name: companyName, email });
+      const adminRole = await roleRepository.findOne({
+        companyId: provisioned.company._id,
+        code: 'administrador',
+      });
+      if (!adminRole) throw new Error('No se encontró el rol administrador de la empresa.');
+
+      user = await userRepository.create({
+        companyId: provisioned.company._id,
+        roleId: adminRole._id,
+        branchId: provisioned.branch._id,
+        name,
+        ...(lastName ? { lastName } : {}),
+        email,
+        passwordHash: await hashPassword(password),
+        status: 'active',
+        isPlatformAdmin: false,
+      });
+
+      const tokenUser = toTokenUser(user);
+      const result = {
+        user: stripSecrets({ ...user, failedLoginAttempts: 0, lastLoginAt: new Date() }),
+        accessToken: signAccessToken(tokenUser),
+        refreshToken: await issueRefreshToken(user),
+      };
+
+      await auditService.log({
+        module: 'auth',
+        action: 'REGISTER',
+        resourceType: 'user',
+        resourceId: String(user._id),
+        companyId: user.companyId,
+        userId: String(user._id),
+        userEmail: user.email,
+        result: 'SUCCESS',
+        ...meta,
+      });
+      return result;
+    } catch (error) {
+      failure = error;
+      const rollbackOps = [
+        ...(user
+          ? [Session.deleteMany({ userId: user._id }), userRepository.deleteById(user._id)]
+          : []),
+        ...(provisioned ? [companyService.rollbackCreate(provisioned)] : []),
+      ];
+      const rollbackResults = await Promise.allSettled(rollbackOps);
+      const rollbackFailures = rollbackResults.filter((result) => result.status === 'rejected');
+      if (rollbackFailures.length) {
+        logger.error({ failed: rollbackFailures.length }, 'Rollback incompleto al registrar una cuenta');
+      }
+
+      if (error?.code === 11000 && error?.keyPattern?.email) {
+        failure = new ConflictError('Ya existe una cuenta con este correo.');
+      }
+      await auditService.log({
+        module: 'auth',
+        action: 'REGISTER',
+        resourceType: 'user',
+        resourceId: user ? String(user._id) : null,
+        companyId: provisioned?.company?._id || null,
+        userId: user ? String(user._id) : null,
+        userEmail: email,
+        result: 'FAILURE',
+        message: failure.message,
+        ...meta,
+      });
+      throw failure;
+    }
+  },
+
   async login({ email, password }, meta = {}) {
     const user = await userRepository.findByEmail(email);
 

@@ -9,6 +9,24 @@ const roleRepository = require('../roles/role.repository');
 const warehouseRepository = require('../warehouses/warehouse.repository');
 const masterDataRepository = require('../master-data/master_data.repository');
 
+async function rollbackCompanyProvisioning({ company, branch, warehouse, roles = [], baseCurrency }) {
+  const currencyId = baseCurrency?._id || company?.currencyId;
+  const rollbackOps = [
+    ...(warehouse ? [warehouseRepository.deleteById(warehouse._id, { companyId: company._id })] : []),
+    ...(branch ? [branchRepository.deleteById(branch._id, { companyId: company._id })] : []),
+    ...roles.map((role) => roleRepository.deleteById(role._id, { companyId: company._id })),
+    ...(currencyId
+      ? [masterDataRepository.deleteById(currencyId, { companyId: company._id })]
+      : []),
+    ...(company ? [companyRepository.deleteById(company._id)] : []),
+  ];
+  const results = await Promise.allSettled(rollbackOps);
+  const failed = results.filter((result) => result.status === 'rejected');
+  if (failed.length) {
+    logger.error({ failed: failed.length }, 'Rollback incompleto al aprovisionar empresa');
+  }
+}
+
 /** Sucursal predeterminada creada junto a cada empresa nueva. */
 const DEFAULT_BRANCH = {
   code: 'MAIN',
@@ -151,23 +169,13 @@ const companyService = {
         { err: err.message, companyId: String(company._id) },
         'Aprovisionamiento de empresa falló; se revierte la creación'
       );
-
-      const rollbackOps = [
-        companyRepository.deleteById(company._id),
-        ...(baseCurrency ? [masterDataRepository.deleteById(baseCurrency._id, { companyId: company._id })] : []),
-        ...(branch ? [branchRepository.deleteById(branch._id, { companyId: company._id })] : []),
-        ...(warehouse
-          ? [warehouseRepository.deleteById(warehouse._id, { companyId: company._id })]
-          : []),
-        ...roles.map((r) => roleRepository.deleteById(r._id, { companyId: company._id })),
-      ];
-      const results = await Promise.allSettled(rollbackOps);
-      const failed = results.filter((r) => r.status === 'rejected');
-      if (failed.length) {
-        logger.error({ failed: failed.length }, 'Rollback incompleto al aprovisionar empresa');
-      }
+      await rollbackCompanyProvisioning({ company, branch, warehouse, roles, baseCurrency });
       throw err;
     }
+  },
+
+  async rollbackCreate(provisioned) {
+    return rollbackCompanyProvisioning(provisioned);
   },
 
   async update(id, data, actor) {
