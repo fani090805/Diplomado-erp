@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTCard - Contenedor en tarjeta TECTODE
+ * TTCard - Contenedor en tarjeta de FAI Solution ERP
  */
 export function TTCard({ children, title, subtitle, action, elevated = false, style, contentStyle, onPress }) {
   const Container = onPress ? Pressable : View;
@@ -33,7 +33,7 @@ export function TTCard({ children, title, subtitle, action, elevated = false, st
 }
 
 /**
- * TTStatCard - Tarjeta KPI empresarial TECTODE
+ * TTStatCard - Tarjeta KPI empresarial de FAI Solution ERP
  */
 export function TTStatCard({ label, value, trend, trendType = 'neutral', icon, accentColor = COLORS.info, style }) {
   const isPositive = trendType === 'positive';
@@ -70,15 +70,21 @@ export function TTStatCard({ label, value, trend, trendType = 'neutral', icon, a
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: RADIUS.lg,
+    borderTopWidth: 3,
+    borderTopColor: COLORS.primary,
+    borderRadius: RADIUS.xl,
     padding: SPACING.lg,
     overflow: 'hidden',
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
   },
   elevated: {
-    backgroundColor: COLORS.cardElevated,
+    backgroundColor: COLORS.card,
   },
   hovered: {
     borderColor: COLORS.primary,
@@ -115,16 +121,22 @@ const styles = StyleSheet.create({
 
   // Stat Card
   statCard: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: RADIUS.lg,
+    borderTopWidth: 3,
+    borderTopColor: COLORS.primary,
+    borderRadius: RADIUS.xl,
     padding: SPACING.lg,
     minWidth: 170,
     flex: 1,
     gap: SPACING.xs,
     position: 'relative',
     overflow: 'hidden',
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.025,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
   },
   statHeader: {
     flexDirection: 'row',
@@ -132,8 +144,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statLabel: {
-    fontSize: TYPOGRAPHY.fontSize.xs + 1,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    ...TYPOGRAPHY.kpiLabel,
+    fontWeight: TYPOGRAPHY.fontWeight.medium,
     color: COLORS.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -142,9 +154,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   statValue: {
-    fontSize: TYPOGRAPHY.fontSize['2xl'],
-    fontWeight: TYPOGRAPHY.fontWeight.extrabold,
-    fontFamily: TYPOGRAPHY.fontFamily.display,
+    ...TYPOGRAPHY.kpiValue,
+    color: COLORS.textPrimary,
     marginVertical: SPACING.xs / 2,
   },
   trendRow: {
@@ -157,10 +168,10 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
   },
   trendPositive: {
-    color: COLORS.accent,
+    color: COLORS.trendUpText,
   },
   trendNegative: {
-    color: COLORS.error,
+    color: COLORS.trendDownText,
   },
   topBorderGlow: {
     position: 'absolute',

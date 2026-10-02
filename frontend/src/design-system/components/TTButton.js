@@ -3,7 +3,7 @@ import { ActivityIndicator, Platform, Pressable, StyleSheet, Text } from 'react-
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTButton - Botón TECTODE ERP
+ * TTButton - Botón de FAI Solution ERP
  * Variantes: primary (Lime #B6FF00), brand (Morado #7C3AED), secondary (#151B28), ghost, danger (#EF4444)
  * Tamaños: sm, md, lg
  */
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: SPACING.sm,
-    borderRadius: RADIUS.md,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: 'transparent',
     ...Platform.select({
@@ -99,12 +99,12 @@ const styles = StyleSheet.create({
 
   // Variantes
   variant_primary: {
-    backgroundColor: COLORS.accent,
-    borderColor: COLORS.accent,
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   variant_primary_hover: {
-    backgroundColor: COLORS.accentHover,
-    borderColor: COLORS.accentHover,
+    backgroundColor: COLORS.primaryDark,
+    borderColor: COLORS.primaryDark,
   },
 
   variant_brand: {
@@ -112,16 +112,16 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
   },
   variant_brand_hover: {
-    backgroundColor: COLORS.primaryLight,
-    borderColor: COLORS.primaryLight,
+    backgroundColor: COLORS.primaryDark,
+    borderColor: COLORS.primaryDark,
   },
 
   variant_secondary: {
-    backgroundColor: COLORS.cardElevated,
+    backgroundColor: COLORS.background,
     borderColor: COLORS.border,
   },
   variant_secondary_hover: {
-    backgroundColor: COLORS.border,
+    backgroundColor: COLORS.surface,
     borderColor: COLORS.borderHover,
   },
 
@@ -130,15 +130,15 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   variant_ghost_hover: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: COLORS.primaryGlow,
   },
 
   variant_danger: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: COLORS.errorGlow,
     borderColor: COLORS.error,
   },
   variant_danger_hover: {
-    backgroundColor: COLORS.error,
+    backgroundColor: COLORS.trendDownBg,
   },
 
   pressed: {
@@ -162,8 +162,8 @@ const styles = StyleSheet.create({
   textSize_md: { fontSize: TYPOGRAPHY.fontSize.md },
   textSize_lg: { fontSize: TYPOGRAPHY.fontSize.lg },
 
-  textVariant_primary: { color: COLORS.textDark, fontWeight: '700' },
-  textVariant_brand: { color: COLORS.textPrimary },
+  textVariant_primary: { color: COLORS.textInverted, fontWeight: '700' },
+  textVariant_brand: { color: COLORS.textInverted },
   textVariant_secondary: { color: COLORS.textPrimary },
   textVariant_ghost: { color: COLORS.textSecondary },
   textVariant_danger: { color: COLORS.error },

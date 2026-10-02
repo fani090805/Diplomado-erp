@@ -58,10 +58,6 @@ const env = {
     adminEmail: process.env.SEED_ADMIN_EMAIL || 'admin@example.com',
     adminPassword: process.env.SEED_ADMIN_PASSWORD || '',
   },
-  resend: {
-    apiKey: process.env.RESEND_API_KEY || '',
-    fromEmail: process.env.RESEND_FROM_EMAIL || 'Tec[ode ERP <onboarding@resend.dev>',
-  },
   logLevel: process.env.LOG_LEVEL || 'info',
   isTest: process.env.NODE_ENV === 'test',
   isProduction: process.env.NODE_ENV === 'production',

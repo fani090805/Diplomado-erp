@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { COLORS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTBreadcrumb - Migas de pan navegables para TECTODE Header
+ * TTBreadcrumb - Migas de pan navegables para el encabezado de FAI
  */
 export function TTBreadcrumb({ items = [] }) {
   if (items.length === 0) return null;

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Modal,
   Pressable,
   ScrollView,
@@ -12,28 +13,27 @@ import { useAuth } from '../auth/AuthContext';
 import {
   COLORS,
   RADIUS,
+  SHADOWS,
   SPACING,
   TYPOGRAPHY,
   getResponsiveLayout,
 } from '../design-system/tokens';
-import { TTAvatar, TTBreadcrumb, TTSearch } from '../design-system/components';
+import { TTAvatar, TTSearch } from '../design-system/components';
 import { useNav } from '../nav/RouterContext';
-import { TecodeLogo } from './TecodeLogo';
+import { FaiLogo, FaiLogoIcon } from './FaiLogo';
 
-/**
- * Categorías de Menú TECTODE ERP
- */
+/** Categorías del menú de FAI Solution ERP. */
 export const MENU_CATEGORIES = [
   {
-    category: 'CRABERP',
+    category: 'PRINCIPAL',
     items: [
-      { route: 'home', label: 'CRAB Dashboard', icon: '◈', permission: null },
-      { route: 'accounts', label: 'CRAB Finance', icon: '◉', permission: 'finance.accounts.read' },
-      { route: 'stock', label: 'CRAB Inventory', icon: '▦', permission: 'inventory.read' },
-      { route: 'salesOrders', label: 'CRAB Sales', icon: '↗', permission: 'sales.orders.read' },
-      { route: 'employees', label: 'CRAB HR', icon: '♙', permission: 'hr.read' },
-      { route: 'reports', label: 'CRAB Analytics', icon: '⌁', permission: 'reports.read' },
-      { route: 'users', label: 'Settings', icon: '⚙', permission: 'users.read' },
+      { route: 'home', label: 'Dashboard', icon: '◈', permission: null },
+      { route: 'accounts', label: 'Finanzas', icon: '◉', permission: 'finance.accounts.read' },
+      { route: 'stock', label: 'Inventario', icon: '▦', permission: 'inventory.read' },
+      { route: 'salesOrders', label: 'Ventas', icon: '↗', permission: 'sales.orders.read' },
+      { route: 'employees', label: 'Recursos Humanos', icon: '♙', permission: 'hr.read' },
+      { route: 'reports', label: 'Analítica', icon: '⌁', permission: 'reports.read' },
+      { route: 'users', label: 'Configuración', icon: '⚙', permission: 'users.read' },
     ],
   },
   {
@@ -74,7 +74,6 @@ export const MENU_CATEGORIES = [
   },
 ];
 
-// Compatibilidad hacia atrás para HomeScreen u otros módulos
 export const MENU = MENU_CATEGORIES.map((cat) => ({
   section: cat.category,
   items: cat.items,
@@ -89,131 +88,192 @@ export default function Layout({ children }) {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const drawerTranslateX = useRef(new Animated.Value(-288)).current;
 
   const { isMobile, isTablet } = getResponsiveLayout(width);
+  const drawerWidth = Math.min(288, width * 0.86);
   const { company, user, role, branch } = session || {};
-
-  // Forzar colapso en Tablet
+  const displayName = [user?.name, user?.lastName].filter(Boolean).join(' ') || user?.email || 'Usuario';
+  const companyName = company?.name || 'FAI Solution ERP';
+  const roleName = role?.label || role?.code || 'Usuario';
   const isSidebarCollapsed = isTablet || collapsed;
 
-  // Filtrado RBAC estricto
-  const filteredCategories = MENU_CATEGORIES.map((cat) => ({
-    ...cat,
-    items: cat.items.filter((item) => !item.permission || can(item.permission)),
-  })).filter((cat) => cat.items.length > 0);
+  const filteredCategories = MENU_CATEGORIES.map((category) => ({
+    ...category,
+    items: category.items.filter((item) => !item.permission || can(item.permission)),
+  })).filter((category) => category.items.length > 0);
 
-  // Mapeo para Breadcrumb
-  const currentItem = MENU_CATEGORIES.flatMap((c) => c.items).find((i) => i.route === route.name);
-  const currentCategory = MENU_CATEGORIES.find((c) => c.items.some((i) => i.route === route.name));
+  const currentItem = MENU_CATEGORIES.flatMap((category) => category.items).find((item) => item.route === route.name);
+  const currentCategory = MENU_CATEGORIES.find((category) => category.items.some((item) => item.route === route.name));
+  const breadcrumbs = ['FAI Solution ERP', ...(currentCategory ? [currentCategory.category] : [])];
 
-  const breadcrumbs = [
-    { label: 'CRABERP', onPress: () => go('home') },
-    ...(currentCategory ? [{ label: currentCategory.category }] : []),
-    ...(currentItem ? [{ label: currentItem.label }] : []),
-  ];
+  useEffect(() => {
+    if (!mobileDrawerOpen) return;
+    drawerTranslateX.setValue(-drawerWidth);
+    Animated.timing(drawerTranslateX, {
+      toValue: 0,
+      duration: 220,
+      useNativeDriver: true,
+    }).start();
+  }, [drawerTranslateX, drawerWidth, mobileDrawerOpen]);
+
+  const closeMobileDrawer = () => {
+    Animated.timing(drawerTranslateX, {
+      toValue: -drawerWidth,
+      duration: 180,
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) setMobileDrawerOpen(false);
+    });
+  };
 
   const handleNavigate = (routeName) => {
     go(routeName);
-    if (mobileDrawerOpen) setMobileDrawerOpen(false);
+    if (mobileDrawerOpen) closeMobileDrawer();
   };
 
-  const renderNavSection = (cat) => (
-    <View key={cat.category} style={styles.navCategory}>
-      {!isSidebarCollapsed ? <Text style={styles.navCategoryTitle}>{cat.category}</Text> : null}
-      {cat.items.map((item) => {
-        const isActive = route.name === item.route;
-        return (
+  const toggleCategory = (category) => {
+    setExpandedCategories((current) => ({
+      ...current,
+      [category]: current[category] === false,
+    }));
+  };
+
+  const renderNavSection = (category) => {
+    const isExpanded = isSidebarCollapsed || expandedCategories[category.category] !== false;
+    return (
+      <View key={category.category} style={styles.navCategory}>
+        {!isSidebarCollapsed ? (
           <Pressable
-            key={item.route}
-            onPress={() => handleNavigate(item.route)}
-            style={({ hovered }) => [
-              styles.navItem,
-              isSidebarCollapsed && styles.navItemCollapsed,
-              isActive && styles.navItemActive,
-              hovered && !isActive && styles.navItemHovered,
-            ]}
+            onPress={() => toggleCategory(category.category)}
+            style={styles.navCategoryToggle}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: isExpanded }}
           >
-            <Text style={[styles.navIcon, isActive && styles.navIconActive]}>{item.icon}</Text>
-            {!isSidebarCollapsed ? (
-              <Text style={[styles.navLabel, isActive && styles.navLabelActive]} numberOfLines={1}>
-                {item.label}
-              </Text>
-            ) : null}
+            <Text style={styles.navCategoryTitle}>{category.category}</Text>
+            <Text style={styles.navCategoryChevron}>{isExpanded ? '⌄' : '›'}</Text>
           </Pressable>
-        );
-      })}
+        ) : null}
+        {isExpanded ? category.items.map((item) => {
+          const isActive = route.name === item.route;
+          return (
+            <Pressable
+              key={item.route}
+              onPress={() => handleNavigate(item.route)}
+              style={({ hovered }) => [
+                styles.navItem,
+                isSidebarCollapsed && styles.navItemCollapsed,
+                isActive && styles.navItemActive,
+                hovered && !isActive && styles.navItemHovered,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={item.label}
+            >
+              <Text style={[styles.navIcon, isActive && styles.navIconActive]}>{item.icon}</Text>
+              {!isSidebarCollapsed ? (
+                <Text style={[styles.navLabel, isActive && styles.navLabelActive]} numberOfLines={1}>
+                  {item.label}
+                </Text>
+              ) : null}
+            </Pressable>
+          );
+        }) : null}
+      </View>
+    );
+  };
+
+  const renderHelpLinks = (iconsOnly = false) => (
+    <View style={[styles.helpLinks, iconsOnly && styles.helpLinksCollapsed]}>
+      <Pressable disabled style={styles.helpLink} accessibilityState={{ disabled: true }}>
+        <Text style={styles.helpIcon}>ⓘ</Text>
+        {!iconsOnly ? <Text style={styles.helpText}>Guía de usuario</Text> : null}
+      </Pressable>
+      <Pressable disabled style={styles.helpLink} accessibilityState={{ disabled: true }}>
+        <Text style={styles.helpIcon}>?</Text>
+        {!iconsOnly ? <Text style={styles.helpText}>Soporte</Text> : null}
+      </Pressable>
     </View>
+  );
+
+  const renderProfileCard = (compact = false) => (
+    <Pressable
+      style={[styles.profileCard, compact && styles.profileCardCollapsed]}
+      onPress={() => setUserMenuOpen((open) => !open)}
+      accessibilityLabel="Abrir menú de usuario"
+    >
+      <TTAvatar name={displayName} size="md" color={COLORS.sidebarText} />
+      {!compact ? (
+        <View style={styles.profileMeta}>
+          <Text style={styles.profileName} numberOfLines={1}>{displayName}</Text>
+          <Text style={styles.profileEmail} numberOfLines={1}>{user?.email || roleName}</Text>
+        </View>
+      ) : null}
+      {!compact ? <Text style={styles.profileChevron}>⌄</Text> : null}
+    </Pressable>
   );
 
   return (
     <View style={styles.shell}>
-      {/* HEADER SUPERIOR */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          {isMobile ? (
-            <Pressable style={styles.iconBtn} onPress={() => setMobileDrawerOpen(true)}>
-              <Text style={styles.iconBtnText}>☰</Text>
-            </Pressable>
-          ) : (
-            <Pressable style={styles.iconBtn} onPress={() => setCollapsed((c) => !c)}>
-              <Text style={styles.iconBtnText}>{isSidebarCollapsed ? '≫' : '≪'}</Text>
-            </Pressable>
-          )}
-
-          {canGoBack && route.name !== 'home' ? (
-            <Pressable style={styles.backBtn} onPress={back}>
-              <Text style={styles.backBtnText}>‹ Volver</Text>
-            </Pressable>
-          ) : null}
-
-          <TTBreadcrumb items={breadcrumbs} />
-        </View>
-
-        <View style={styles.headerRight}>
-          {!isMobile ? (
-            <TTSearch
-              value={globalSearch}
-              onChangeText={setGlobalSearch}
-              placeholder="Buscar en CRABERP…"
-              style={styles.globalSearch}
-            />
-          ) : null}
-
-          <Pressable style={styles.badgeBox}>
-            <Text style={styles.badgeCompany}>{company?.name || 'CRABERP'}</Text>
-            {branch ? <Text style={styles.badgeBranch}> · {branch.name}</Text> : null}
-          </Pressable>
-
-          <Pressable style={styles.iconBtn}>
-            <Text style={styles.iconBtnText}>🔔</Text>
-          </Pressable>
-
-          <Pressable style={styles.userMenuTrigger} onPress={() => setUserMenuOpen((u) => !u)}>
-            <TTAvatar name={user?.name || 'Usuario'} size="sm" color={COLORS.accent} />
-            {!isMobile ? (
-              <View style={styles.userMeta}>
-                <Text style={styles.userName} numberOfLines={1}>Catherine Kim</Text>
-                <Text style={styles.userRole} numberOfLines={1}>
-                  Agency TEAM corp.admin
-                </Text>
+      <View style={[styles.header, isMobile && styles.headerMobile]}>
+        {isMobile ? (
+          <>
+            <FaiLogo size="md" variant="dark" showTag={false} />
+            <View style={styles.mobileHeaderActions}>
+              <Pressable onPress={() => setUserMenuOpen((open) => !open)} accessibilityLabel="Abrir menú de usuario">
+                <TTAvatar name={displayName} size="sm" color={COLORS.sidebarText} />
+              </Pressable>
+              <Pressable style={styles.mobileMenuButton} onPress={() => setMobileDrawerOpen(true)} accessibilityLabel="Abrir navegación">
+                <Text style={styles.mobileMenuIcon}>☰</Text>
+              </Pressable>
+            </View>
+          </>
+        ) : (
+          <>
+            <View style={styles.headerDesktopLeft}>
+              {canGoBack && route.name !== 'home' ? (
+                <Pressable style={styles.backBtn} onPress={back}>
+                  <Text style={styles.backBtnText}>‹ Volver</Text>
+                </Pressable>
+              ) : null}
+              <View style={styles.headerTitles}>
+                <Text style={styles.screenTitle} numberOfLines={1}>{currentItem?.label || 'Dashboard'}</Text>
+                <Text style={styles.breadcrumbText} numberOfLines={1}>{breadcrumbs.join('  /  ')}</Text>
               </View>
-            ) : null}
-            <Text style={styles.caret}>▾</Text>
-          </Pressable>
-        </View>
+            </View>
+            <View style={styles.headerDesktopRight}>
+              <TTSearch
+                value={globalSearch}
+                onChangeText={setGlobalSearch}
+                placeholder="Buscar en FAI Solution ERP…"
+                style={styles.globalSearch}
+              />
+              <View style={styles.companyHeader}>
+                <Text style={styles.companyHeaderLabel}>EMPRESA</Text>
+                <Text style={styles.companyHeaderName} numberOfLines={1}>{companyName}</Text>
+                {branch ? <Text style={styles.companyHeaderBranch} numberOfLines={1}>{branch.name}</Text> : null}
+              </View>
+              <Pressable style={styles.languageSelector} disabled accessibilityLabel="Idioma: español">
+                <Text style={styles.languageText}>ES</Text>
+                <Text style={styles.languageChevron}>⌄</Text>
+              </Pressable>
+              <Pressable style={styles.headerAvatar} onPress={() => setUserMenuOpen((open) => !open)} accessibilityLabel="Abrir menú de usuario">
+                <TTAvatar name={displayName} size="sm" color={COLORS.accentText} />
+              </Pressable>
+            </View>
+          </>
+        )}
       </View>
 
-      {/* MENÚ FLOTANTE DE USUARIO */}
       {userMenuOpen ? (
         <Modal transparent visible animationType="fade" onRequestClose={() => setUserMenuOpen(false)}>
           <Pressable style={styles.menuBackdrop} onPress={() => setUserMenuOpen(false)}>
             <View style={styles.userDropdown}>
               <View style={styles.dropdownHeader}>
-                <Text style={styles.dropdownTitle}>{user?.name} {user?.lastName || ''}</Text>
+                <Text style={styles.dropdownTitle}>{displayName}</Text>
                 <Text style={styles.dropdownSub}>{user?.email}</Text>
-                <Text style={styles.dropdownRole}>Rol: {role?.label || role?.code || 'Sin Rol'}</Text>
+                <Text style={styles.dropdownRole}>Rol: {roleName}</Text>
               </View>
-
               <Pressable
                 style={styles.dropdownItem}
                 onPress={() => {
@@ -221,9 +281,8 @@ export default function Layout({ children }) {
                   go('home');
                 }}
               >
-                <Text style={styles.dropdownItemText}>⚡ Dashboard</Text>
+                <Text style={styles.dropdownItemText}>◈ Dashboard</Text>
               </Pressable>
-
               {can('users.read') ? (
                 <Pressable
                   style={styles.dropdownItem}
@@ -232,10 +291,9 @@ export default function Layout({ children }) {
                     go('users');
                   }}
                 >
-                  <Text style={styles.dropdownItemText}>⚙️ Configuración</Text>
+                  <Text style={styles.dropdownItemText}>⚙ Configuración</Text>
                 </Pressable>
               ) : null}
-
               <Pressable
                 style={[styles.dropdownItem, styles.dropdownLogout]}
                 onPress={() => {
@@ -243,52 +301,69 @@ export default function Layout({ children }) {
                   logout();
                 }}
               >
-                <Text style={styles.logoutText}>🚪 Cerrar Sesión</Text>
+                <Text style={styles.logoutText}>Cerrar sesión</Text>
               </Pressable>
             </View>
           </Pressable>
         </Modal>
       ) : null}
 
-      {/* CUERPO PRINCIPAL (SIDEBAR + CONTENIDO) */}
-      <View style={styles.body}>
-        {/* SIDEBAR DESKTOP / TABLET */}
+      <View style={[styles.body, isMobile && styles.bodyMobile]}>
         {!isMobile ? (
           <View style={[styles.sidebar, isSidebarCollapsed && styles.sidebarCollapsed]}>
-            <View style={styles.brandHeader}>
-              <TecodeLogo size="md" showTag={!isSidebarCollapsed} />
+            <View style={styles.sidebarHeader}>
+              {isSidebarCollapsed ? (
+                <FaiLogoIcon size={28} />
+              ) : (
+                <View style={styles.brandIdentity}>
+                  <FaiLogo size="md" variant="dark" />
+                  <Text style={styles.sidebarCompanyName} numberOfLines={1}>{companyName}</Text>
+                </View>
+              )}
+              {!isTablet ? (
+                <Pressable style={styles.collapseButton} onPress={() => setCollapsed((value) => !value)} accessibilityLabel={isSidebarCollapsed ? 'Expandir menú' : 'Colapsar menú'}>
+                  <Text style={styles.collapseButtonText}>{isSidebarCollapsed ? '›' : '‹'}</Text>
+                </Pressable>
+              ) : null}
             </View>
-
             <ScrollView style={styles.sidebarNav} showsVerticalScrollIndicator={false}>
               {filteredCategories.map(renderNavSection)}
             </ScrollView>
+            <View style={styles.sidebarFooter}>
+              {renderProfileCard(isSidebarCollapsed)}
+              {renderHelpLinks(isSidebarCollapsed)}
+            </View>
           </View>
         ) : null}
 
-        {/* DRAWER MÓVIL */}
         {isMobile && mobileDrawerOpen ? (
-          <Modal transparent visible animationType="slide" onRequestClose={() => setMobileDrawerOpen(false)}>
+          <Modal transparent visible animationType="none" onRequestClose={closeMobileDrawer}>
             <View style={styles.drawerBackdrop}>
-              <Pressable style={styles.drawerOverlay} onPress={() => setMobileDrawerOpen(false)} />
-              <View style={styles.mobileDrawer}>
+              <Animated.View style={[styles.mobileDrawer, { transform: [{ translateX: drawerTranslateX }] }]}>
                 <View style={styles.drawerHeader}>
-                  <TecodeLogo size="md" showTag />
-                  <Pressable onPress={() => setMobileDrawerOpen(false)}>
+                  <View style={styles.brandIdentity}>
+                    <FaiLogo size="md" variant="dark" />
+                    <Text style={styles.sidebarCompanyName} numberOfLines={1}>{companyName}</Text>
+                  </View>
+                  <Pressable onPress={closeMobileDrawer} accessibilityLabel="Cerrar navegación">
                     <Text style={styles.closeDrawerText}>✕</Text>
                   </Pressable>
                 </View>
-
                 <ScrollView style={styles.drawerBody}>
                   {filteredCategories.map(renderNavSection)}
                 </ScrollView>
-              </View>
+                <View style={styles.sidebarFooter}>
+                  {renderProfileCard()}
+                  {renderHelpLinks()}
+                </View>
+              </Animated.View>
+              <Pressable style={styles.drawerOverlay} onPress={closeMobileDrawer} />
             </View>
           </Modal>
         ) : null}
 
-        {/* ÁREA DE CONTENIDO PRINCIPAL */}
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentInner}>
-          {children}
+        <ScrollView style={styles.content} contentContainerStyle={[styles.contentInner, isMobile && styles.contentInnerMobile]}>
+          <View style={styles.contentPanel}>{children}</View>
         </ScrollView>
       </View>
     </View>
@@ -296,322 +371,216 @@ export default function Layout({ children }) {
 }
 
 const styles = StyleSheet.create({
-  shell: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-
-  // Header
+  shell: { flex: 1, backgroundColor: COLORS.background },
   header: {
+    minHeight: 76,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
-    height: 58,
+    paddingHorizontal: SPACING.xl,
     backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-    gap: SPACING.md,
     zIndex: 100,
   },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-    flex: 1,
+  headerMobile: {
+    minHeight: 64,
+    paddingHorizontal: SPACING.md,
+    backgroundColor: COLORS.sidebarBg,
+    borderBottomColor: COLORS.primaryDark,
   },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.md,
-  },
-  iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+  mobileHeaderActions: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  mobileMenuButton: {
+    width: 38,
+    height: 38,
+    borderRadius: RADIUS.full,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: COLORS.sidebarActiveBg,
   },
-  iconBtnText: {
-    color: COLORS.textSecondary,
-    fontSize: 15,
-  },
-  backBtn: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs + 2,
-  },
-  backBtnText: {
-    color: COLORS.textSecondary,
-    fontSize: TYPOGRAPHY.fontSize.xs + 1,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-  },
-  globalSearch: {
-    maxWidth: 260,
-  },
-  badgeBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs + 1,
-  },
-  badgeCompany: {
-    color: COLORS.accent,
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-  },
-  badgeBranch: {
-    color: COLORS.textMuted,
-    fontSize: TYPOGRAPHY.fontSize.xs,
-  },
-  userMenuTrigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: SPACING.xs,
-  },
-  userMeta: {
-    gap: 1,
-  },
-  userName: {
+  mobileMenuIcon: { color: COLORS.sidebarText, fontSize: 19 },
+  headerDesktopLeft: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
+  headerTitles: { minWidth: 0, gap: 2 },
+  screenTitle: {
     color: COLORS.textPrimary,
-    fontSize: TYPOGRAPHY.fontSize.xs + 1,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    maxWidth: 120,
+    fontSize: TYPOGRAPHY.fontSize['2xl'] + 2,
+    lineHeight: 31,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    fontFamily: TYPOGRAPHY.fontFamily.display,
   },
-  userRole: {
-    color: COLORS.textMuted,
-    fontSize: 10,
-    maxWidth: 120,
+  breadcrumbText: { color: COLORS.textMuted, fontSize: TYPOGRAPHY.fontSize.xs, fontFamily: TYPOGRAPHY.fontFamily.ui },
+  headerDesktopRight: { flexDirection: 'row', alignItems: 'center', gap: SPACING.md },
+  companyHeader: { maxWidth: 160, gap: 2 },
+  companyHeaderLabel: { color: COLORS.textMuted, fontSize: 9, fontWeight: TYPOGRAPHY.fontWeight.bold, fontFamily: TYPOGRAPHY.fontFamily.display },
+  companyHeaderName: { color: COLORS.textSecondary, fontSize: TYPOGRAPHY.fontSize.xs, fontWeight: TYPOGRAPHY.fontWeight.semibold, fontFamily: TYPOGRAPHY.fontFamily.ui },
+  companyHeaderBranch: { color: COLORS.textMuted, fontSize: 10, fontFamily: TYPOGRAPHY.fontFamily.ui },
+  languageSelector: {
+    minWidth: 50,
+    height: 36,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.sm,
+    backgroundColor: COLORS.surface,
   },
-  caret: {
-    color: COLORS.textMuted,
-    fontSize: 11,
-    marginRight: 4,
+  languageText: { color: COLORS.textSecondary, fontSize: TYPOGRAPHY.fontSize.xs, fontWeight: TYPOGRAPHY.fontWeight.semibold },
+  languageChevron: { color: COLORS.textMuted, fontSize: TYPOGRAPHY.fontSize.sm },
+  collapseButton: {
+    width: 30,
+    height: 30,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.sidebarActiveBg,
   },
-
-  // Dropdown Menu Usuario
-  menuBackdrop: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    alignItems: 'flex-end',
-    paddingTop: 60,
-    paddingRight: 16,
+  collapseButtonText: { color: COLORS.sidebarText, fontSize: 20, lineHeight: 23 },
+  headerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.trendDownBg,
   },
+  globalSearch: { width: 220, maxWidth: 220 },
+  backBtn: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.sm, borderRadius: RADIUS.sm, backgroundColor: COLORS.background },
+  backBtnText: { color: COLORS.primary, fontSize: TYPOGRAPHY.fontSize.xs + 1, fontWeight: TYPOGRAPHY.fontWeight.semibold },
+  menuBackdrop: { flex: 1, alignItems: 'flex-end', paddingTop: 84, paddingHorizontal: SPACING.md },
   userDropdown: {
-    width: 240,
-    backgroundColor: COLORS.cardElevated,
+    width: 260,
+    maxWidth: '100%',
+    padding: SPACING.sm,
+    gap: SPACING.xs,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: RADIUS.lg,
-    padding: SPACING.xs,
-    gap: 2,
+    backgroundColor: COLORS.surface,
+    ...SHADOWS.md,
   },
-  dropdownHeader: {
-    padding: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    gap: 2,
-  },
-  dropdownTitle: {
-    color: COLORS.textPrimary,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-  },
-  dropdownSub: {
-    color: COLORS.textMuted,
-    fontSize: TYPOGRAPHY.fontSize.xs,
-  },
-  dropdownRole: {
-    color: COLORS.accent,
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    marginTop: 4,
-  },
-  dropdownItem: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.md - 2,
-    borderRadius: RADIUS.sm,
-  },
-  dropdownItemText: {
-    color: COLORS.textSecondary,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-  },
-  dropdownLogout: {
-    backgroundColor: `${COLORS.error}15`,
-    marginTop: SPACING.xs,
-  },
-  logoutText: {
-    color: COLORS.error,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-  },
-
-  // Layout Body
-  body: {
-    flex: 1,
-    flexDirection: 'row',
-  },
-
-  // Sidebar
+  dropdownHeader: { padding: SPACING.md, borderBottomWidth: 1, borderBottomColor: COLORS.border, gap: 2 },
+  dropdownTitle: { color: COLORS.textPrimary, fontWeight: TYPOGRAPHY.fontWeight.bold, fontSize: TYPOGRAPHY.fontSize.sm },
+  dropdownSub: { color: COLORS.textMuted, fontSize: TYPOGRAPHY.fontSize.xs },
+  dropdownRole: { color: COLORS.accentText, fontSize: TYPOGRAPHY.fontSize.xs, marginTop: 4 },
+  dropdownItem: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.md - 2, borderRadius: RADIUS.md },
+  dropdownItemText: { color: COLORS.textSecondary, fontSize: TYPOGRAPHY.fontSize.sm, fontWeight: TYPOGRAPHY.fontWeight.medium },
+  dropdownLogout: { backgroundColor: COLORS.trendDownBg, marginTop: SPACING.xs },
+  logoutText: { color: COLORS.error, fontWeight: TYPOGRAPHY.fontWeight.semibold, fontSize: TYPOGRAPHY.fontSize.sm },
+  body: { flex: 1, flexDirection: 'row' },
+  bodyMobile: { flexDirection: 'column' },
   sidebar: {
     width: 240,
-    backgroundColor: COLORS.primary,
-    borderRightWidth: 1,
-    borderRightColor: COLORS.border,
     paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.sm,
+    backgroundColor: COLORS.sidebarBg,
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(245, 238, 219, 0.12)',
   },
-  sidebarCollapsed: {
-    width: 72,
-  },
-  brandHeader: {
+  sidebarCollapsed: { width: 72, alignItems: 'center' },
+  sidebarHeader: {
+    minHeight: 78,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.md,
-    paddingHorizontal: SPACING.lg,
-    marginBottom: SPACING.lg,
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    marginBottom: SPACING.md,
   },
-  brandLogoBox: {
-    width: 36,
-    height: 36,
-    borderRadius: RADIUS.md,
-    backgroundColor: COLORS.accent,
+  brandIdentity: { flex: 1, minWidth: 0, gap: 5 },
+  sidebarCompanyName: { color: COLORS.sidebarTextMuted, fontSize: TYPOGRAPHY.fontSize.xs, fontFamily: TYPOGRAPHY.fontFamily.ui },
+  sidebarNav: { flex: 1, paddingHorizontal: SPACING.xs },
+  navCategory: { marginBottom: SPACING.md },
+  navCategoryToggle: {
+    minHeight: 36,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  brandLogoText: {
-    color: COLORS.primaryDark,
-    fontWeight: '900',
-    fontSize: 20,
-    fontFamily: TYPOGRAPHY.fontFamily.display,
-  },
-  brandTitleArea: {
-    gap: 1,
-  },
-  brandName: {
-    color: '#FFFFFF',
-    fontSize: TYPOGRAPHY.fontSize.lg,
-    fontWeight: TYPOGRAPHY.fontWeight.extrabold,
-    fontFamily: TYPOGRAPHY.fontFamily.display,
-    letterSpacing: 0.5,
-  },
-  brandTag: {
-    color: '#E8DDC8',
-    fontSize: 10,
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-    letterSpacing: 0.5,
-  },
-
-  sidebarNav: {
-    flex: 1,
+    justifyContent: 'space-between',
     paddingHorizontal: SPACING.sm,
   },
-  navCategory: {
-    marginBottom: SPACING.md,
-    gap: 2,
-  },
   navCategoryTitle: {
+    flex: 1,
+    color: COLORS.sidebarTextMuted,
     fontSize: 10,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: 'rgba(255,255,255,0.68)',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    paddingHorizontal: SPACING.md,
-    marginBottom: SPACING.xs,
   },
+  navCategoryChevron: { color: COLORS.sidebarTextMuted, fontSize: TYPOGRAPHY.fontSize.lg },
   navItem: {
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     gap: SPACING.md,
     paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm + 2,
+    marginBottom: SPACING.xs,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.sidebarBg,
     borderRadius: RADIUS.md,
   },
-  navItemCollapsed: {
-    justifyContent: 'center',
-    paddingHorizontal: 0,
-  },
-  navItemActive: {
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.24)',
-  },
-  navItemHovered: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  navIcon: {
-    fontSize: 16,
-  },
-  navIconActive: {
-    transform: [{ scale: 1.1 }],
-  },
-  navLabel: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: 'rgba(255,255,255,0.82)',
-    fontFamily: TYPOGRAPHY.fontFamily.ui,
-    fontWeight: TYPOGRAPHY.fontWeight.medium,
-  },
-  navLabelActive: {
-    color: '#FFFFFF',
-    fontWeight: TYPOGRAPHY.fontWeight.bold,
-  },
-
-  // Content Area
-  content: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  contentInner: {
-    padding: SPACING.xl,
-    gap: SPACING.xl,
-  },
-
-  // Mobile Drawer
-  drawerBackdrop: {
-    flex: 1,
+  navItemCollapsed: { justifyContent: 'center', paddingHorizontal: 0 },
+  navItemActive: { backgroundColor: COLORS.sidebarActiveBg, borderLeftColor: COLORS.sidebarActiveIndicator },
+  navItemHovered: { backgroundColor: COLORS.sidebarActiveBg },
+  navIcon: { width: 20, color: COLORS.sidebarText, textAlign: 'center', fontSize: 17 },
+  navIconActive: { color: COLORS.sidebarActiveIndicator },
+  navLabel: { flex: 1, color: COLORS.sidebarText, fontSize: TYPOGRAPHY.fontSize.sm, fontFamily: TYPOGRAPHY.fontFamily.ui, fontWeight: TYPOGRAPHY.fontWeight.medium },
+  navLabelActive: { color: COLORS.sidebarText, fontWeight: TYPOGRAPHY.fontWeight.bold },
+  sidebarFooter: { gap: SPACING.sm, paddingHorizontal: SPACING.xs, paddingTop: SPACING.md },
+  profileCard: {
+    minHeight: 62,
     flexDirection: 'row',
-    backgroundColor: COLORS.backdrop,
-  },
-  drawerOverlay: {
-    flex: 1,
-  },
-  mobileDrawer: {
-    width: 280,
-    backgroundColor: COLORS.primary,
-    height: '100%',
-    paddingVertical: SPACING.lg,
-    paddingHorizontal: SPACING.md,
-  },
-  drawerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: SPACING.sm,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.sidebarActiveBg,
+  },
+  profileCardCollapsed: { justifyContent: 'center', paddingHorizontal: 0 },
+  profileMeta: { flex: 1, minWidth: 0, gap: 2 },
+  profileName: { color: COLORS.sidebarText, fontSize: TYPOGRAPHY.fontSize.xs, fontWeight: TYPOGRAPHY.fontWeight.semibold, fontFamily: TYPOGRAPHY.fontFamily.ui },
+  profileEmail: { color: COLORS.sidebarTextMuted, fontSize: 10, fontFamily: TYPOGRAPHY.fontFamily.ui },
+  profileChevron: { color: COLORS.sidebarTextMuted, fontSize: TYPOGRAPHY.fontSize.md },
+  helpLinks: {
+    padding: SPACING.xs,
+    borderRadius: RADIUS.md,
+    backgroundColor: 'rgba(18, 23, 15, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 238, 219, 0.08)',
+  },
+  helpLinksCollapsed: { alignItems: 'center' },
+  helpLink: { minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, paddingHorizontal: SPACING.sm },
+  helpIcon: { width: 18, color: COLORS.sidebarTextMuted, textAlign: 'center', fontSize: TYPOGRAPHY.fontSize.sm },
+  helpText: { color: COLORS.sidebarTextMuted, fontSize: TYPOGRAPHY.fontSize.xs, fontFamily: TYPOGRAPHY.fontFamily.ui },
+  content: { flex: 1, backgroundColor: COLORS.background },
+  contentInner: { flexGrow: 1, padding: SPACING.xl },
+  contentInnerMobile: { padding: SPACING.md },
+  contentPanel: {
+    flexGrow: 1,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.xl,
+    padding: SPACING.xl,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  drawerBackdrop: { flex: 1, flexDirection: 'row', backgroundColor: COLORS.backdrop },
+  mobileDrawer: { width: 288, maxWidth: '86%', height: '100%', backgroundColor: COLORS.sidebarBg, paddingVertical: SPACING.lg, paddingHorizontal: SPACING.md },
+  drawerOverlay: { flex: 1 },
+  drawerHeader: {
+    minHeight: 70,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: COLORS.sidebarActiveBg,
     paddingBottom: SPACING.md,
     marginBottom: SPACING.md,
   },
-  closeDrawerText: {
-    color: COLORS.textMuted,
-    fontSize: 20,
-    padding: SPACING.xs,
-  },
-  drawerBody: {
-    flex: 1,
-  },
+  closeDrawerText: { color: COLORS.sidebarText, fontSize: 20, padding: SPACING.xs },
 });

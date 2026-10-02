@@ -1,12 +1,13 @@
 {
   "expo": {
-    "name": "ERP Multiempresa",
+    "name": "FAI Solution ERP",
     "slug": "erp-multiempresa",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/fai-icono.png",
     "splash": {
-      "backgroundColor": "#0f172a"
+      "backgroundColor": "#334024"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -16,7 +17,8 @@
       "package": "com.diplo.erp"
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "metro",
+      "favicon": "./assets/fai-icono.png"
     }
   }
 }

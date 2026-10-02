@@ -3,7 +3,7 @@ import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'r
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTSelect - Desplegable selector TECTODE ERP
+ * TTSelect - Desplegable selector de FAI Solution ERP
  */
 export function TTSelect({
   value,
@@ -125,16 +125,20 @@ const styles = StyleSheet.create({
   control: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.background,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.md,
-    minHeight: 42,
+    minHeight: 46,
   },
   controlOpen: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.surface,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
   },
   controlError: {
     borderColor: COLORS.error,
@@ -176,10 +180,12 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 480,
     maxHeight: '80%',
-    backgroundColor: COLORS.cardElevated,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: RADIUS.lg,
+    borderTopWidth: 3,
+    borderTopColor: COLORS.primary,
+    borderRadius: RADIUS.xl,
     overflow: 'hidden',
   },
   panelHeader: {
@@ -189,7 +195,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.background,
   },
   panelTitle: {
     fontSize: TYPOGRAPHY.fontSize.md,
@@ -230,10 +236,10 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.border,
   },
   optionSelected: {
-    backgroundColor: `${COLORS.primary}20`,
+    backgroundColor: COLORS.primaryGlow,
   },
   optionHovered: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: COLORS.background,
   },
   optionText: {
     fontSize: TYPOGRAPHY.fontSize.sm,
@@ -241,11 +247,11 @@ const styles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.fontFamily.ui,
   },
   optionTextSelected: {
-    color: COLORS.accent,
+    color: COLORS.primary,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
   checkMark: {
-    color: COLORS.accent,
+    color: COLORS.primary,
     fontWeight: '700',
   },
 });

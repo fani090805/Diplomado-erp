@@ -53,7 +53,7 @@ export default function App() {
     if (Platform.OS !== 'web' || document.querySelector('[data-craberp-fonts]')) return;
     const fonts = document.createElement('link');
     fonts.rel = 'stylesheet';
-    fonts.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap';
+    fonts.href = 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap';
     fonts.dataset.craberpFonts = 'true';
     document.head.appendChild(fonts);
   }, []);

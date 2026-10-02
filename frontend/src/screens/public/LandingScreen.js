@@ -13,10 +13,10 @@ import {
   TYPOGRAPHY,
 } from '../../design-system/tokens';
 import { TTBadge, TTButton, TTCard } from '../../design-system/components';
-import { TecodeLogo } from '../../components/TecodeLogo';
+import { FaiLogo } from '../../components/FaiLogo';
 
 /**
- * LandingScreen - Public CRABERP product page.
+ * LandingScreen - Public FAI Solution ERP product page.
  */
 export default function LandingScreen({ onGoLogin }) {
   const [activeTab, setActiveTab] = useState('ERP');
@@ -26,7 +26,7 @@ export default function LandingScreen({ onGoLogin }) {
       {/* NAVBAR */}
       <View style={styles.navbar}>
         <View style={styles.navBrand}>
-          <TecodeLogo size="md" />
+          <FaiLogo size="md" variant="light" />
         </View>
 
         <View style={styles.navLinks}>
@@ -49,11 +49,11 @@ export default function LandingScreen({ onGoLogin }) {
       {/* HERO SECTION */}
       <View style={styles.heroSection}>
         <View style={styles.heroBadgeBox}>
-          <TTBadge value="active" label="CRABERP TECHNOLOGIES" variant="accent" />
+          <TTBadge value="active" label="FAI Solution ERP" variant="accent" />
         </View>
 
         <Text style={styles.heroTitle}>
-          CRABERP
+          FAI Solution ERP
         </Text>
 
         <Text style={styles.heroSubtitle}>
@@ -149,7 +149,7 @@ export default function LandingScreen({ onGoLogin }) {
               <View style={[styles.dot, styles.dotYellow]} />
               <View style={[styles.dot, styles.dotGreen]} />
             </View>
-            <Text style={styles.mockupUrl}>craberp.app/dashboard</Text>
+            <Text style={styles.mockupUrl}>fai-solution.app/dashboard</Text>
           </View>
 
           <View style={styles.mockupBody}>
@@ -166,7 +166,7 @@ export default function LandingScreen({ onGoLogin }) {
               </View>
               <View style={styles.mockKpi}>
                 <Text style={styles.mockKpiLabel}>Salud Inventario</Text>
-                <Text style={[styles.mockKpiVal, { color: COLORS.accent }]}>87% Saludable</Text>
+                <Text style={[styles.mockKpiVal, { color: COLORS.successText }]}>87% Saludable</Text>
                 <Text style={styles.mockKpiTrend}>Optimizado</Text>
               </View>
             </View>
@@ -176,7 +176,7 @@ export default function LandingScreen({ onGoLogin }) {
 
       {/* VENTAJAS COMPETITIVAS */}
       <View style={styles.section}>
-        <Text style={styles.sectionPre}>POR QUÉ CRABERP</Text>
+        <Text style={styles.sectionPre}>POR QUÉ FAI SOLUTION ERP</Text>
         <Text style={styles.sectionTitle}>Ventajas estratégicas para tu operación.</Text>
 
         <View style={styles.advantagesGrid}>
@@ -229,7 +229,7 @@ export default function LandingScreen({ onGoLogin }) {
 
       {/* FOOTER */}
       <View style={styles.footer}>
-        <Text style={styles.footerBrand}>CRABERP Technologies © 2026</Text>
+        <Text style={styles.footerBrand}>FAI Solution ERP © 2026</Text>
         <Text style={styles.footerSub}>Todos los derechos reservados.</Text>
       </View>
     </ScrollView>
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   brandLogoText: {
-    color: COLORS.textPrimary,
+    color: COLORS.textInverted,
     fontWeight: '900',
     fontSize: 20,
     fontFamily: TYPOGRAPHY.fontFamily.display,
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.fontFamily.display,
   },
   brandTag: {
-    color: COLORS.accent,
+    color: COLORS.accentText,
     fontSize: 10,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     lineHeight: 46,
   },
   heroHighlight: {
-    color: COLORS.accent,
+    color: COLORS.accentText,
   },
   heroSubtitle: {
     fontSize: TYPOGRAPHY.fontSize.lg,
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   sectionPre: {
     fontSize: TYPOGRAPHY.fontSize.xs,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.accent,
+    color: COLORS.accentText,
     letterSpacing: 1,
     textAlign: 'center',
   },
@@ -442,9 +442,9 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: RADIUS.pill,
   },
-  dotRed: { backgroundColor: '#EF4444' },
-  dotYellow: { backgroundColor: '#F59E0B' },
-  dotGreen: { backgroundColor: '#10B981' },
+  dotRed: { backgroundColor: COLORS.accent },
+  dotYellow: { backgroundColor: COLORS.warning },
+  dotGreen: { backgroundColor: COLORS.success },
   mockupUrl: {
     color: COLORS.textMuted,
     fontSize: TYPOGRAPHY.fontSize.xs,
@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
   },
   mockKpiTrend: {
     fontSize: TYPOGRAPHY.fontSize.xs,
-    color: COLORS.accent,
+    color: COLORS.trendUpText,
   },
 
   // Advantages Grid
@@ -528,7 +528,7 @@ const styles = StyleSheet.create({
   ctaPre: {
     fontSize: TYPOGRAPHY.fontSize.xs,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
-    color: COLORS.accent,
+    color: COLORS.accentText,
     letterSpacing: 1,
   },
   ctaTitle: {

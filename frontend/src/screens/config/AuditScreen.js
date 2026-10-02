@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { COLORS, RADIUS } from '../../design-system/tokens';
 import { api } from '../../api/client';
 import DataTable from '../../components/DataTable';
 import DetailModal from '../../components/DetailModal';
@@ -54,7 +55,7 @@ export default function AuditScreen() {
             value={moduleF}
             onChangeText={setModuleF}
             placeholder="products, users…"
-            placeholderTextColor="#94a3b8"
+            placeholderTextColor={COLORS.textMuted}
             autoCapitalize="none"
           />
         </View>
@@ -131,16 +132,16 @@ const styles = StyleSheet.create({
   wrap: { gap: 12 },
   filters: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
   filter: { minWidth: 200, gap: 4 },
-  label: { fontSize: 13, fontWeight: '600', color: '#334155' },
+  label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
   input: {
     borderWidth: 1,
-    borderColor: '#252D3D',
-    borderRadius: 8,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.sm,
     paddingHorizontal: 12,
     paddingVertical: 9,
     fontSize: 14,
-    color: '#F8FAFC',
-    backgroundColor: '#0D111C',
+    color: COLORS.textPrimary,
+    backgroundColor: COLORS.surface,
   },
-  td: { fontSize: 14, color: '#F8FAFC' },
+  td: { fontSize: 14, color: COLORS.textPrimary },
 });

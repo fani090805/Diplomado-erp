@@ -14,8 +14,8 @@ import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
 import { TTButton, TTInput, TTSelect } from '../design-system/components';
 
 /**
- * FormModal - Modal de formulario dinámico TECTODE ERP
- * Mantiene la lógica de payload existente e integra la estética TECTODE.
+ * FormModal - Modal de formulario dinámico de FAI Solution ERP.
+ * Mantiene la lógica de payload existente e integra la identidad visual de FAI.
  */
 
 function toInitial(fields, initial) {
@@ -361,9 +361,11 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 580,
     maxHeight: '90%',
-    backgroundColor: COLORS.cardElevated,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
+    borderTopWidth: 3,
+    borderTopColor: COLORS.primary,
     borderRadius: RADIUS.xl,
     padding: SPACING.xl,
     gap: SPACING.md,
@@ -529,7 +531,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   groupAllText: {
-    color: COLORS.accent,
+    color: COLORS.accentText,
     fontSize: 10,
     fontWeight: '700',
   },

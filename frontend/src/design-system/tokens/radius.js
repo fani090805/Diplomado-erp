@@ -1,12 +1,12 @@
 /**
- * TECTODE Design Tokens - Border Radius
+ * FAI Solution ERP Design Tokens - Border Radius
  */
 export const RADIUS = {
-  xs: 4,
-  sm: 6,
-  md: 8,
-  lg: 12,
-  xl: 16,
-  pill: 9999,
+  xs: 6,
+  sm: 10,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  pill: 12,
   full: 9999,
 };

@@ -9,8 +9,6 @@ const {
 const userRepository = require('./user.repository');
 const roleRepository = require('../roles/role.repository');
 const branchRepository = require('../branches/branch.repository');
-const companyRepository = require('../companies/company.repository');
-const { sendWelcomeEmail } = require('../../services/email.service');
 
 /**
  * Servicio de usuarios (multiempresa estricto).
@@ -120,15 +118,6 @@ const userService = {
       status: data.status || 'active',
       isPlatformAdmin: false, // jamás marcable vía API (sólo semilla/plataforma)
     });
-
-    // Envío del correo de bienvenida en segundo plano vía Resend (no bloqueante)
-    companyRepository.findById(companyId).then((company) => {
-      sendWelcomeEmail({
-        email: created.email,
-        name: `${created.name} ${created.lastName || ''}`.trim(),
-        companyName: company?.name || 'Empresa Constructora',
-      }).catch(() => {});
-    }).catch(() => {});
 
     // Model.create devuelve el documento COMPLETO: el hash NUNCA sale por la API
     // (select:false sólo protege a las consultas, no a los documentos creados).

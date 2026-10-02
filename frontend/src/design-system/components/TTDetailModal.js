@@ -5,7 +5,7 @@ import { TTButton } from './TTButton';
 import { TTModal } from './TTModal';
 
 /**
- * TTDetailModal - Modal de visualización de detalles de entidad TECTODE
+ * TTDetailModal - Modal de detalle de una entidad en FAI Solution ERP
  */
 export function TTDetailModal({
   visible,

@@ -1,5 +1,5 @@
 /**
- * TECTODE Design Tokens - Spacing
+ * FAI Solution ERP Design Tokens - Spacing
  */
 export const SPACING = {
   xs: 4,

@@ -3,9 +3,9 @@ import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTSearch - Campo de búsqueda rápido Tec[ode ERP
+ * TTSearch - Campo de búsqueda rápida de FAI Solution ERP
  */
-export function TTSearch({ value, onChangeText, onClear, placeholder = 'Buscar en Tec[ode…', style }) {
+export function TTSearch({ value, onChangeText, onClear, placeholder = 'Buscar en FAI Solution ERP…', style }) {
   const [focused, setFocused] = useState(false);
 
   return (
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     }),
   },
   clearBtnHovered: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: COLORS.primaryGlow,
   },
   clearBtnPressed: {
     opacity: 0.7,

@@ -25,7 +25,7 @@ const STATUS_MAP = {
 };
 
 /**
- * TTBadge - Chip / Badge con estética neón TECTODE ERP
+ * TTBadge - Indicador de estado de FAI Solution ERP
  */
 export function TTBadge({ value, label, variant, style, textStyle }) {
   if (value === null || value === undefined || value === '') return null;
@@ -35,20 +35,22 @@ export function TTBadge({ value, label, variant, style, textStyle }) {
 
   const badgeLabel = label || info.label;
   const badgeColor = variant === 'accent' ? COLORS.accent : variant === 'info' ? COLORS.info : variant === 'error' ? COLORS.error : info.color;
+  const isDarkBadge = [COLORS.accent, COLORS.info, COLORS.primary, COLORS.success, COLORS.warning].includes(badgeColor);
+  const badgeTextColor = isDarkBadge ? COLORS.textInverted : COLORS.textPrimary;
 
   return (
     <View
       style={[
         styles.chip,
         {
-          backgroundColor: `${badgeColor}18`,
+          backgroundColor: isDarkBadge ? badgeColor : `${badgeColor}18`,
           borderColor: `${badgeColor}44`,
         },
         style,
       ]}
     >
-      <View style={[styles.dot, { backgroundColor: badgeColor }]} />
-      <Text style={[styles.text, { color: badgeColor }, textStyle]}>
+      <View style={[styles.dot, { backgroundColor: isDarkBadge ? COLORS.surface : badgeColor }]} />
+      <Text style={[styles.text, { color: badgeTextColor }, textStyle]}>
         {badgeLabel}
       </Text>
     </View>
@@ -65,15 +67,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.xs,
     alignSelf: 'flex-start',
+    minHeight: 28,
   },
   dot: {
-    width: 6,
-    height: 6,
+    width: 7,
+    height: 7,
     borderRadius: RADIUS.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.5)',
   },
   text: {
     fontSize: TYPOGRAPHY.fontSize.xs,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     fontFamily: TYPOGRAPHY.fontFamily.ui,
+    letterSpacing: 0.2,
   },
 });

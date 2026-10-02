@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { COLORS } from '../../design-system/tokens';
 import { StyleSheet, Text, View } from 'react-native';
 import DataTable from '../../components/DataTable';
 import Dropdown from '../../components/Dropdown';
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
   wrap: { gap: 12 },
   filters: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
   filter: { minWidth: 220, flex: 1, gap: 4 },
-  label: { fontSize: 13, fontWeight: '600', color: '#334155' },
-  td: { fontSize: 14, color: '#F8FAFC' },
-  qty: { fontSize: 14, fontWeight: '700', color: '#F8FAFC' },
+  label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
+  td: { fontSize: 14, color: COLORS.textPrimary },
+  qty: { fontSize: 14, fontWeight: '700', color: COLORS.textPrimary },
 });

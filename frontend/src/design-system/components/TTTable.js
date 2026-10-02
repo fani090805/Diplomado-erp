@@ -14,7 +14,7 @@ import { TTLoading } from './TTLoading';
 import { TTSearch } from './TTSearch';
 
 /**
- * TTTable - Tabla de datos empresarial TECTODE ERP
+ * TTTable - Tabla de datos empresarial de FAI Solution ERP
  */
 export function TTTable({
   title,
@@ -260,10 +260,12 @@ const styles = StyleSheet.create({
 
   // Table Structure
   tableCard: {
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
     borderWidth: 1,
     borderColor: COLORS.border,
+    borderTopWidth: 3,
+    borderTopColor: COLORS.primary,
     overflow: 'hidden',
   },
   tableScroll: {
@@ -275,12 +277,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+    minHeight: 56,
   },
   headRow: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.background,
   },
   rowAlternate: {
-    backgroundColor: 'rgba(255, 255, 255, 0.015)',
+    backgroundColor: COLORS.card,
   },
   th: {
     paddingVertical: SPACING.md,
@@ -311,10 +314,10 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   actionBtn: {
-    backgroundColor: COLORS.cardElevated,
+    backgroundColor: COLORS.background,
     borderColor: COLORS.border,
     borderWidth: 1,
-    borderRadius: RADIUS.sm,
+    borderRadius: RADIUS.pill,
     paddingHorizontal: SPACING.md - 2,
     paddingVertical: SPACING.xs + 1,
     ...Platform.select({
@@ -326,7 +329,7 @@ const styles = StyleSheet.create({
   },
   actionBtnHover: {
     borderColor: COLORS.primary,
-    backgroundColor: `${COLORS.primary}20`,
+    backgroundColor: COLORS.primaryGlow,
   },
   actionText: {
     color: COLORS.textSecondary,
@@ -334,8 +337,8 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
   },
   actionDanger: {
-    backgroundColor: `${COLORS.error}15`,
-    borderColor: `${COLORS.error}30`,
+    backgroundColor: COLORS.errorGlow,
+    borderColor: `${COLORS.error}40`,
   },
   actionDangerHover: {
     backgroundColor: COLORS.error,

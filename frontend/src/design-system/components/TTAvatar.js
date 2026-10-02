@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTAvatar - Identificador visual de usuario/empresa TECTODE
+ * TTAvatar - Identificador visual de usuario o empresa en FAI Solution ERP
  */
 export function TTAvatar({ name, size = 'md', color = COLORS.primary, style }) {
   const getInitials = (str) => {
@@ -24,7 +24,7 @@ export function TTAvatar({ name, size = 'md', color = COLORS.primary, style }) {
 
 const styles = StyleSheet.create({
   avatar: {
-    borderRadius: RADIUS.pill,
+    borderRadius: RADIUS.full,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',

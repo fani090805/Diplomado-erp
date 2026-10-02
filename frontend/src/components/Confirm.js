@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { TTConfirmModal } from '../design-system/components/TTConfirmModal';
 
 /**
- * useConfirm - Hook de confirmación adaptable TECTODE ERP
+ * useConfirm - Hook de confirmación adaptable de FAI Solution ERP
  */
 export function useConfirm() {
   const [state, setState] = useState(null);

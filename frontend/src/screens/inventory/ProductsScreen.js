@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { COLORS } from '../../design-system/tokens';
 import { Text } from 'react-native';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
@@ -109,4 +110,4 @@ export default function ProductsScreen() {
   );
 }
 
-const styles = { td: { fontSize: 14, color: '#F8FAFC' } };
+const styles = { td: { fontSize: 14, color: COLORS.textPrimary } };

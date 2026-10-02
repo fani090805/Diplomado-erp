@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { COLORS } from '../../design-system/tokens';
 import { Text, View } from 'react-native';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
@@ -111,7 +112,7 @@ export default function SalesOrdersScreen() {
   return (
     <View style={{ gap: 12 }}>
       <View style={{ minWidth: 220, maxWidth: 300, gap: 4 }}>
-        <Text style={{ fontSize: 13, fontWeight: '600', color: '#334155' }}>Estado</Text>
+        <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.textSecondary }}>Estado</Text>
         <Dropdown
           value={statusFilter || null}
           onChange={(v) => setStatusFilter(v || '')}
@@ -201,4 +202,4 @@ export default function SalesOrdersScreen() {
   );
 }
 
-const styles = { td: { fontSize: 14, color: '#F8FAFC' } };
+const styles = { td: { fontSize: 14, color: COLORS.textPrimary } };

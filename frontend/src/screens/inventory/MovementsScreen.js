@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { COLORS, RADIUS } from '../../design-system/tokens';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/DataTable';
@@ -188,11 +189,11 @@ export default function MovementsScreen() {
 const styles = StyleSheet.create({
   wrap: { gap: 12 },
   actions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  btn: { backgroundColor: '#2563eb', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 9 },
-  btnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  btn: { backgroundColor: COLORS.primary, borderRadius: RADIUS.sm, paddingHorizontal: 14, paddingVertical: 9 },
+  btnText: { color: COLORS.textInverted, fontWeight: '600', fontSize: 14 },
   filter: { minWidth: 220, maxWidth: 320, gap: 4 },
-  label: { fontSize: 13, fontWeight: '600', color: '#334155' },
-  td: { fontSize: 14, color: '#F8FAFC' },
-  type: { fontSize: 13, fontWeight: '700', color: '#B6FF00' },
-  qty: { fontSize: 14, fontWeight: '700', color: '#F8FAFC' },
+  label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
+  td: { fontSize: 14, color: COLORS.textPrimary },
+  type: { fontSize: 13, fontWeight: '700', color: COLORS.successText },
+  qty: { fontSize: 14, fontWeight: '700', color: COLORS.textPrimary },
 });

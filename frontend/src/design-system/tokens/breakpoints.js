@@ -1,5 +1,5 @@
 /**
- * TECTODE Design Tokens - Breakpoints
+ * FAI Solution ERP Design Tokens - Breakpoints
  */
 export const BREAKPOINTS = {
   mobile: 0,

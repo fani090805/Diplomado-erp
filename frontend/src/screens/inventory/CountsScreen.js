@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { COLORS, RADIUS } from '../../design-system/tokens';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
@@ -168,12 +169,12 @@ export default function CountsScreen() {
                     </View>
                     <View style={styles.field}>
                       <Text style={styles.label}>Cantidad contada</Text>
-                      <TextInput style={styles.input} value={line.countedQuantity} onChangeText={(value) => updateLine(index, { countedQuantity: value })} keyboardType="decimal-pad" placeholder="0" placeholderTextColor="#94a3b8" />
+                      <TextInput style={styles.input} value={line.countedQuantity} onChangeText={(value) => updateLine(index, { countedQuantity: value })} keyboardType="decimal-pad" placeholder="0" placeholderTextColor={COLORS.textMuted} />
                     </View>
                     {mode !== 'none' ? (
                       <View style={styles.field}>
                         <Text style={styles.label}>Detalle {mode === 'lot' ? 'de lotes' : 'de series'} (JSON)</Text>
-                        <TextInput style={[styles.input, styles.textarea]} value={line.traceabilityText} onChangeText={(value) => updateLine(index, { traceabilityText: value })} multiline autoCapitalize="none" placeholder={TRACE_EXAMPLE} placeholderTextColor="#94a3b8" />
+                        <TextInput style={[styles.input, styles.textarea]} value={line.traceabilityText} onChangeText={(value) => updateLine(index, { traceabilityText: value })} multiline autoCapitalize="none" placeholder={TRACE_EXAMPLE} placeholderTextColor={COLORS.textMuted} />
                         <Text style={styles.hint}>{mode === 'lot' ? 'Las cantidades de todos los lotes deben sumar la cantidad contada.' : 'Indique una serie única por cada unidad contada; cada cantidad debe ser 1.'}</Text>
                       </View>
                     ) : product ? <Text style={styles.hint}>Este producto no tiene control de lote o serie.</Text> : null}
@@ -236,30 +237,30 @@ function validateTraceCount(mode, quantity, traceability, sku) {
 
 const styles = StyleSheet.create({
   wrap: { gap: 12 },
-  cell: { fontSize: 14, color: '#0f172a' },
-  status: { color: '#a16207', fontWeight: '700', fontSize: 13 },
-  statusDone: { color: '#15803d' },
-  backdrop: { flex: 1, backgroundColor: '#0f172a66', alignItems: 'center', justifyContent: 'center', padding: 16 },
-  dialog: { width: '100%', maxWidth: 680, maxHeight: '92%', backgroundColor: '#fff', borderRadius: 12, padding: 20, gap: 12 },
-  title: { fontSize: 19, fontWeight: '700', color: '#0f172a' },
+  cell: { fontSize: 14, color: COLORS.textPrimary },
+  status: { color: COLORS.warning, fontWeight: '700', fontSize: 13 },
+  statusDone: { color: COLORS.successText },
+  backdrop: { flex: 1, backgroundColor: COLORS.backdrop, alignItems: 'center', justifyContent: 'center', padding: 16 },
+  dialog: { width: '100%', maxWidth: 680, maxHeight: '92%', backgroundColor: COLORS.card, borderRadius: RADIUS.xl, padding: 20, gap: 12 },
+  title: { fontSize: 19, fontWeight: '700', color: COLORS.textPrimary },
   formBody: { gap: 12, paddingBottom: 8 },
   field: { gap: 5 },
-  label: { fontSize: 13, fontWeight: '600', color: '#334155' },
-  input: { borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: '#0f172a', backgroundColor: '#fff' },
+  label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
+  input: { borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: COLORS.textPrimary, backgroundColor: COLORS.surface },
   textarea: { minHeight: 88, textAlignVertical: 'top', fontFamily: Platform.OS === 'web' ? 'monospace' : undefined },
-  hint: { fontSize: 12, color: '#64748b' },
-  line: { borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 10, padding: 12, gap: 10, backgroundColor: '#f8fafc' },
+  hint: { fontSize: 12, color: COLORS.textMuted },
+  line: { borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: 12, gap: 10, backgroundColor: COLORS.background },
   lineHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  lineTitle: { fontSize: 14, fontWeight: '700', color: '#334155' },
-  remove: { color: '#b91c1c', fontSize: 13, fontWeight: '600' },
-  addLine: { alignSelf: 'flex-start', borderWidth: 1, borderStyle: 'dashed', borderColor: '#2563eb', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  addLineText: { color: '#2563eb', fontWeight: '600' },
-  error: { color: '#b91c1c', fontSize: 13 },
+  lineTitle: { fontSize: 14, fontWeight: '700', color: COLORS.textSecondary },
+  remove: { color: COLORS.error, fontSize: 13, fontWeight: '600' },
+  addLine: { alignSelf: 'flex-start', borderWidth: 1, borderStyle: 'dashed', borderColor: COLORS.primaryLight, borderRadius: RADIUS.sm, paddingHorizontal: 12, paddingVertical: 8 },
+  addLineText: { color: COLORS.primary, fontWeight: '600' },
+  error: { color: COLORS.error, fontSize: 13 },
   footer: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
-  button: { borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10 },
-  cancel: { backgroundColor: '#f1f5f9' },
-  cancelText: { color: '#334155', fontWeight: '600' },
-  save: { backgroundColor: '#2563eb' },
+  button: { borderRadius: RADIUS.sm, paddingHorizontal: 16, paddingVertical: 10 },
+  cancel: { backgroundColor: COLORS.background },
+  cancelText: { color: COLORS.textSecondary, fontWeight: '600' },
+  save: { backgroundColor: COLORS.primary },
   disabled: { opacity: 0.6 },
-  saveText: { color: '#fff', fontWeight: '600' },
+  saveText: { color: COLORS.textInverted, fontWeight: '600' },
 });

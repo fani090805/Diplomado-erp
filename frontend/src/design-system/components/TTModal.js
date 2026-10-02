@@ -12,7 +12,7 @@ import {
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTModal - Ventana modal TECTODE ERP
+ * TTModal - Ventana modal de FAI Solution ERP
  */
 export function TTModal({
   visible,
@@ -73,9 +73,11 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxHeight: '90%',
-    backgroundColor: COLORS.cardElevated,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
     borderColor: COLORS.border,
+    borderTopWidth: 3,
+    borderTopColor: COLORS.primary,
     borderRadius: RADIUS.xl,
     padding: SPACING.xl,
     gap: SPACING.lg,

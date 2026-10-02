@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTLoading - Loader / Spinner o Skeleton TECTODE
+ * TTLoading - Indicador de carga o skeleton de FAI
  */
 export function TTLoading({ text = 'Cargando datos…', style }) {
   return (

@@ -4,7 +4,7 @@ import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 import { TTButton } from './TTButton';
 
 /**
- * TTEmptyState - Estado vacío estilizado TECTODE ERP
+ * TTEmptyState - Estado vacío estilizado de FAI Solution ERP
  */
 export function TTEmptyState({
   icon = '📂',
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: SPACING.sm,
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.background,
     borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: COLORS.border,
@@ -50,6 +50,8 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: RADIUS.pill,
     backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.xs,

@@ -1,10 +1,10 @@
 /**
- * TECTODE Design Tokens - Typography
+ * FAI Solution ERP Design Tokens - Typography
  */
 import { Platform } from 'react-native';
 
 const fontFamilyDisplay = Platform.select({
-  web: "'Montserrat', system-ui, sans-serif",
+  web: "'Poppins', system-ui, sans-serif",
   ios: 'System',
   android: 'sans-serif-medium',
   default: 'System',
@@ -39,6 +39,17 @@ export const TYPOGRAPHY = {
     '2xl': 22,
     '3xl': 28,
     '4xl': 36,
+  },
+  kpiValue: {
+    fontSize: 30,
+    fontWeight: '600',
+    lineHeight: 1.2,
+    fontFamily: fontFamilyUI,
+  },
+  kpiLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    fontFamily: fontFamilyUI,
   },
   fontWeight: {
     regular: '400',

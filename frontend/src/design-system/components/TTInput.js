@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTInput - Input estilizado TECTODE ERP
+ * TTInput - Campo de entrada de FAI Solution ERP
  */
 export function TTInput({
   label,
@@ -108,11 +108,15 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.md,
-    minHeight: 42,
+    minHeight: 46,
   },
   focusedWrapper: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.surface,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
   },
   errorWrapper: {
     borderColor: COLORS.error,

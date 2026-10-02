@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
- * TTTabs - Selector de pestañas TECTODE ERP
+ * TTTabs - Selector de pestañas de FAI Solution ERP
  */
 export function TTTabs({ tabs = [], activeTab, onChangeTab, style }) {
   return (
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
+    backgroundColor: COLORS.background,
     padding: SPACING.xs,
     borderRadius: RADIUS.md,
     borderWidth: 1,
@@ -63,12 +63,17 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.sm,
   },
   activeTab: {
-    backgroundColor: COLORS.cardElevated,
+    backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: COLORS.borderHover,
+    borderColor: COLORS.borderFocus,
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1,
   },
   hoveredTab: {
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: COLORS.background,
   },
   tabText: {
     fontSize: TYPOGRAPHY.fontSize.sm,
@@ -77,17 +82,17 @@ const styles = StyleSheet.create({
     fontFamily: TYPOGRAPHY.fontFamily.ui,
   },
   activeTabText: {
-    color: COLORS.accent,
+    color: COLORS.primary,
     fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
   badge: {
-    backgroundColor: COLORS.card,
+    backgroundColor: COLORS.surface,
     borderRadius: RADIUS.pill,
     paddingHorizontal: SPACING.xs + 2,
     paddingVertical: 1,
   },
   activeBadge: {
-    backgroundColor: `${COLORS.accent}20`,
+    backgroundColor: COLORS.primaryGlow,
   },
   badgeText: {
     fontSize: 10,
@@ -95,6 +100,6 @@ const styles = StyleSheet.create({
     fontWeight: TYPOGRAPHY.fontWeight.bold,
   },
   activeBadgeText: {
-    color: COLORS.accent,
+    color: COLORS.primary,
   },
 });
