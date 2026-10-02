@@ -69,6 +69,22 @@ function Root() {
 
 export default function App() {
   useEffect(() => {
+    if (Platform.OS !== 'web' || document.querySelector('[data-fai-focus-styles]')) return;
+    const focusStyles = document.createElement('style');
+    focusStyles.dataset.faiFocusStyles = 'true';
+    focusStyles.textContent = `
+      :where(button, [role="button"], [role="link"], [tabindex]:not(input):not(textarea):not(select)):focus:not(:focus-visible) {
+        outline: none !important;
+      }
+      :where(button, [role="button"], [role="link"], [tabindex]:not(input):not(textarea):not(select)):focus-visible {
+        outline: 2px solid ${COLORS.borderFocus} !important;
+        outline-offset: 2px;
+      }
+    `;
+    document.head.appendChild(focusStyles);
+  }, []);
+
+  useEffect(() => {
     if (Platform.OS !== 'web' || document.querySelector('[data-craberp-fonts]')) return;
     const fonts = document.createElement('link');
     fonts.rel = 'stylesheet';

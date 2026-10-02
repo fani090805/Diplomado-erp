@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
@@ -63,6 +63,7 @@ export function TTInput({
             styles.input,
             multiline && styles.multilineInput,
             disabled && styles.disabledInput,
+            Platform.OS === 'web' && styles.inputWeb,
             inputStyle,
           ]}
           {...props}
@@ -111,12 +112,18 @@ const styles = StyleSheet.create({
     minHeight: 46,
   },
   focusedWrapper: {
-    borderColor: COLORS.primary,
+    borderWidth: 1.5,
+    borderColor: COLORS.borderFocus,
     backgroundColor: COLORS.surface,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
+    ...Platform.select({
+      web: { boxShadow: `0 0 0 3px ${COLORS.primaryGlow}` },
+      default: {
+        shadowColor: COLORS.borderFocus,
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+      },
+    }),
   },
   errorWrapper: {
     borderColor: COLORS.error,
@@ -135,6 +142,10 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.md,
     fontFamily: TYPOGRAPHY.fontFamily.ui,
     paddingVertical: SPACING.sm,
+  },
+  inputWeb: {
+    outlineStyle: 'none',
+    outlineWidth: 0,
   },
   multilineInput: {
     minHeight: 72,

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
-import { COLORS, RADIUS } from '../../design-system/tokens';
+import { StyleSheet, Text, View } from 'react-native';
+import { COLORS } from '../../design-system/tokens';
+import { TTInput } from '../../design-system/components';
 import { api } from '../../api/client';
 import DataTable from '../../components/DataTable';
 import DetailModal from '../../components/DetailModal';
@@ -50,12 +51,10 @@ export default function AuditScreen() {
       <View style={styles.filters}>
         <View style={styles.filter}>
           <Text style={styles.label}>Módulo</Text>
-          <TextInput
-            style={styles.input}
+          <TTInput
             value={moduleF}
             onChangeText={setModuleF}
             placeholder="products, users…"
-            placeholderTextColor={COLORS.textMuted}
             autoCapitalize="none"
           />
         </View>
@@ -133,15 +132,5 @@ const styles = StyleSheet.create({
   filters: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
   filter: { minWidth: 200, gap: 4 },
   label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.sm,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    fontSize: 14,
-    color: COLORS.textPrimary,
-    backgroundColor: COLORS.surface,
-  },
   td: { fontSize: 14, color: COLORS.textPrimary },
 });

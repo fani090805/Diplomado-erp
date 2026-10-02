@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { api, apiText } from '../../api/client';
@@ -18,7 +17,7 @@ import {
   SPACING,
   TYPOGRAPHY,
 } from '../../design-system/tokens';
-import { TTButton, TTStatCard } from '../../design-system/components';
+import { TTButton, TTInput, TTStatCard } from '../../design-system/components';
 import { money } from '../../lib/format';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -318,22 +317,22 @@ export default function ReportsScreen() {
           <>
             <View style={styles.dateBox}>
               <Text style={styles.label}>Año</Text>
-              <TextInput style={styles.input} value={year} onChangeText={setYear} keyboardType="numeric" placeholder="2026" placeholderTextColor={COLORS.textMuted} />
+              <TTInput value={year} onChangeText={setYear} keyboardType="numeric" placeholder="2026" />
             </View>
             <View style={styles.dateBox}>
               <Text style={styles.label}>Mes (1-12)</Text>
-              <TextInput style={styles.input} value={month} onChangeText={setMonth} keyboardType="numeric" placeholder="(anual)" placeholderTextColor={COLORS.textMuted} />
+              <TTInput value={month} onChangeText={setMonth} keyboardType="numeric" placeholder="(anual)" />
             </View>
           </>
         ) : (
           <>
             <View style={styles.dateBox}>
               <Text style={styles.label}>Desde</Text>
-              <TextInput style={styles.input} value={from} onChangeText={setFrom} placeholder="AAAA-MM-DD" placeholderTextColor={COLORS.textMuted} />
+              <TTInput value={from} onChangeText={setFrom} placeholder="AAAA-MM-DD" />
             </View>
             <View style={styles.dateBox}>
               <Text style={styles.label}>Hasta</Text>
-              <TextInput style={styles.input} value={to} onChangeText={setTo} placeholder="AAAA-MM-DD" placeholderTextColor={COLORS.textMuted} />
+              <TTInput value={to} onChangeText={setTo} placeholder="AAAA-MM-DD" />
             </View>
           </>
         )}
@@ -364,16 +363,6 @@ const styles = StyleSheet.create({
   toolbar: { flexDirection: 'row', gap: SPACING.md, alignItems: 'flex-end', flexWrap: 'wrap' },
   dateBox: { gap: SPACING.xs, width: 150 },
   label: { fontSize: TYPOGRAPHY.fontSize.xs, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.textSecondary },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs + 2,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: COLORS.textPrimary,
-    backgroundColor: COLORS.surface,
-  },
   cards: { flexDirection: 'row', gap: SPACING.md, flexWrap: 'wrap' },
   h2: { fontSize: TYPOGRAPHY.fontSize.md, fontWeight: TYPOGRAPHY.fontWeight.bold, color: COLORS.textPrimary, marginTop: SPACING.xs },
   table: { backgroundColor: COLORS.card, borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.lg, overflow: 'hidden' },

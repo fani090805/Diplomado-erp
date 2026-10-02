@@ -7,7 +7,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
@@ -136,8 +135,8 @@ function LinesEditor({ field, rows, onChange }) {
                   placeholder={it.placeholder || 'Seleccione…'}
                 />
               ) : (
-                <TextInput
-                  style={styles.lineInput}
+                <TTInput
+                  inputStyle={styles.lineInput}
                   value={row[it.name] === undefined || row[it.name] === null ? '' : String(row[it.name])}
                   onChangeText={(t) => update(idx, it.name, t)}
                   keyboardType={it.type === 'number' ? 'numeric' : 'default'}
@@ -445,11 +444,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   lineInput: {
-    backgroundColor: COLORS.card,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: RADIUS.sm,
-    paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs + 2,
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.textPrimary,

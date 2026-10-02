@@ -18,7 +18,7 @@ export function TTSearch({ value, onChangeText, onClear, placeholder = 'Buscar e
         placeholderTextColor={COLORS.textMuted}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        style={styles.input}
+        style={[styles.input, Platform.OS === 'web' && styles.inputWeb]}
       />
       {value ? (
         <Pressable
@@ -53,8 +53,18 @@ const styles = StyleSheet.create({
     minWidth: 220,
   },
   focused: {
-    borderColor: COLORS.primary,
+    borderWidth: 1.5,
+    borderColor: COLORS.borderFocus,
     backgroundColor: COLORS.card,
+    ...Platform.select({
+      web: { boxShadow: `0 0 0 3px ${COLORS.primaryGlow}` },
+      default: {
+        shadowColor: COLORS.borderFocus,
+        shadowOpacity: 0.12,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+      },
+    }),
   },
   searchIcon: {
     fontSize: 13,
@@ -67,6 +77,10 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontFamily: TYPOGRAPHY.fontFamily.ui,
     paddingVertical: 0,
+  },
+  inputWeb: {
+    outlineStyle: 'none',
+    outlineWidth: 0,
   },
   clearBtn: {
     padding: SPACING.xs,

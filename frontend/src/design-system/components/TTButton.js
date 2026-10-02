@@ -28,11 +28,12 @@ export function TTButton({
       onPress={onPress}
       disabled={disabled || loading}
       hitSlop={8}
-      style={({ hovered, pressed }) => [
+      style={({ hovered, focused, pressed }) => [
         styles.base,
         styles[`size_${size}`],
         styles[`variant_${variant}`],
         hovered && !disabled && styles[`variant_${variant}_hover`],
+        focused && styles.focused,
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
         style,
@@ -76,7 +77,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
     ...Platform.select({
-      web: { cursor: 'pointer', userSelect: 'none' },
+      web: { cursor: 'pointer', userSelect: 'none', outlineStyle: 'none', outlineWidth: 0 },
     }),
   },
 
@@ -144,6 +145,10 @@ const styles = StyleSheet.create({
   pressed: {
     opacity: 0.8,
     transform: [{ scale: 0.98 }],
+  },
+  focused: {
+    borderColor: COLORS.borderFocus,
+    ...Platform.select({ web: { boxShadow: `0 0 0 3px ${COLORS.primaryGlow}` } }),
   },
 
   disabled: {

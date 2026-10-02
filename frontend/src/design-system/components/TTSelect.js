@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
@@ -17,6 +17,7 @@ export function TTSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState('');
+  const [filterFocused, setFilterFocused] = useState(false);
 
   const selectedOption = options.find((o) => String(o.value) === String(value));
   const searchable = options.length > 8;
@@ -38,9 +39,10 @@ export function TTSelect({
       <Pressable
         disabled={disabled}
         onPress={() => setOpen((o) => !o)}
-        style={({ hovered }) => [
+        style={({ hovered, focused }) => [
           styles.control,
           open && styles.controlOpen,
+          focused && styles.controlFocused,
           error && styles.controlError,
           disabled && styles.controlDisabled,
           hovered && !disabled && styles.controlHovered,
@@ -67,13 +69,15 @@ export function TTSelect({
               </View>
 
               {searchable ? (
-                <View style={styles.filterWrapper}>
+                <View style={[styles.filterWrapper, filterFocused && styles.filterFocused]}>
                   <TextInput
                     value={filter}
                     onChangeText={setFilter}
                     placeholder="Buscar opción…"
                     placeholderTextColor={COLORS.textMuted}
-                    style={styles.filterInput}
+                    onFocus={() => setFilterFocused(true)}
+                    onBlur={() => setFilterFocused(false)}
+                    style={[styles.filterInput, Platform.OS === 'web' && styles.filterInputWeb]}
                     autoFocus
                   />
                 </View>
@@ -139,6 +143,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
+  },
+  controlFocused: {
+    outlineStyle: 'none',
+    outlineWidth: 0,
+    borderWidth: 1.5,
+    borderColor: COLORS.borderFocus,
+    ...Platform.select({ web: { boxShadow: `0 0 0 3px ${COLORS.primaryGlow}` } }),
   },
   controlError: {
     borderColor: COLORS.error,
@@ -213,6 +224,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+  filterFocused: {
+    borderWidth: 1.5,
+    borderColor: COLORS.borderFocus,
+    borderRadius: RADIUS.sm,
+    ...Platform.select({ web: { boxShadow: `0 0 0 3px ${COLORS.primaryGlow}` } }),
+  },
   filterInput: {
     backgroundColor: COLORS.surface,
     borderWidth: 1,
@@ -222,6 +239,10 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.xs + 2,
     color: COLORS.textPrimary,
     fontSize: TYPOGRAPHY.fontSize.sm,
+  },
+  filterInputWeb: {
+    outlineStyle: 'none',
+    outlineWidth: 0,
   },
   list: {
     maxHeight: 320,

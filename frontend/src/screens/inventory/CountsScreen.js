@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS } from '../../design-system/tokens';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
@@ -7,6 +7,7 @@ import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
 import DetailModal from '../../components/DetailModal';
 import Dropdown from '../../components/Dropdown';
+import { TTInput } from '../../design-system/components';
 import { useList, usePicklist } from '../../hooks/useResource';
 
 const STATUS = { DRAFT: 'Borrador', POSTING: 'Publicando', PARTIAL: 'Parcial', POSTED: 'Publicado' };
@@ -169,12 +170,12 @@ export default function CountsScreen() {
                     </View>
                     <View style={styles.field}>
                       <Text style={styles.label}>Cantidad contada</Text>
-                      <TextInput style={styles.input} value={line.countedQuantity} onChangeText={(value) => updateLine(index, { countedQuantity: value })} keyboardType="decimal-pad" placeholder="0" placeholderTextColor={COLORS.textMuted} />
+                      <TTInput value={line.countedQuantity} onChangeText={(value) => updateLine(index, { countedQuantity: value })} keyboardType="decimal-pad" placeholder="0" />
                     </View>
                     {mode !== 'none' ? (
                       <View style={styles.field}>
                         <Text style={styles.label}>Detalle {mode === 'lot' ? 'de lotes' : 'de series'} (JSON)</Text>
-                        <TextInput style={[styles.input, styles.textarea]} value={line.traceabilityText} onChangeText={(value) => updateLine(index, { traceabilityText: value })} multiline autoCapitalize="none" placeholder={TRACE_EXAMPLE} placeholderTextColor={COLORS.textMuted} />
+                        <TTInput inputStyle={styles.textarea} style={styles.countInput} value={line.traceabilityText} onChangeText={(value) => updateLine(index, { traceabilityText: value })} multiline autoCapitalize="none" placeholder={TRACE_EXAMPLE} />
                         <Text style={styles.hint}>{mode === 'lot' ? 'Las cantidades de todos los lotes deben sumar la cantidad contada.' : 'Indique una serie única por cada unidad contada; cada cantidad debe ser 1.'}</Text>
                       </View>
                     ) : product ? <Text style={styles.hint}>Este producto no tiene control de lote o serie.</Text> : null}
@@ -246,7 +247,7 @@ const styles = StyleSheet.create({
   formBody: { gap: 12, paddingBottom: 8 },
   field: { gap: 5 },
   label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
-  input: { borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15, color: COLORS.textPrimary, backgroundColor: COLORS.surface },
+  countInput: { width: '100%' },
   textarea: { minHeight: 88, textAlignVertical: 'top', fontFamily: Platform.OS === 'web' ? 'monospace' : undefined },
   hint: { fontSize: 12, color: COLORS.textMuted },
   line: { borderWidth: 1, borderColor: COLORS.border, borderRadius: RADIUS.md, padding: 12, gap: 10, backgroundColor: COLORS.background },
