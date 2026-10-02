@@ -44,14 +44,14 @@ class UsersViewModel : ViewModel() {
         }
     }
 
-    fun createUser(name: String, lastName: String, email: String, roleId: String, onComplete: (Boolean, String?) -> Unit) {
+    fun createUser(name: String, lastName: String, email: String, password: String, roleId: String, onComplete: (Boolean, String?) -> Unit) {
         viewModelScope.launch {
             try {
                 val body = mapOf(
                     "name" to name,
                     "lastName" to lastName,
                     "email" to email,
-                    "password" to "Password123!",
+                    "password" to password.ifEmpty { "Password123!" },
                     "roleId" to roleId
                 )
                 val res = RetrofitClient.api.createUser(body)
@@ -60,6 +60,22 @@ class UsersViewModel : ViewModel() {
                     onComplete(true, null)
                 } else {
                     onComplete(false, res.body()?.error?.message ?: "Error al crear usuario.")
+                }
+            } catch (e: Exception) {
+                onComplete(false, e.message ?: "Error de conexión.")
+            }
+        }
+    }
+
+    fun deleteUser(userId: String, onComplete: (Boolean, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val res = RetrofitClient.api.deleteUser(userId)
+                if (res.isSuccessful) {
+                    loadUsers()
+                    onComplete(true, null)
+                } else {
+                    onComplete(false, res.body()?.error?.message ?: "Error al eliminar usuario.")
                 }
             } catch (e: Exception) {
                 onComplete(false, e.message ?: "Error de conexión.")
