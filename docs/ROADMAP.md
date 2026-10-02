@@ -2,9 +2,10 @@
 
 ## Estado actual
 
-- Fase activa: **Fase 0.5 - Saneamiento**
+- Fase activa: **Fase 1 - Núcleo de plataforma**
 - Rama: `fase-0.5-saneamiento`
-- Estado: Fase 0.5 completada; pendiente de revisión QA y "cerrar fase"
+- Fase 0.5: lint, typecheck, tests, build y arquitectura pasan localmente; pendiente de CI en GitHub y revisión QA.
+- Estado de Fase 1: aislamiento automático por tenant y hash de contraseña implementados; sesiones rotativas, tenants, companies, users e invitaciones pendientes.
 - La credencial real detectada en `.env.example` fue retirada y reemplazada por valores ficticios.
 
 ## PLAN DE FASES
@@ -13,7 +14,7 @@
 
 #### T1 - Arquitectura v2 y límites de plataforma
 
-**Estado: completada**
+**Estado: completada; frontera materializada en `src/platform/`**
 
 - Agregar la sección `Arquitectura v2` a `AGENTS.md`.
 - Crear la base de `apps/api/src/platform/` para el núcleo técnico.
@@ -93,9 +94,9 @@
 
 #### T10 - Cierre de saneamiento
 
-**Estado: completada**
+**Estado: pendiente de repetición tras las correcciones actuales**
 
-- Ejecutar lint, typecheck, test, build y `depcheck:arch`.
+- Repetir lint, typecheck, test, build y `depcheck:arch` después de las correcciones actuales.
 - Confirmar las pruebas de seguridad de autenticación, tenant y empresa.
 - Actualizar OpenAPI y documentación afectada.
 - Dejar la rama lista para revisión, sin merge a `main`.
@@ -107,3 +108,17 @@
 - Las pruebas de seguridad pasan.
 - La arquitectura de plataforma y módulos queda verificable automáticamente.
 - La rama queda lista para revisión de QA y cierre explícito de fase.
+
+### Fase 1 - Núcleo de plataforma
+
+#### Estado
+
+En curso. Se completaron el plugin tenant, el contexto `AsyncLocalStorage`, la propagación de sesiones de transacción, las primitivas Argon2, endpoints de login/refresh/logout/me y el cableado del formulario de cliente a la API. Las cuentas aún no tienen flujo de alta; los tokens del cliente no se almacenan según los requisitos de web y móvil.
+
+#### Pendiente
+
+- Crear tenants, companies y users con repositorios filtrados por `tenantId` e índices compuestos correctos.
+- Implementar alta transaccional de tenants, empresas y usuarios con repositorios tenant-scoped.
+- Implementar almacenamiento de refresh token en SecureStore móvil y cookie `httpOnly` web; el cliente actual solo mantiene tokens en memoria.
+- Implementar alta de empresa desde plantilla e invitaciones con roles limitados.
+- Confirmar con QA la decisión de identidad global documentada en `docs/adr/0005-identidad-y-autenticacion.md` antes de producción.

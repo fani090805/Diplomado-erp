@@ -2,7 +2,7 @@
 
 ## Contexto
 
-El monolito modular necesita una frontera verificable entre capacidades técnicas compartidas y reglas de negocio. La estructura inicial usa `src/core/` y contiene módulos todavía sin implementación pública.
+El monolito modular necesita una frontera verificable entre capacidades técnicas compartidas y reglas de negocio. La API ahora separa el núcleo técnico en `src/platform/` y los módulos de negocio en `src/modules/`.
 
 ## Decisión
 
@@ -13,5 +13,5 @@ El aislamiento de tenant, los eventos outbox, la máquina de estados, la configu
 ## Consecuencias
 
 - Se pueden verificar límites de dependencias automáticamente cuando se agregue dependency-cruiser.
-- La migración desde `src/core/` será incremental y no duplicará infraestructura.
+- El núcleo técnico se mantiene en `src/platform/`; no se conservará un alias paralelo `src/core/`.
 - Los módulos deben documentar sus eventos, permisos y dependencias públicas.
