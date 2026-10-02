@@ -169,6 +169,19 @@ interface ErpApi {
     @POST("production/orders/{id}/cancel")
     suspend fun cancelProductionOrder(@Path("id") id: String, @Body reason: Map<String, String>): Response<ApiResponse<ProductionOrderDto>>
 
+    // Users & Roles
+    @GET("users")
+    suspend fun getUsers(): Response<ApiResponse<List<UserDto>>>
+
+    @POST("users")
+    suspend fun createUser(@Body user: Map<String, @JvmSuppressWildcards Any?>): Response<ApiResponse<UserDto>>
+
+    @DELETE("users/{id}")
+    suspend fun deleteUser(@Path("id") id: String): Response<ApiResponse<Unit>>
+
+    @GET("roles")
+    suspend fun getRoles(): Response<ApiResponse<List<RoleDto>>>
+
     // Audit
     @GET("audit")
     suspend fun getAuditLogs(@Query("limit") limit: Int = 20): Response<ApiResponse<List<AuditLogDto>>>

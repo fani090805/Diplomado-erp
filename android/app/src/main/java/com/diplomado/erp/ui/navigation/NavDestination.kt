@@ -13,5 +13,6 @@ sealed class NavDestination(val route: String) {
     data object Purchases : NavDestination("purchases")
     data object Sales : NavDestination("sales")
     data object Finance : NavDestination("finance")
+    data object Users : NavDestination("users")
     data object More : NavDestination("more")
 }

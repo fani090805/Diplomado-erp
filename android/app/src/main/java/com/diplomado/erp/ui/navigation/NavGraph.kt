@@ -23,6 +23,7 @@ import com.diplomado.erp.feature.projects.presentation.ProjectDetailScreen
 import com.diplomado.erp.feature.projects.presentation.ProjectsScreen
 import com.diplomado.erp.feature.purchases.presentation.PurchaseOrdersScreen
 import com.diplomado.erp.feature.sales.presentation.SalesOrdersScreen
+import com.diplomado.erp.feature.users.presentation.UsersScreen
 import com.diplomado.erp.ui.components.TTBottomBar
 import com.diplomado.erp.ui.components.TTTopBar
 import com.diplomado.erp.ui.theme.TecodeBackground
@@ -119,6 +120,9 @@ fun MainContainer(
             }
             composable(NavDestination.Products.route) {
                 ProductsScreen()
+            }
+            composable(NavDestination.Users.route) {
+                UsersScreen()
             }
             composable(NavDestination.Stock.route) {
                 StockScreen()

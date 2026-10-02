@@ -187,11 +187,30 @@ const DEFAULT_ROLES = {
       'reports.read', 'notifications.read',
     ],
   },
+  supervisor: {
+    label: 'Supervisor de Obra',
+    description: 'Residente y supervisor: control de obras, materiales, gastos y compras.',
+    permissions: [
+      'projects.read', 'projects.update',
+      'products.read', 'inventory.read', 'inventory.movements.create',
+      'purchases.read', 'purchases.create',
+      'finance.expenses.read', 'finance.expenses.create',
+      'reports.read', 'notifications.read', 'notifications.update',
+    ],
+  },
+  trabajador: {
+    label: 'Trabajador de Obra',
+    description: 'Personal operativo: consulta de obras y catálogo de materiales.',
+    permissions: [
+      'projects.read', 'products.read', 'inventory.read',
+      'notifications.read',
+    ],
+  },
 };
 
 // Los roles operativos consultan maestros compartidos; sólo el administrador
 // de empresa los mantiene (sus permisos proceden de ALL_PERMISSIONS).
-for (const code of ['gerente', 'ventas', 'compras', 'almacen', 'finanzas', 'auditor', 'consulta']) {
+for (const code of ['gerente', 'ventas', 'compras', 'almacen', 'finanzas', 'auditor', 'consulta', 'supervisor', 'trabajador']) {
   DEFAULT_ROLES[code].permissions.push('masterdata.read');
 }
 

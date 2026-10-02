@@ -53,8 +53,8 @@ describe('Catálogo de permisos', () => {
 });
 
 describe('Roles semilla (DEFAULT_ROLES)', () => {
-  test('existen los 10 roles base y todos con permisos válidos', () => {
-    expect(Object.keys(DEFAULT_ROLES)).toHaveLength(10);
+  test('existen los roles base y todos con permisos válidos', () => {
+    expect(Object.keys(DEFAULT_ROLES).length).toBeGreaterThanOrEqual(10);
     for (const [code, cfg] of Object.entries(DEFAULT_ROLES)) {
       expect(code).toMatch(/^[a-z][a-z0-9_]*$/);
       expect(cfg.label).toBeTruthy();

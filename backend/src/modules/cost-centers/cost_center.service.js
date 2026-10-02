@@ -1,8 +1,8 @@
 'use strict';
 
 const repo = require('./cost_center.repository');
-const { ConflictError, NotFoundError } = require('../../common/errors');
-const { parsePagination, buildMeta } = require('../../common/pagination');
+const ApiError = require('../../utils/ApiError');
+const { parsePagination, buildMeta } = require('../../utils/pagination');
 
 class CostCenterService {
   async list(companyId, query) {
@@ -31,13 +31,13 @@ class CostCenterService {
 
   async getById(companyId, id) {
     const item = await repo.findById(companyId, id);
-    if (!item) throw new NotFoundError('Centro de costo no encontrado.');
+    if (!item) throw ApiError.notFound('Centro de costo no encontrado.');
     return item;
   }
 
   async create(companyId, payload) {
     const existing = await repo.findByCode(companyId, payload.projectId, payload.code);
-    if (existing) throw new ConflictError(`Ya existe un centro de costo con el código "${payload.code}" en esta obra.`);
+    if (existing) throw ApiError.conflict(`Ya existe un centro de costo con el código "${payload.code}" en esta obra.`);
 
     return repo.create({
       companyId,
@@ -51,14 +51,14 @@ class CostCenterService {
     const targetProject = payload.projectId || current.projectId;
     if (payload.code && payload.code.toUpperCase() !== current.code) {
       const dup = await repo.findByCode(companyId, targetProject, payload.code);
-      if (dup) throw new ConflictError(`Ya existe otro centro de costo con el código "${payload.code}" en esta obra.`);
+      if (dup) throw ApiError.conflict(`Ya existe otro centro de costo con el código "${payload.code}" en esta obra.`);
     }
 
     const updated = await repo.updateById(companyId, id, {
       ...payload,
       ...(payload.code ? { code: payload.code.toUpperCase() } : {}),
     });
-    if (!updated) throw new NotFoundError('Centro de costo no encontrado.');
+    if (!updated) throw ApiError.notFound('Centro de costo no encontrado.');
     return updated;
   }
 
