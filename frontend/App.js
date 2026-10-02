@@ -52,7 +52,12 @@ function Root() {
         />
       );
     }
-    return <LoginScreen onGoRegister={() => setViewState('register')} />;
+    return (
+      <LoginScreen
+        onGoRegister={() => setViewState('register')}
+        onGoBack={() => setViewState('landing')}
+      />
+    );
   }
 
   return (

@@ -20,6 +20,7 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
   const { register } = useAuth();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 900;
+  const [logoHovered, setLogoHovered] = useState(false);
   const [form, setForm] = useState({
     name: '',
     lastName: '',
@@ -98,12 +99,43 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
       <View style={[styles.shell, !isDesktop && styles.shellStacked]}>
         {isDesktop ? (
           <View style={styles.brandPanel}>
-            <FaiLogo size="lg" layout="vertical" variant="dark" />
-            <Text style={styles.brandMessage}>Gestiona tu empresa en un solo lugar</Text>
+            <Pressable
+              onPress={onGoBack}
+              accessibilityRole="button"
+              accessibilityLabel="Volver al inicio"
+              onHoverIn={() => setLogoHovered(true)}
+              onHoverOut={() => setLogoHovered(false)}
+              style={({ hovered, pressed }) => [
+                styles.brandAction,
+                hovered && styles.brandActionHovered,
+                pressed && styles.brandActionPressed,
+              ]}
+            >
+              <FaiLogo size="xl" layout="vertical" variant="dark" />
+              <Text style={[styles.backHomeText, logoHovered && styles.backHomeTextHovered]}>
+                ← Volver al inicio
+              </Text>
+            </Pressable>
           </View>
         ) : (
           <View style={styles.mobileBrand}>
-            <FaiLogo size="lg" layout="vertical" variant="dark" />
+            <Pressable
+              onPress={onGoBack}
+              accessibilityRole="button"
+              accessibilityLabel="Volver al inicio"
+              onHoverIn={() => setLogoHovered(true)}
+              onHoverOut={() => setLogoHovered(false)}
+              style={({ hovered, pressed }) => [
+                styles.brandAction,
+                hovered && styles.brandActionHovered,
+                pressed && styles.brandActionPressed,
+              ]}
+            >
+              <FaiLogo size="lg" layout="vertical" variant="dark" />
+              <Text style={[styles.backHomeText, logoHovered && styles.backHomeTextHovered]}>
+                ← Volver al inicio
+              </Text>
+            </Pressable>
           </View>
         )}
 
@@ -114,11 +146,6 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.card}>
-            {onGoBack ? (
-              <Pressable onPress={onGoBack} style={styles.desktopBackLink}>
-                <Text style={styles.backLinkText}>Volver</Text>
-              </Pressable>
-            ) : null}
             <Text style={styles.title}>Crear cuenta</Text>
             <Text style={styles.subtitle}>
               Registra tu empresa y empieza a usar FAI Solution ERP
@@ -257,27 +284,35 @@ const styles = StyleSheet.create({
     padding: SPACING['3xl'],
     backgroundColor: COLORS.primary,
   },
-  brandMessage: {
-    maxWidth: '80%',
+  brandAction: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: SPACING.lg,
+    ...Platform.select({
+      web: { cursor: 'pointer', transition: 'transform 180ms ease, opacity 180ms ease' },
+    }),
+  },
+  brandActionHovered: {
+    transform: [{ scale: 1.04 }],
+  },
+  brandActionPressed: {
+    opacity: 0.8,
+  },
+  backHomeText: {
     color: COLORS.textInverted,
-    textAlign: 'center',
-    fontSize: TYPOGRAPHY.fontSize.xl,
-    fontWeight: TYPOGRAPHY.fontWeight.semibold,
-    fontFamily: TYPOGRAPHY.fontFamily.display,
+    opacity: 0.6,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+    ...Platform.select({ web: { transition: 'opacity 180ms ease' } }),
+  },
+  backHomeTextHovered: {
+    opacity: 1,
   },
   mobileBrand: {
     alignItems: 'center',
     justifyContent: 'center',
     padding: SPACING.lg,
     backgroundColor: COLORS.primary,
-  },
-  desktopBackLink: {
-    alignSelf: 'flex-start',
-  },
-  backLinkText: {
-    color: COLORS.textInverted,
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontFamily: TYPOGRAPHY.fontFamily.ui,
   },
   formPanel: {
     flex: 1,

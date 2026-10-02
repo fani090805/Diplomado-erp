@@ -19,14 +19,15 @@ import { TTButton, TTInput } from '../design-system/components';
 import { FaiLogo } from '../components/FaiLogo';
 
 /** Pantalla de inicio de sesión de FAI Solution ERP. */
-export default function LoginScreen({ onGoRegister }) {
+export default function LoginScreen({ onGoRegister, onGoBack }) {
   const { login } = useAuth();
   const { width } = useWindowDimensions();
-  const isMobile = width < 768;
+  const isDesktop = width >= 900;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [logoHovered, setLogoHovered] = useState(false);
 
   const onSubmit = async () => {
     setError(null);
@@ -45,16 +46,46 @@ export default function LoginScreen({ onGoRegister }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={[styles.shell, isMobile && styles.shellMobile]}>
-        {!isMobile ? (
+      <View style={[styles.shell, !isDesktop && styles.shellMobile]}>
+        {isDesktop ? (
           <View style={styles.brandPanel}>
-            <View style={styles.brandInner}>
-              <FaiLogo size="lg" layout="vertical" variant="dark" />
-            </View>
+            <Pressable
+              onPress={onGoBack}
+              accessibilityRole="button"
+              accessibilityLabel="Volver al inicio"
+              onHoverIn={() => setLogoHovered(true)}
+              onHoverOut={() => setLogoHovered(false)}
+              style={({ hovered, pressed }) => [
+                styles.brandAction,
+                hovered && styles.brandActionHovered,
+                pressed && styles.brandActionPressed,
+              ]}
+            >
+              <FaiLogo size="xl" layout="vertical" variant="dark" />
+              <Text style={[styles.backHomeText, logoHovered && styles.backHomeTextHovered]}>
+                ← Volver al inicio
+              </Text>
+            </Pressable>
           </View>
         ) : (
           <View style={styles.mobileBrand}>
-            <FaiLogo size="lg" layout="vertical" variant="dark" />
+            <Pressable
+              onPress={onGoBack}
+              accessibilityRole="button"
+              accessibilityLabel="Volver al inicio"
+              onHoverIn={() => setLogoHovered(true)}
+              onHoverOut={() => setLogoHovered(false)}
+              style={({ hovered, pressed }) => [
+                styles.brandAction,
+                hovered && styles.brandActionHovered,
+                pressed && styles.brandActionPressed,
+              ]}
+            >
+              <FaiLogo size="lg" layout="vertical" variant="dark" />
+              <Text style={[styles.backHomeText, logoHovered && styles.backHomeTextHovered]}>
+                ← Volver al inicio
+              </Text>
+            </Pressable>
           </View>
         )}
 
@@ -141,15 +172,29 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 420,
   },
-  brandInner: {
+  brandAction: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.sidebarActiveBg,
-    borderWidth: 1,
-    borderColor: COLORS.sidebarTextMuted,
-    borderRadius: RADIUS.xl,
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.lg,
+    gap: SPACING.lg,
+    ...Platform.select({
+      web: { cursor: 'pointer', transition: 'transform 180ms ease, opacity 180ms ease' },
+    }),
+  },
+  brandActionHovered: {
+    transform: [{ scale: 1.04 }],
+  },
+  brandActionPressed: {
+    opacity: 0.8,
+  },
+  backHomeText: {
+    color: COLORS.textInverted,
+    opacity: 0.6,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+    ...Platform.select({ web: { transition: 'opacity 180ms ease' } }),
+  },
+  backHomeTextHovered: {
+    opacity: 1,
   },
   mobileBrand: {
     backgroundColor: COLORS.primary,
