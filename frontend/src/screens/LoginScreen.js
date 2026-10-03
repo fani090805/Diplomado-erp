@@ -27,17 +27,33 @@ export default function LoginScreen({ onGoRegister, onGoBack }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('');
   const [logoHovered, setLogoHovered] = useState(false);
 
   const onSubmit = async () => {
     setError(null);
+    setConnectionStatus('');
     setLoading(true);
-    try {
-      await login(email.trim(), password);
-    } catch (e) {
-      setError(e.message || 'Credenciales inválidas. Verifique sus datos.');
-    } finally {
+    const controller = new AbortController();
+    let timedOut = false;
+    const slowTimer = setTimeout(() => setConnectionStatus('slow'), 4000);
+    const timeoutTimer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
       setLoading(false);
+      setConnectionStatus('timeout');
+    }, 60000);
+    try {
+      await login(email.trim(), password, { signal: controller.signal });
+    } catch (e) {
+      if (!timedOut) setError(e.message || 'Credenciales inválidas. Verifique sus datos.');
+    } finally {
+      clearTimeout(slowTimer);
+      clearTimeout(timeoutTimer);
+      if (!timedOut) {
+        setLoading(false);
+        setConnectionStatus('');
+      }
     }
   };
 
@@ -132,6 +148,13 @@ export default function LoginScreen({ onGoRegister, onGoBack }) {
             >
               Acceder al Sistema
             </TTButton>
+            {connectionStatus ? (
+              <Text style={styles.connectionMessage}>
+                {connectionStatus === 'timeout'
+                  ? 'El servidor no responde. Intenta de nuevo en un momento.'
+                  : 'Conectando con el servidor, esto puede tardar unos segundos la primera vez…'}
+              </Text>
+            ) : null}
 
             <Pressable onPress={onGoRegister} style={styles.registerLink}>
               <Text style={styles.registerPrompt}>¿No tienes cuenta? </Text>
@@ -254,6 +277,12 @@ const styles = StyleSheet.create({
   },
   submitBtn: {
     marginTop: SPACING.sm,
+  },
+  connectionMessage: {
+    color: COLORS.textMuted,
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+    textAlign: 'center',
   },
   registerLink: {
     flexDirection: 'row',

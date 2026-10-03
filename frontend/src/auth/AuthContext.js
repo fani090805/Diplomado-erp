@@ -34,25 +34,32 @@ export function AuthProvider({ children }) {
     // TODO: si hay tokens guardados → /auth/me para restaurar la sesión.
   }, []);
 
-  const establishSession = useCallback(async (path, body) => {
+  const establishSession = useCallback(async (path, body, signal) => {
     const data = await api(path, {
       method: 'POST',
       body,
       auth: false,
+      signal,
     });
     setTokens({ access: data.accessToken, refresh: data.refreshToken });
-    const me = await api('/auth/me');
+    let me;
+    try {
+      me = await api('/auth/me', { signal });
+    } catch (error) {
+      if (signal?.aborted) setTokens({ access: null, refresh: null });
+      throw error;
+    }
     setSession(me);
     return me;
   }, []);
 
   const login = useCallback(
-    (email, password) => establishSession('/auth/login', { email, password }),
+    (email, password, { signal } = {}) => establishSession('/auth/login', { email, password }, signal),
     [establishSession]
   );
 
   const register = useCallback(
-    (body) => establishSession('/auth/register', body),
+    (body, { signal } = {}) => establishSession('/auth/register', body, signal),
     [establishSession]
   );
 

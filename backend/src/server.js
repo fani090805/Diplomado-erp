@@ -15,18 +15,17 @@ const { runSeed } = require('./scripts/seed');
 
 async function main() {
   await connectDatabase();
-
-  try {
-    await runSeed({ withDemo: true });
-  } catch (seedErr) {
-    logger.warn({ err: seedErr.message }, 'Advertencia al ejecutar semilla inicial');
-  }
-
   const server = app.listen(env.port, () => {
     logger.info(
       { port: env.port, env: env.nodeEnv, prefix: env.apiPrefix },
       `API escuchando en http://localhost:${env.port}${env.apiPrefix}`
     );
+
+    if (process.env.SEED_ON_START !== 'false') {
+      runSeed({ withDemo: true }).catch((seedErr) => {
+        logger.warn({ err: seedErr.message }, 'Advertencia al ejecutar semilla inicial');
+      });
+    }
   });
 
   let shuttingDown = false;

@@ -32,6 +32,7 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('');
 
   const update = (field) => (value) => {
     setForm((current) => ({ ...current, [field]: value }));
@@ -69,9 +70,19 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
 
   const onSubmit = async () => {
     setServerError('');
+    setConnectionStatus('');
     if (!validate()) return;
 
     setLoading(true);
+    const controller = new AbortController();
+    let timedOut = false;
+    const slowTimer = setTimeout(() => setConnectionStatus('slow'), 4000);
+    const timeoutTimer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+      setLoading(false);
+      setConnectionStatus('timeout');
+    }, 60000);
     try {
       await register({
         name: form.name.trim(),
@@ -79,15 +90,22 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
         companyName: form.companyName.trim(),
         email: form.email.trim().toLowerCase(),
         password: form.password,
-      });
+      }, { signal: controller.signal });
     } catch (error) {
-      setServerError(
-        error.status
-          ? error.message
-          : 'No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.'
-      );
+      if (!timedOut) {
+        setServerError(
+          error.status
+            ? error.message
+            : 'No fue posible conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.'
+        );
+      }
     } finally {
-      setLoading(false);
+      clearTimeout(slowTimer);
+      clearTimeout(timeoutTimer);
+      if (!timedOut) {
+        setLoading(false);
+        setConnectionStatus('');
+      }
     }
   };
 
@@ -249,6 +267,13 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
             >
               Crear cuenta
             </TTButton>
+            {connectionStatus ? (
+              <Text style={styles.connectionMessage}>
+                {connectionStatus === 'timeout'
+                  ? 'El servidor no responde. Intenta de nuevo en un momento.'
+                  : 'Conectando con el servidor, esto puede tardar unos segundos la primera vez…'}
+              </Text>
+            ) : null}
 
             <Pressable onPress={onGoLogin} style={styles.loginLink}>
               <Text style={styles.loginPrompt}>¿Ya tienes cuenta? </Text>
@@ -375,6 +400,12 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: SPACING.xs,
+  },
+  connectionMessage: {
+    color: COLORS.textMuted,
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+    textAlign: 'center',
   },
   loginLink: {
     flexDirection: 'row',

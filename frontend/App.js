@@ -9,6 +9,7 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import LandingScreen from './src/screens/public/LandingScreen';
 import { SCREENS } from './src/screens';
 import { COLORS } from './src/design-system/tokens';
+import { warmUp } from './src/api/client';
 
 /**
  * Shell Tec[ode ERP: cabecera + menú lateral responsive + 22 pantallas.
@@ -68,6 +69,10 @@ function Root() {
 }
 
 export default function App() {
+  useEffect(() => {
+    warmUp();
+  }, []);
+
   useEffect(() => {
     if (Platform.OS !== 'web' || document.querySelector('[data-fai-focus-styles]')) return;
     const focusStyles = document.createElement('style');

@@ -31,6 +31,15 @@ export function setOnSessionExpired(fn) {
   onSessionExpired = fn;
 }
 
+export async function warmUp() {
+  const healthUrl = `${BASE_URL.replace(/\/api\/v1\/?$/, '')}/health`;
+  try {
+    await fetch(healthUrl, { method: 'GET' });
+  } catch {
+    // Warming the server is best-effort and should never interrupt the app.
+  }
+}
+
 async function tryRefresh() {
   if (!refreshToken) return false;
   if (!refreshPromise) {
@@ -55,7 +64,7 @@ async function tryRefresh() {
  * petición('/users', { method, body, query })
  * @returns data (ya desempaquetada) o lanza Error con .status y .code
  */
-export async function api(path, { method = 'GET', body, query, auth = true, withMeta = false } = {}) {
+export async function api(path, { method = 'GET', body, query, auth = true, withMeta = false, signal } = {}) {
   // Construcción manual de la query: URL/searchParams no está garantizado en RN/Hermes.
   const params = query
     ? Object.entries(query)
@@ -72,6 +81,7 @@ export async function api(path, { method = 'GET', body, query, auth = true, with
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
     });
   };
 
