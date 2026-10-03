@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
-import { COLORS, RADIUS, TYPOGRAPHY } from '../design-system/tokens';
+import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
 import { TTIcon } from '../design-system/components';
 import { useNav } from '../nav/RouterContext';
 
