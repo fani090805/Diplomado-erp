@@ -7,6 +7,7 @@ import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
 import DetailModal from '../../components/DetailModal';
 import Dropdown from '../../components/Dropdown';
+import StatusBadge from '../../components/StatusBadge';
 import { TTInput } from '../../design-system/components';
 import { useList, usePicklist } from '../../hooks/useResource';
 
@@ -119,7 +120,7 @@ export default function CountsScreen() {
         columns={[
           { key: 'code', label: 'Código', width: 130 },
           { key: 'warehouseId', label: 'Almacén', width: 180, render: (row) => <Text style={styles.cell}>{warehouseById[String(row.warehouseId)] || String(row.warehouseId)}</Text> },
-          { key: 'status', label: 'Estado', width: 120, render: (row) => <Text style={[styles.status, row.status === 'POSTED' && styles.statusDone]}>{STATUS[row.status] || row.status}</Text> },
+          { key: 'status', label: 'Estado', width: 120, render: (row) => <StatusBadge value={row.status} label={STATUS[row.status]} /> },
           { key: 'lines', label: 'Productos', width: 100, render: (row) => <Text style={styles.cell}>{row.lines?.length || 0}</Text> },
           { key: 'createdAt', label: 'Creado', width: 190, render: (row) => <Text style={styles.cell}>{dateOf(row.createdAt)}</Text> },
         ]}
@@ -197,7 +198,7 @@ export default function CountsScreen() {
         title={`Inventario ${detail?.code || ''}`}
         entries={detail ? [
           { label: 'Almacén', value: <Text style={styles.cell}>{warehouseById[String(detail.warehouseId)] || String(detail.warehouseId)}</Text> },
-          { label: 'Estado', value: <Text style={styles.cell}>{STATUS[detail.status] || detail.status}</Text> },
+          { label: 'Estado', value: <StatusBadge value={detail.status} label={STATUS[detail.status]} /> },
           { label: 'Creado', value: <Text style={styles.cell}>{dateOf(detail.createdAt)}</Text> },
           ...(detail.postedAt ? [{ label: 'Publicado', value: <Text style={styles.cell}>{dateOf(detail.postedAt)}</Text> }] : []),
         ] : []}
@@ -239,8 +240,6 @@ function validateTraceCount(mode, quantity, traceability, sku) {
 const styles = StyleSheet.create({
   wrap: { gap: 12 },
   cell: { fontSize: 14, color: COLORS.textPrimary },
-  status: { color: COLORS.warning, fontWeight: '700', fontSize: 13 },
-  statusDone: { color: COLORS.successText },
   backdrop: { flex: 1, backgroundColor: COLORS.backdrop, alignItems: 'center', justifyContent: 'center', padding: 16 },
   dialog: { width: '100%', maxWidth: 680, maxHeight: '92%', backgroundColor: COLORS.card, borderRadius: RADIUS.xl, padding: 20, gap: 12 },
   title: { fontSize: 19, fontWeight: '700', color: COLORS.textPrimary },

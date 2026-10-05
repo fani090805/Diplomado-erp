@@ -60,4 +60,22 @@ export const COLORS = {
   trendDownText: '#A84329',
   chartBar: '#334024',
   chartBarMuted: 'rgba(51, 64, 36, 0.15)',
+
+  // Status badges (estilo suave: fondo claro, borde, texto oscuro y punto medio)
+  statusPositiveBg: '#EEF2E3',
+  statusPositiveBorder: '#CBD6AE',
+  statusPositiveText: '#3E5320',
+  statusPositiveDot: '#5E7A2E',
+  statusNeutralBg: '#F1EFEA',
+  statusNeutralBorder: '#DDD9CF',
+  statusNeutralText: '#6B6656',
+  statusNeutralDot: '#A39E90',
+  statusPendingBg: '#FBF1DF',
+  statusPendingBorder: '#EBD3A6',
+  statusPendingText: '#7A4A06',
+  statusPendingDot: '#B9781A',
+  statusNegativeBg: '#F8E9E3',
+  statusNegativeBorder: '#E9C3B4',
+  statusNegativeText: '#8E3A22',
+  statusNegativeDot: '#CB623B',
 };
