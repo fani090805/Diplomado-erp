@@ -11,6 +11,8 @@
     "dev": "nodemon src/server.js",
     "seed": "node src/scripts/seed.js",
     "migrate:master-data": "node src/scripts/migrate-master-data.js",
+    "seed:sales": "node src/scripts/seed-sales.js",
+    "seed:sales:remove": "node src/scripts/remove-demo-sales.js",
     "indexes": "node ../database/indexes/apply-indexes.js",
     "test": "jest --runInBand",
     "test:unit": "jest tests/unit --runInBand",
