@@ -1,7 +1,47 @@
 'use strict';
 
+const mongoose = require('mongoose');
 const BaseRepository = require('../../common/BaseRepository');
 const User = require('./user.model');
+
+/** Campos que identifican a un usuario como autor o responsable aunque no declaren ref. */
+const USER_REFERENCE_FIELDS = new Set([
+  'createdBy',
+  'updatedBy',
+  'userId',
+  'approvedBy',
+  'rejectedBy',
+  'requestedBy',
+  'performedBy',
+  'assignedTo',
+  'postedBy',
+  'releasedBy',
+  'doneBy',
+  'cancelledBy',
+  'voidedBy',
+]);
+
+/** Colecciones que no cuentan como historial: el propio usuario y sus sesiones. */
+const IGNORED_MODELS = new Set(['User', 'Session']);
+
+/** Rutas (incluidas las anidadas) de un esquema que apuntan a un usuario. */
+function userReferencePaths(schema, prefix = '') {
+  const paths = [];
+  schema.eachPath((path, type) => {
+    const fullPath = `${prefix}${path}`;
+    if (type.schema) {
+      paths.push(...userReferencePaths(type.schema, `${fullPath}.`));
+      return;
+    }
+    const target = type.caster || type;
+    const isObjectId = target.instance === 'ObjectId';
+    const leaf = path.split('.').pop();
+    if (target.options?.ref === 'User' || (isObjectId && USER_REFERENCE_FIELDS.has(leaf))) {
+      paths.push(fullPath);
+    }
+  });
+  return paths;
+}
 
 /**
  * Repositorio de USUARIOS.
@@ -88,6 +128,45 @@ class UserRepository extends BaseRepository {
       .findOneAndDelete({ _id: id, companyId, status: 'pending' })
       .lean()
       .exec();
+  }
+
+  async reactivateInactive(id, companyId) {
+    return this.model
+      .findOneAndUpdate(
+        { _id: id, companyId, status: 'inactive' },
+        { $set: { status: 'active', failedLoginAttempts: 0 } },
+        { new: true, runValidators: true }
+      )
+      .lean()
+      .exec();
+  }
+
+  /**
+   * ¿El usuario figura como autor/responsable en alguna colección (auditoría incluida)?
+   * Recorre todos los modelos registrados para no depender de una lista fija.
+   */
+  async hasRelatedRecords(userId) {
+    const id = new mongoose.Types.ObjectId(String(userId));
+    for (const name of mongoose.modelNames()) {
+      if (IGNORED_MODELS.has(name)) continue;
+      const model = mongoose.model(name);
+      const paths = userReferencePaths(model.schema);
+      if (paths.length === 0) continue;
+      const found = await model.exists({ $or: paths.map((path) => ({ [path]: id })) });
+      if (found) return true;
+    }
+    return false;
+  }
+
+  async deleteInactive(id, companyId) {
+    const deleted = await this.model
+      .findOneAndDelete({ _id: id, companyId, status: 'inactive' })
+      .lean()
+      .exec();
+    if (deleted && mongoose.models.Session) {
+      await mongoose.models.Session.deleteMany({ userId: deleted._id }).exec();
+    }
+    return deleted;
   }
 
   /** Usuarios activos con alguno de los roles administrativos indicados. */

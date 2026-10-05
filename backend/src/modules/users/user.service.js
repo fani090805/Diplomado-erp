@@ -41,7 +41,8 @@ function dispatchWelcomeEmail(user, role) {
  *  - Nadie se edita a sí mismo en rol/estado (evita auto-bloqueo/descenso).
  *  - No se desactiva al último administrador activo de la empresa.
  *  - Cambio de rol/estado/contraseña => tokenVersion++ (cierra sesiones abiertas).
- *  - DELETE = borrado LÓGICO (status inactive) para conservar auditoría.
+ *  - deactivate (y DELETE legado) = baja LÓGICA; el borrado físico solo procede
+ *    para inactivos sin registros relacionados (historial y auditoría).
  */
 
 function scopeOptions(user) {
@@ -219,15 +220,18 @@ const userService = {
     return userRepository.updateById(id, patch, scopeOptions(user));
   },
 
-  /** Borrado LÓGICO: desactiva + revoca sesiones (la auditoría queda intacta). */
-  async remove(id, actor) {
+  /** Baja LÓGICA: inactiva + revoca sesiones (la auditoría queda intacta). */
+  async deactivate(id, actor) {
     if (sameId(id, actor.id)) {
-      throw ApiError.conflict('No puede eliminar su propia cuenta.');
+      throw ApiError.badRequest('No puedes desactivar tu propia cuenta.');
     }
     const user = await this.getById(id, actor);
     if (!user) throw ApiError.notFound('Recurso no encontrado.');
+    if (user.status === 'pending') {
+      throw ApiError.conflict('Las solicitudes pendientes se aprueban o se rechazan.');
+    }
     if (user.status === 'active') {
-      await this._assertNotLastAdmin(user, { deactivate: true });
+      await this._assertNotLastAdmin(user, { deactivate: true, asBadRequest: true });
     }
 
     return userRepository.updateById(
@@ -235,6 +239,39 @@ const userService = {
       { status: 'inactive', tokenVersion: (user.tokenVersion || 0) + 1 },
       scopeOptions(user)
     );
+  },
+
+  /** Compatibilidad: DELETE /users/:id se comporta igual que deactivate. */
+  async remove(id, actor) {
+    return this.deactivate(id, actor);
+  },
+
+  async reactivate(id, actor) {
+    const user = await this.getById(id, actor);
+    if (!user) throw ApiError.notFound('Recurso no encontrado.');
+    if (user.status !== 'inactive') {
+      throw ApiError.badRequest('Solo se pueden reactivar usuarios inactivos.');
+    }
+    const reactivated = await userRepository.reactivateInactive(id, user.companyId);
+    if (!reactivated) throw ApiError.conflict('El usuario ya no está inactivo.');
+    return reactivated;
+  },
+
+  /** Borrado FÍSICO: solo inactivos sin historial en el sistema. */
+  async removePermanently(id, actor) {
+    const user = await this.getById(id, actor);
+    if (!user) throw ApiError.notFound('Recurso no encontrado.');
+    if (user.status !== 'inactive') {
+      throw ApiError.badRequest('Solo se pueden eliminar definitivamente usuarios inactivos.');
+    }
+    if (await userRepository.hasRelatedRecords(user._id)) {
+      throw ApiError.conflict(
+        'Este usuario tiene registros en el sistema. Se conserva como inactivo para mantener el historial.'
+      );
+    }
+    const deleted = await userRepository.deleteInactive(id, user.companyId);
+    if (!deleted) throw ApiError.conflict('El usuario ya no está inactivo.');
+    return { _id: deleted._id, deleted: true };
   },
 
   async approve(id, data, actor) {
@@ -302,7 +339,10 @@ const userService = {
    * Guardia de integridad: la empresa nunca se queda sin administrador activo.
    * Aplica a usuarios con el rol semilla 'administrador'.
    */
-  async _assertNotLastAdmin(user, { deactivate = false, leavingAdmin = false } = {}) {
+  async _assertNotLastAdmin(
+    user,
+    { deactivate = false, leavingAdmin = false, asBadRequest = false } = {}
+  ) {
     if (!user.companyId) return; // usuarios de plataforma: fuera de esta guarda
     if (user.status !== 'active') return;
 
@@ -320,7 +360,8 @@ const userService = {
 
     const willBeZero = (deactivate || leavingAdmin) && count <= 1;
     if (willBeZero) {
-      throw ApiError.conflict('No es posible desactivar al último administrador activo de la empresa.');
+      const message = 'No es posible desactivar al último administrador activo de la empresa.';
+      throw asBadRequest ? ApiError.badRequest(message) : ApiError.conflict(message);
     }
   },
 };

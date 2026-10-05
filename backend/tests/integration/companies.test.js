@@ -105,7 +105,7 @@ describeIfDb('API /companies (integración, rol plataforma)', () => {
       .delete(`/api/v1/users/${gammaAdminId}`)
       .set(auth(superToken));
 
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(400);
     expect(res.body.error.message).toBe(
       'No es posible desactivar al último administrador activo de la empresa.'
     );

@@ -15,7 +15,8 @@ const list = asyncHandler(async (req, res) => {
   if (req.query.status === 'pending' && !req.user.companyId) {
     throw ApiError.forbidden('Las solicitudes pendientes solo se listan dentro de una empresa.');
   }
-  extra.status = req.query.status || { $ne: 'pending' };
+  // Sin filtro: solo usuarios operativos (ni inactivos ni solicitudes pendientes).
+  extra.status = req.query.status || { $in: ['active', 'locked'] };
   if (req.query.roleId) extra.roleId = req.query.roleId;
   if (req.query.branchId) extra.branchId = req.query.branchId;
 
@@ -47,14 +48,23 @@ const update = asyncHandler(async (req, res) => {
   return ok(res, after);
 });
 
-const remove = asyncHandler(async (req, res) => {
-  const before = await userService.getById(req.params.id, req.user);
-  if (!before) throw ApiError.notFound('Recurso no encontrado.');
-  req.auditBefore = before;
+/** Snapshot previo para la auditoría + ejecución de una acción de ciclo de vida. */
+function lifecycleAction(run) {
+  return asyncHandler(async (req, res) => {
+    const before = await userService.getById(req.params.id, req.user);
+    if (!before) throw ApiError.notFound('Recurso no encontrado.');
+    req.auditBefore = before;
+    req.auditResourceId = String(req.params.id);
 
-  const after = await userService.remove(req.params.id, req.user);
-  return ok(res, { _id: after._id, status: after.status });
-});
+    const after = await run(req.params.id, req.user);
+    return ok(res, after.deleted ? after : { _id: after._id, status: after.status });
+  });
+}
+
+const deactivate = lifecycleAction((id, actor) => userService.deactivate(id, actor));
+const reactivate = lifecycleAction((id, actor) => userService.reactivate(id, actor));
+const removePermanently = lifecycleAction((id, actor) => userService.removePermanently(id, actor));
+const remove = deactivate;
 
 const approve = asyncHandler(async (req, res) => {
   const before = await userService.getById(req.params.id, req.user);
@@ -76,4 +86,15 @@ const reject = asyncHandler(async (req, res) => {
   return ok(res, after);
 });
 
-module.exports = { list, getById, create, update, remove, approve, reject };
+module.exports = {
+  list,
+  getById,
+  create,
+  update,
+  deactivate,
+  reactivate,
+  removePermanently,
+  remove,
+  approve,
+  reject,
+};

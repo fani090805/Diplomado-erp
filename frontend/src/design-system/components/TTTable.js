@@ -17,6 +17,18 @@ import { TTIcon } from './TTIcon';
 /**
  * TTTable - Tabla de datos empresarial de FAI Solution ERP
  */
+/** Cabecera y celdas comparten base y crecimiento para quedar alineadas. */
+function columnSize(col) {
+  const width = col.width || 130;
+  return { minWidth: width, flexBasis: width, flexGrow: 1 };
+}
+
+function actionHoverStyle(action) {
+  if (action.danger) return styles.actionDangerHover;
+  if (action.primary) return styles.actionPrimaryHover;
+  return styles.actionBtnHover;
+}
+
 export function TTTable({
   title,
   subtitle,
@@ -100,13 +112,13 @@ export function TTTable({
       {/* Contenedor de Tabla */}
       <View style={styles.tableCard}>
         <ScrollView horizontal contentContainerStyle={styles.tableScroll}>
-          <View>
+          <View style={styles.tableBody}>
             {/* Cabecera de Tabla */}
             <View style={[styles.row, styles.headRow]}>
               {columns.map((col) => (
                 <Text
                   key={col.key}
-                  style={[styles.th, { minWidth: col.width || 130 }]}
+                  style={[styles.th, columnSize(col)]}
                 >
                   {col.label}
                 </Text>
@@ -134,7 +146,7 @@ export function TTTable({
                   {columns.map((col) => (
                     <View
                       key={col.key}
-                      style={{ minWidth: col.width || 130, paddingVertical: SPACING.md, paddingRight: SPACING.sm }}
+                      style={[columnSize(col), styles.cell]}
                     >
                       {col.render ? (
                         col.render(row)
@@ -154,7 +166,8 @@ export function TTTable({
                           style={({ hovered, pressed }) => [
                             styles.actionBtn,
                             action.danger && styles.actionDanger,
-                            hovered && (action.danger ? styles.actionDangerHover : styles.actionBtnHover),
+                            action.primary && styles.actionPrimary,
+                            hovered && actionHoverStyle(action),
                             pressed && styles.actionPressed,
                           ]}
                         >
@@ -163,6 +176,7 @@ export function TTTable({
                             style={[
                               styles.actionText,
                               action.danger && styles.actionDangerText,
+                              action.primary && styles.actionPrimaryText,
                             ]}
                           >
                             {action.label}
@@ -291,6 +305,14 @@ const styles = StyleSheet.create({
   tableScroll: {
     minWidth: '100%',
   },
+  // Ocupa todo el ancho de la tarjeta; con más columnas que espacio, desplaza.
+  tableBody: {
+    flexGrow: 1,
+  },
+  cell: {
+    paddingVertical: SPACING.md,
+    paddingRight: SPACING.sm,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -317,6 +339,8 @@ const styles = StyleSheet.create({
   },
   thActions: {
     minWidth: 160,
+    flexBasis: 160,
+    flexGrow: 1,
   },
   td: {
     fontSize: TYPOGRAPHY.fontSize.sm,
@@ -331,6 +355,8 @@ const styles = StyleSheet.create({
     gap: SPACING.xs + 2,
     paddingVertical: SPACING.sm,
     minWidth: 160,
+    flexBasis: 160,
+    flexGrow: 1,
     flexWrap: 'wrap',
   },
   actionBtn: {
@@ -361,10 +387,22 @@ const styles = StyleSheet.create({
     borderColor: `${COLORS.error}40`,
   },
   actionDangerHover: {
-    backgroundColor: COLORS.error,
+    backgroundColor: `${COLORS.error}22`,
+    borderColor: COLORS.error,
   },
   actionDangerText: {
     color: COLORS.error,
+  },
+  actionPrimary: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  actionPrimaryHover: {
+    backgroundColor: COLORS.primaryLight,
+    borderColor: COLORS.primaryLight,
+  },
+  actionPrimaryText: {
+    color: COLORS.textInverted,
   },
 
   // Footer Pager

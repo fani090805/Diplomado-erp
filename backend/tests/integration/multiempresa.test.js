@@ -238,7 +238,7 @@ describeIfDb('Multiempresa + permisos (integración)', () => {
     const res = await request(app)
       .delete(`/api/v1/users/${adminA._id}`)
       .set(auth(tokenA));
-    expect(res.status).toBe(409);
+    expect(res.status).toBe(400);
     expect(res.body.error.message).toContain('propia cuenta');
   });
 

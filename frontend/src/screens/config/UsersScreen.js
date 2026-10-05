@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { COLORS, SPACING } from '../../design-system/tokens';
-import { TTTabs } from '../../design-system/components';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../../design-system/tokens';
+import { TTConfirmModal, TTIcon, TTTabs } from '../../design-system/components';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
@@ -23,7 +23,11 @@ const STATUS_EDIT = [
   { value: 'locked', label: 'Bloqueado' },
 ];
 
-/** Usuarios de la empresa: altas, solicitudes pendientes y código de invitación. */
+function fullName(user) {
+  return `${user.name || ''} ${user.lastName || ''}`.trim() || user.email;
+}
+
+/** Usuarios de la empresa: activos, solicitudes pendientes, inactivos y código de invitación. */
 export default function UsersScreen() {
   const { can, session } = useAuth();
   const me = session?.user?._id;
@@ -31,10 +35,14 @@ export default function UsersScreen() {
   const branches = usePicklist('/branches', (r) => r.name || r.code || String(r._id));
   const activeList = useList('/users');
   const pendingList = useList('/users', { status: 'pending' });
+  const inactiveList = useList('/users', { status: 'inactive' });
   const [confirmUI, confirm] = useConfirm();
   const [editing, setEditing] = useState(null);
   const [activeTab, setActiveTab] = useState('active');
   const [approvalUser, setApprovalUser] = useState(null);
+  // Confirmaciones de ciclo de vida (título, botón y tono propios) y avisos del servidor.
+  const [dialog, setDialog] = useState(null);
+  const [notice, setNotice] = useState(null);
 
   const roleLabels = invert(roles.options);
 
@@ -53,6 +61,12 @@ export default function UsersScreen() {
     ];
   }, [editing, roles.options, branches.options]);
 
+  const reloadAll = () => {
+    activeList.reload();
+    pendingList.reload();
+    inactiveList.reload();
+  };
+
   const submit = async (values) => {
     if (editing && editing._id) {
       if (!values.password) delete values.password;
@@ -61,7 +75,7 @@ export default function UsersScreen() {
       await api('/users', { method: 'POST', body: values });
     }
     setEditing(null);
-    activeList.reload();
+    reloadAll();
   };
 
   const reject = (user) => {
@@ -71,16 +85,59 @@ export default function UsersScreen() {
     });
   };
 
-  const activeColumns = [
-    {
-      key: 'name',
-      label: 'Nombre',
-      width: 190,
-      render: (user) => (
-        <Text style={styles.td}>{`${user.name} ${user.lastName || ''}`.trim()}</Text>
-      ),
-    },
-    { key: 'email', label: 'Correo', width: 190 },
+  const runDialogAction = async () => {
+    const action = dialog?.action;
+    setDialog(null);
+    if (!action) return;
+    try {
+      await action();
+      reloadAll();
+    } catch (error) {
+      // 409 = el servidor conserva al usuario por su historial: es informativo, no un fallo.
+      if (error.status === 409) {
+        setNotice(error.message);
+        reloadAll();
+      } else {
+        setDialog({ error: error.message || 'Ocurrió un error. Intente de nuevo.' });
+      }
+    }
+  };
+
+  const askDeactivate = (user) =>
+    setDialog({
+      title: 'Desactivar usuario',
+      message: `¿Desactivar a ${fullName(user)}? Ya no podrá iniciar sesión. Podrás reactivarlo después.`,
+      confirmLabel: 'Desactivar',
+      action: () => api(`/users/${user._id}/deactivate`, { method: 'PATCH' }),
+    });
+
+  const askReactivate = (user) =>
+    setDialog({
+      title: 'Reactivar usuario',
+      message: `¿Reactivar a ${fullName(user)}? Podrá volver a iniciar sesión.`,
+      confirmLabel: 'Reactivar',
+      action: () => api(`/users/${user._id}/reactivate`, { method: 'PATCH' }),
+    });
+
+  const askRemovePermanently = (user) =>
+    setDialog({
+      title: 'Eliminar definitivamente',
+      message: `¿Eliminar definitivamente a ${fullName(user)}? Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar definitivamente',
+      destructive: true,
+      action: () => api(`/users/${user._id}/permanent`, { method: 'DELETE' }),
+    });
+
+  const nameColumn = {
+    key: 'name',
+    label: 'Nombre',
+    width: 190,
+    render: (user) => <Text style={styles.td}>{fullName(user)}</Text>,
+  };
+
+  const userColumns = [
+    nameColumn,
+    { key: 'email', label: 'Correo', width: 210 },
     {
       key: 'roleId',
       label: 'Rol',
@@ -94,20 +151,13 @@ export default function UsersScreen() {
     {
       key: 'status',
       label: 'Estado',
-      width: 110,
+      width: 120,
       render: (user) => <StatusBadge value={user.status} />,
     },
   ];
 
   const pendingColumns = [
-    {
-      key: 'name',
-      label: 'Nombre',
-      width: 190,
-      render: (user) => (
-        <Text style={styles.td}>{`${user.name} ${user.lastName || ''}`.trim()}</Text>
-      ),
-    },
+    nameColumn,
     { key: 'email', label: 'Correo', width: 210 },
     {
       key: 'createdAt',
@@ -121,6 +171,44 @@ export default function UsersScreen() {
     },
   ];
 
+  const activeActions = (user) => {
+    if (String(user._id) === String(me)) return [];
+    const actions = [];
+    if (can('users.update')) {
+      actions.push({ label: 'Editar', onPress: () => setEditing(user) });
+      actions.push({ label: 'Desactivar', onPress: () => askDeactivate(user) });
+    }
+    return actions;
+  };
+
+  const inactiveActions = (user) => {
+    const actions = [];
+    if (can('users.update')) {
+      actions.push({ label: 'Reactivar', primary: true, onPress: () => askReactivate(user) });
+    }
+    if (can('users.delete')) {
+      actions.push({
+        label: 'Eliminar definitivamente',
+        danger: true,
+        onPress: () => askRemovePermanently(user),
+      });
+    }
+    return actions;
+  };
+
+  const listProps = (list) => ({
+    rows: list.items,
+    loading: list.loading,
+    error: list.error,
+    search: list.search,
+    onSearchChange: list.setSearch,
+    onRefresh: list.reload,
+    page: list.page,
+    total: list.total,
+    limit: list.limit,
+    onPageChange: list.setPage,
+  });
+
   return (
     <View style={styles.container}>
       {can('users.create') ? <CompanyJoinCodeCard /> : null}
@@ -129,64 +217,49 @@ export default function UsersScreen() {
         tabs={[
           { key: 'active', label: 'Activos' },
           { key: 'pending', label: 'Pendientes', badge: pendingList.total },
+          { key: 'inactive', label: 'Inactivos', badge: inactiveList.total },
         ]}
         activeTab={activeTab}
-        onChangeTab={setActiveTab}
+        onChangeTab={(tab) => {
+          setNotice(null);
+          setActiveTab(tab);
+        }}
       />
+
+      {notice ? (
+        <View accessibilityRole="alert" style={styles.notice}>
+          <TTIcon name="ayuda" size={18} color={COLORS.info} />
+          <Text style={styles.noticeText}>{notice}</Text>
+          <Pressable
+            onPress={() => setNotice(null)}
+            accessibilityRole="button"
+            accessibilityLabel="Cerrar aviso"
+            hitSlop={8}
+          >
+            <TTIcon name="cerrar" size={16} color={COLORS.textMuted} />
+          </Pressable>
+        </View>
+      ) : null}
 
       {activeTab === 'active' ? (
         <DataTable
           title="Usuarios"
           subtitle={`${activeList.total} registros`}
-          columns={activeColumns}
-          rows={activeList.items}
-          loading={activeList.loading}
-          error={activeList.error}
-          search={activeList.search}
-          onSearchChange={activeList.setSearch}
-          onRefresh={activeList.reload}
-          page={activeList.page}
-          total={activeList.total}
-          limit={activeList.limit}
-          onPageChange={activeList.setPage}
+          columns={userColumns}
+          {...listProps(activeList)}
           onCreate={can('users.create') ? () => setEditing({}) : undefined}
           createLabel="Nuevo usuario"
-          rowActions={(user) => {
-            if (String(user._id) === String(me)) return [];
-            const actions = [];
-            if (can('users.update')) {
-              actions.push({ label: 'Editar', onPress: () => setEditing(user) });
-            }
-            if (can('users.delete')) {
-              actions.push({
-                label: 'Eliminar',
-                danger: true,
-                onPress: () =>
-                  confirm(`¿Eliminar el usuario "${user.email}"?`, async () => {
-                    await api(`/users/${user._id}`, { method: 'DELETE' });
-                    activeList.reload();
-                  }),
-              });
-            }
-            return actions;
-          }}
+          rowActions={activeActions}
           emptyText="Sin usuarios."
         />
-      ) : (
+      ) : null}
+
+      {activeTab === 'pending' ? (
         <DataTable
           title="Solicitudes pendientes"
           subtitle={`${pendingList.total} solicitudes`}
           columns={pendingColumns}
-          rows={pendingList.items}
-          loading={pendingList.loading}
-          error={pendingList.error}
-          search={pendingList.search}
-          onSearchChange={pendingList.setSearch}
-          onRefresh={pendingList.reload}
-          page={pendingList.page}
-          total={pendingList.total}
-          limit={pendingList.limit}
-          onPageChange={pendingList.setPage}
+          {...listProps(pendingList)}
           rowActions={
             can('users.update')
               ? (user) => [
@@ -197,7 +270,18 @@ export default function UsersScreen() {
           }
           emptyText="No hay solicitudes pendientes."
         />
-      )}
+      ) : null}
+
+      {activeTab === 'inactive' ? (
+        <DataTable
+          title="Usuarios inactivos"
+          subtitle={`${inactiveList.total} registros`}
+          columns={userColumns}
+          {...listProps(inactiveList)}
+          rowActions={can('users.update') || can('users.delete') ? inactiveActions : undefined}
+          emptyText="No hay usuarios inactivos."
+        />
+      ) : null}
 
       <FormModal
         visible={Boolean(editing)}
@@ -219,6 +303,16 @@ export default function UsersScreen() {
           activeList.reload();
         }}
       />
+      <TTConfirmModal
+        visible={Boolean(dialog)}
+        title={dialog?.error ? 'No se pudo completar' : dialog?.title}
+        message={dialog?.error || dialog?.message || ''}
+        isError={Boolean(dialog?.error)}
+        destructive={Boolean(dialog?.destructive)}
+        confirmLabel={dialog?.confirmLabel}
+        onCancel={() => setDialog(null)}
+        onConfirm={runDialogAction}
+      />
       {confirmUI}
     </View>
   );
@@ -232,5 +326,21 @@ const styles = StyleSheet.create({
   td: {
     fontSize: 14,
     color: COLORS.textPrimary,
+  },
+  notice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    padding: SPACING.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.infoGlow,
+  },
+  noticeText: {
+    flex: 1,
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
   },
 });

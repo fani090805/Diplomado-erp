@@ -38,6 +38,7 @@ export function TTConfirmModal({
   title = 'Confirmar acción',
   message,
   isError = false,
+  destructive = false,
   confirmLabel = 'Confirmar',
   cancelLabel = 'Cancelar',
   onCancel,
@@ -50,11 +51,13 @@ export function TTConfirmModal({
       <View style={styles.backdrop}>
         <View style={styles.card}>
           <View style={styles.header}>
-            <View style={[styles.iconWrapper, isError ? styles.iconError : styles.iconInfo]}>
+            <View
+              style={[styles.iconWrapper, isError || destructive ? styles.iconError : styles.iconInfo]}
+            >
               <TTIcon
-                name={isError ? 'alerta' : 'ayuda'}
+                name={isError || destructive ? 'alerta' : 'ayuda'}
                 size={20}
-                color={isError ? COLORS.error : COLORS.accent}
+                color={isError || destructive ? COLORS.error : COLORS.accent}
               />
             </View>
             <View style={styles.headerText}>
@@ -72,7 +75,7 @@ export function TTConfirmModal({
             ) : null}
 
             <TTButton
-              variant={isError ? 'secondary' : 'primary'}
+              variant={isError ? 'secondary' : destructive ? 'danger' : 'primary'}
               size="md"
               onPress={isError ? onCancel : onConfirm}
             >

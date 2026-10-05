@@ -2,25 +2,49 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
 
+// Positivos/completados: success · negativos: error · pendientes/en proceso: warning
+// · inactivos/borradores/cancelados: textMuted.
 const STATUS_MAP = {
-  active: { color: COLORS.accent, label: 'Activo' },
+  // Usuarios, empresas y catálogos
+  active: { color: COLORS.success, label: 'Activo' },
+  pending: { color: COLORS.warning, label: 'Pendiente' },
   inactive: { color: COLORS.textMuted, label: 'Inactivo' },
   locked: { color: COLORS.error, label: 'Bloqueado' },
   suspended: { color: COLORS.error, label: 'Suspendido' },
+  // Documentos y flujos de aprobación
   DRAFT: { color: COLORS.textMuted, label: 'Borrador' },
-  APPROVED: { color: COLORS.accent, label: 'Aprobado' },
+  PENDING: { color: COLORS.warning, label: 'Pendiente' },
+  APPROVED: { color: COLORS.success, label: 'Aprobado' },
   REJECTED: { color: COLORS.error, label: 'Rechazado' },
-  RELEASED: { color: COLORS.info, label: 'Liberada' },
-  DONE: { color: COLORS.accent, label: 'Finalizada' },
   CANCELLED: { color: COLORS.textMuted, label: 'Cancelado' },
-  POSTED: { color: COLORS.accent, label: 'Registrado' },
+  // Producción
+  RELEASED: { color: COLORS.warning, label: 'Liberada' },
+  IN_PROGRESS: { color: COLORS.warning, label: 'En proceso' },
+  DONE: { color: COLORS.success, label: 'Finalizada' },
+  COMPLETED: { color: COLORS.success, label: 'Completado' },
+  // Inventario y conteos
+  POSTING: { color: COLORS.warning, label: 'Registrando' },
+  PARTIAL: { color: COLORS.warning, label: 'Parcial' },
+  POSTED: { color: COLORS.success, label: 'Registrado' },
+  RECEIVED: { color: COLORS.success, label: 'Recibido' },
+  DELIVERED: { color: COLORS.success, label: 'Entregado' },
+  // Finanzas
+  PAID: { color: COLORS.success, label: 'Pagado' },
   VOID: { color: COLORS.textMuted, label: 'Anulado' },
+  // CRM
   NEW: { color: COLORS.info, label: 'Nuevo' },
   CONTACTED: { color: COLORS.primaryLight, label: 'Contactado' },
   QUALIFIED: { color: COLORS.warning, label: 'Calificado' },
-  WON: { color: COLORS.accent, label: 'Ganado' },
+  WON: { color: COLORS.success, label: 'Ganado' },
   LOST: { color: COLORS.error, label: 'Perdido' },
-  SUCCESS: { color: COLORS.accent, label: 'Éxito' },
+  // Obras
+  PLANEADA: { color: COLORS.info, label: 'Planeada' },
+  EN_PROCESO: { color: COLORS.warning, label: 'En proceso' },
+  PAUSADA: { color: COLORS.warning, label: 'Pausada' },
+  FINALIZADA: { color: COLORS.success, label: 'Finalizada' },
+  CANCELADA: { color: COLORS.textMuted, label: 'Cancelada' },
+  // Auditoría
+  SUCCESS: { color: COLORS.success, label: 'Éxito' },
   FAILURE: { color: COLORS.error, label: 'Fallo' },
 };
 
