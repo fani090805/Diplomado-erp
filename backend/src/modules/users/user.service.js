@@ -9,6 +9,28 @@ const {
 const userRepository = require('./user.repository');
 const roleRepository = require('../roles/role.repository');
 const branchRepository = require('../branches/branch.repository');
+const companyRepository = require('../companies/company.repository');
+const logger = require('../../config/logger');
+const { sendWelcomeEmail } = require('../../services/email.service');
+
+function dispatchWelcomeEmail(user, role) {
+  Promise.resolve()
+    .then(async () => {
+      const company = await companyRepository.findById(user.companyId);
+      return sendWelcomeEmail({
+        email: user.email,
+        name: `${user.name || ''} ${user.lastName || ''}`.trim(),
+        companyName: company?.name || '',
+        roleName: role.label,
+      });
+    })
+    .catch((error) => {
+      logger.error(
+        { err: error.message, userId: String(user._id) },
+        'No se pudo completar el envío del correo de bienvenida.'
+      );
+    });
+}
 
 /**
  * Servicio de usuarios (multiempresa estricto).
@@ -79,7 +101,7 @@ const userService = {
     const companyId = this._resolveTargetCompanyId(data, actor);
     delete data.companyId;
 
-    await this._assertRoleForCompany(data.roleId, companyId, actor);
+    const role = await this._assertRoleForCompany(data.roleId, companyId, actor);
 
     // Email único global (login). Chequeo previo para mensaje claro;
     // el índice unique de Mongo es el respaldo final (11000).
@@ -125,6 +147,7 @@ const userService = {
     delete safe.passwordHash;
     delete safe.resetPasswordTokenHash;
     delete safe.resetPasswordExpiresAt;
+    if (created.status === 'active') dispatchWelcomeEmail(created, role);
     return safe;
   },
 
@@ -225,7 +248,7 @@ const userService = {
       throw ApiError.conflict('El usuario ya no está pendiente de aprobación.');
     }
 
-    await this._assertRoleForCompany(data.roleId, user.companyId, actor);
+    const role = await this._assertRoleForCompany(data.roleId, user.companyId, actor);
 
     let branchId;
     if (data.branchId) {
@@ -255,6 +278,7 @@ const userService = {
       failedLoginAttempts: 0,
     });
     if (!approved) throw ApiError.conflict('El usuario ya no está pendiente de aprobación.');
+    dispatchWelcomeEmail(approved, role);
     return approved;
   },
 

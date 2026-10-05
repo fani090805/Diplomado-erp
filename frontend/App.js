@@ -6,6 +6,8 @@ import { RouterProvider, useNav } from './src/nav/RouterContext';
 import Layout from './src/components/Layout';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
+import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 import LandingScreen from './src/screens/public/LandingScreen';
 import { SCREENS } from './src/screens';
 import { COLORS } from './src/design-system/tokens';
@@ -27,12 +29,38 @@ function Shell() {
 function Root() {
   const { session, initializing } = useAuth();
   const [viewState, setViewState] = useState('landing'); // 'landing' | 'login'
+  const [resetToken, setResetToken] = useState(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('reset');
+    if (token) {
+      url.searchParams.delete('reset');
+      window.history.replaceState({}, '', url);
+    }
+    return token;
+  });
 
   if (initializing) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
+    );
+  }
+
+  if (resetToken) {
+    return (
+      <ResetPasswordScreen
+        token={resetToken}
+        onGoLogin={() => {
+          setResetToken(null);
+          setViewState('login');
+        }}
+        onRequestNewLink={() => {
+          setResetToken(null);
+          setViewState('forgot');
+        }}
+      />
     );
   }
 
@@ -53,9 +81,27 @@ function Root() {
         />
       );
     }
+    if (viewState === 'forgot') {
+      return (
+        <ForgotPasswordScreen
+          onGoLogin={() => setViewState('login')}
+          onGoBack={() => setViewState('landing')}
+        />
+      );
+    }
+    if (viewState === 'reset') {
+      return (
+        <ResetPasswordScreen
+          token=""
+          onGoLogin={() => setViewState('login')}
+          onRequestNewLink={() => setViewState('forgot')}
+        />
+      );
+    }
     return (
       <LoginScreen
         onGoRegister={() => setViewState('register')}
+        onGoForgot={() => setViewState('forgot')}
         onGoBack={() => setViewState('landing')}
       />
     );

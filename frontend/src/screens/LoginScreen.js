@@ -19,7 +19,7 @@ import { TTButton, TTIcon, TTInput } from '../design-system/components';
 import { FaiLogo } from '../components/FaiLogo';
 
 /** Pantalla de inicio de sesión de FAI Solution ERP. */
-export default function LoginScreen({ onGoRegister, onGoBack }) {
+export default function LoginScreen({ onGoRegister, onGoForgot, onGoBack }) {
   const { login } = useAuth();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 900;
@@ -148,6 +148,10 @@ export default function LoginScreen({ onGoRegister, onGoBack }) {
               disabled={loading}
               onSubmitEditing={onSubmit}
             />
+
+            <Pressable onPress={onGoForgot} style={styles.forgotLink}>
+              <Text style={styles.registerAction}>¿Olvidaste tu contraseña?</Text>
+            </Pressable>
 
             <TTButton
               variant="primary"
@@ -307,6 +311,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexWrap: 'wrap',
     paddingVertical: SPACING.xs,
+  },
+  forgotLink: {
+    alignSelf: 'flex-end',
+    paddingVertical: SPACING.xs,
+    marginTop: -SPACING.sm,
   },
   registerPrompt: {
     color: COLORS.textMuted,

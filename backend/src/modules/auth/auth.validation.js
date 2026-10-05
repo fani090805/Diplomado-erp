@@ -61,4 +61,31 @@ const changePasswordSchema = z
     message: 'La nueva contraseña debe ser distinta a la actual.',
   });
 
-module.exports = { loginSchema, registerSchema, refreshSchema, changePasswordSchema };
+const forgotPasswordSchema = z
+  .object({
+    email: z
+      .string({ required_error: 'El correo electrónico es obligatorio.' })
+      .trim()
+      .toLowerCase()
+      .email('Correo electrónico inválido.'),
+  })
+  .strict();
+
+const resetPasswordSchema = z
+  .object({
+    token: z
+      .string({ required_error: 'El token es obligatorio.' })
+      .length(64, 'El enlace no es válido o ya venció.')
+      .regex(/^[a-f0-9]+$/i, 'El enlace no es válido o ya venció.'),
+    password: passwordSchema,
+  })
+  .strict();
+
+module.exports = {
+  loginSchema,
+  registerSchema,
+  refreshSchema,
+  changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+};

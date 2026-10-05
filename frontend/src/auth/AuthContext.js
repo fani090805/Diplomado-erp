@@ -69,14 +69,36 @@ export function AuthProvider({ children }) {
     []
   );
 
+  const forgotPassword = useCallback(
+    (email, { signal } = {}) =>
+      api('/auth/forgot-password', {
+        method: 'POST',
+        body: { email },
+        auth: false,
+        signal,
+      }),
+    []
+  );
+
+  const resetPassword = useCallback(
+    (token, password, { signal } = {}) =>
+      api('/auth/reset-password', {
+        method: 'POST',
+        body: { token, password },
+        auth: false,
+        signal,
+      }),
+    []
+  );
+
   const can = useCallback(
     (permission) => Boolean(session?.role?.permissions?.includes(permission)),
     [session]
   );
 
   const value = useMemo(
-    () => ({ session, initializing, login, register, logout, can }),
-    [session, initializing, login, register, logout, can]
+    () => ({ session, initializing, login, register, forgotPassword, resetPassword, logout, can }),
+    [session, initializing, login, register, forgotPassword, resetPassword, logout, can]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -26,6 +26,20 @@ router.post('/login', authLimiter, validate({ body: schemas.loginSchema }), cont
 
 router.post('/register', authLimiter, validate({ body: schemas.registerSchema }), controller.register);
 
+router.post(
+  '/forgot-password',
+  authLimiter,
+  validate({ body: schemas.forgotPasswordSchema }),
+  controller.forgotPassword
+);
+
+router.post(
+  '/reset-password',
+  authLimiter,
+  validate({ body: schemas.resetPasswordSchema }),
+  controller.resetPassword
+);
+
 router.post('/refresh', validate({ body: schemas.refreshSchema }), controller.refresh);
 
 router.post('/logout', authenticate, controller.logout);

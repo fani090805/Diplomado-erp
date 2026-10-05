@@ -3,9 +3,9 @@
 const ApiError = require('../../utils/ApiError');
 const { ConflictError, ForbiddenError } = require('../../common/errors');
 const logger = require('../../config/logger');
-const { hashPassword, verifyPassword } = require('../../utils/password');
+const { hashPassword, verifyPassword, isStrongPassword } = require('../../utils/password');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../utils/tokens');
-const { randomUUID, createHash } = require('crypto');
+const { randomUUID, randomBytes, createHash } = require('crypto');
 const jwt = require('jsonwebtoken');
 const Session = require('./session.model');
 const userRepository = require('../users/user.repository');
@@ -13,9 +13,27 @@ const roleRepository = require('../roles/role.repository');
 const companyRepository = require('../companies/company.repository');
 const branchRepository = require('../branches/branch.repository');
 const auditService = require('../audit/audit.service');
-const { sendLoginNotification } = require('../../services/email.service');
+const {
+  sendLoginNotification,
+  sendRegistrationReceived,
+  sendNewPendingUserToAdmins,
+  sendPasswordResetEmail,
+  sendPasswordChangedEmail,
+} = require('../../services/email.service');
 
 const MAX_FAILED_ATTEMPTS = 5;
+const PASSWORD_RESET_TTL_MS = 30 * 60 * 1000;
+const PASSWORD_RESET_INVALID = 'El enlace no es válido o ya venció.';
+const FORGOT_PASSWORD_MESSAGE = 'Si el correo está registrado, te enviamos instrucciones.';
+
+function dispatchEmail(send, context) {
+  Promise.resolve()
+    .then(send)
+    .catch((error) => {
+      logger.error({ err: error.message, ...context }, 'No se pudo completar el envío de correo.');
+    });
+}
+
 function hashSessionId(sessionId) {
   return createHash('sha256').update(sessionId).digest('hex');
 }
@@ -112,6 +130,28 @@ const authService = {
         result: 'SUCCESS',
         ...meta,
       });
+      dispatchEmail(
+        () =>
+          sendRegistrationReceived({
+            email: user.email,
+            name: `${user.name || ''} ${user.lastName || ''}`.trim(),
+            companyName: company.name,
+          }),
+        { action: 'registration_received', userId: String(user._id) }
+      );
+      dispatchEmail(async () => {
+        const roles = await roleRepository.findAll({ companyId: company._id, status: 'active' });
+        const adminRoleIds = roles
+          .filter((role) => role.permissions?.includes('users.update'))
+          .map((role) => role._id);
+        const admins = await userRepository.findActiveByRoleIds(company._id, adminRoleIds);
+        return sendNewPendingUserToAdmins({
+          admins,
+          userName: `${user.name || ''} ${user.lastName || ''}`.trim(),
+          userEmail: user.email,
+          companyName: company.name,
+        });
+      }, { action: 'pending_user_admin_notification', userId: String(user._id) });
       return { message: 'Cuenta creada. Un administrador debe aprobar tu acceso.' };
     } catch (error) {
       if (user) {
@@ -141,6 +181,90 @@ const authService = {
       });
       throw failure;
     }
+  },
+
+  async forgotPassword({ email }, meta = {}) {
+    const user = await userRepository.findByEmail(email);
+    if (user && (user.status === 'active' || user.status === 'locked')) {
+      const token = randomBytes(32).toString('hex');
+      const resetPasswordTokenHash = createHash('sha256').update(token).digest('hex');
+      const resetPasswordExpiresAt = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+      await userRepository.updateById(user._id, {
+        resetPasswordTokenHash,
+        resetPasswordExpiresAt,
+      });
+
+      const appUrl = process.env.APP_URL || '';
+      dispatchEmail(
+        () =>
+          sendPasswordResetEmail({
+            email: user.email,
+            name: `${user.name || ''} ${user.lastName || ''}`.trim(),
+            resetUrl: `${appUrl}/?reset=${token}`,
+          }),
+        { action: 'password_reset_requested', userId: String(user._id) }
+      );
+    }
+
+    await auditService.log({
+      module: 'auth',
+      action: 'FORGOT_PASSWORD',
+      resourceType: 'user',
+      resourceId: user ? String(user._id) : null,
+      companyId: user?.companyId || null,
+      userId: user ? String(user._id) : null,
+      userEmail: email,
+      result: 'SUCCESS',
+      ...meta,
+    });
+    return { message: FORGOT_PASSWORD_MESSAGE };
+  },
+
+  async resetPassword({ token, password }, meta = {}) {
+    if (!isStrongPassword(password)) {
+      throw ApiError.badRequest('La contraseña debe tener al menos 8 caracteres, una letra y un número.');
+    }
+    const resetPasswordTokenHash = createHash('sha256').update(token).digest('hex');
+    const passwordHash = await hashPassword(password);
+    const user = await userRepository.resetPasswordByTokenHash(
+      resetPasswordTokenHash,
+      passwordHash,
+      new Date()
+    );
+
+    if (!user) {
+      await auditService.log({
+        module: 'auth',
+        action: 'RESET_PASSWORD',
+        resourceType: 'user',
+        result: 'FAILURE',
+        message: PASSWORD_RESET_INVALID,
+        ...meta,
+      });
+      throw ApiError.badRequest(PASSWORD_RESET_INVALID);
+    }
+
+    await Session.deleteMany({ userId: user._id }).exec();
+    await auditService.log({
+      module: 'auth',
+      action: 'RESET_PASSWORD',
+      resourceType: 'user',
+      resourceId: String(user._id),
+      companyId: user.companyId || null,
+      userId: String(user._id),
+      userEmail: user.email,
+      result: 'SUCCESS',
+      ...meta,
+    });
+    dispatchEmail(
+      () =>
+        sendPasswordChangedEmail({
+          email: user.email,
+          name: `${user.name || ''} ${user.lastName || ''}`.trim(),
+        }),
+      { action: 'password_changed', userId: String(user._id) }
+    );
+    return { message: 'Tu contraseña fue actualizada.' };
   },
 
   async login({ email, password }, meta = {}) {

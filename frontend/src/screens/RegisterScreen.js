@@ -13,6 +13,7 @@ import { useAuth } from '../auth/AuthContext';
 import { TTButton, TTIcon, TTInput } from '../design-system/components';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
 import { FaiLogo } from '../components/FaiLogo';
+import PasswordRequirements from '../components/PasswordRequirements';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -44,12 +45,6 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
     setServerError('');
   };
 
-  const passwordRequirements = [
-    { label: 'Mínimo 8 caracteres', met: form.password.length >= 8 },
-    { label: 'Al menos una letra', met: /[A-Za-z]/.test(form.password) },
-    { label: 'Al menos un número', met: /\d/.test(form.password) },
-  ];
-
   const validate = () => {
     const next = {};
     if (form.name.trim().length < 2) next.name = 'Ingresa un nombre de al menos 2 caracteres.';
@@ -62,7 +57,11 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
       next.companyCode = 'El código de empresa no puede exceder 10 caracteres.';
     }
     if (!EMAIL_PATTERN.test(form.email.trim())) next.email = 'Ingresa un correo electrónico válido.';
-    if (!passwordRequirements.every((requirement) => requirement.met)) {
+    if (
+      form.password.length < 8 ||
+      !/[A-Za-z]/.test(form.password) ||
+      !/\d/.test(form.password)
+    ) {
       next.password = 'La contraseña debe cumplir todos los requisitos.';
     }
     if (form.confirmPassword !== form.password) {
@@ -246,25 +245,7 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
                   disabled={loading}
                   error={errors.password}
                 />
-                <View style={styles.requirements}>
-                  {passwordRequirements.map((requirement) => (
-                    <View key={requirement.label} style={styles.requirementRow}>
-                      <TTIcon
-                        name={requirement.met ? 'check' : 'punto'}
-                        size={requirement.met ? 14 : 8}
-                        color={requirement.met ? COLORS.successText : COLORS.textMuted}
-                      />
-                      <Text
-                        style={[
-                          styles.requirementText,
-                          requirement.met ? styles.requirementMet : styles.requirementUnmet,
-                        ]}
-                      >
-                        {requirement.label}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
+                <PasswordRequirements password={form.password} />
                 <TTInput
                   label="Confirmar contraseña"
                   required
@@ -411,25 +392,6 @@ const styles = StyleSheet.create({
     color: COLORS.error,
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontFamily: TYPOGRAPHY.fontFamily.ui,
-  },
-  requirements: {
-    gap: SPACING.xs,
-    marginTop: -SPACING.sm,
-  },
-  requirementRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-  },
-  requirementText: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    fontFamily: TYPOGRAPHY.fontFamily.ui,
-  },
-  requirementMet: {
-    color: COLORS.successText,
-  },
-  requirementUnmet: {
-    color: COLORS.textMuted,
   },
   submitButton: {
     marginTop: SPACING.xs,

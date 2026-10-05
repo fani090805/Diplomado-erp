@@ -22,6 +22,48 @@ class UserRepository extends BaseRepository {
     return this.model.findOne({ email }).select('+passwordHash').lean();
   }
 
+  async findByResetTokenHash(resetPasswordTokenHash) {
+    return this.model
+      .findOne({ resetPasswordTokenHash })
+      .select('+resetPasswordTokenHash +resetPasswordExpiresAt')
+      .lean()
+      .exec();
+  }
+
+  async findActiveByRoleIds(companyId, roleIds) {
+    if (!companyId || roleIds.length === 0) return [];
+    return this.model
+      .find({ companyId, status: 'active', roleId: { $in: roleIds } })
+      .select('email name lastName')
+      .lean()
+      .exec();
+  }
+
+  async resetPasswordByTokenHash(resetPasswordTokenHash, passwordHash, now) {
+    return this.model
+      .findOneAndUpdate(
+        {
+          resetPasswordTokenHash,
+          resetPasswordExpiresAt: { $gt: now },
+          status: { $in: ['active', 'locked'] },
+        },
+        {
+          $set: {
+            passwordHash,
+            status: 'active',
+            failedLoginAttempts: 0,
+            resetPasswordTokenHash: null,
+            resetPasswordExpiresAt: null,
+          },
+          $inc: { tokenVersion: 1 },
+        },
+        { new: true, runValidators: true }
+      )
+      .select('email name lastName companyId')
+      .lean()
+      .exec();
+  }
+
   async countByBranch(branchId) {
     return this.model.countDocuments({ branchId });
   }
