@@ -8,8 +8,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.diplomado.erp.ui.theme.TecodeAccent
-import com.diplomado.erp.ui.theme.TecodeTextMuted
+import com.diplomado.erp.ui.theme.FaiFontFamily
+import com.diplomado.erp.ui.theme.FaiPrimary
+import com.diplomado.erp.ui.theme.FaiTextMuted
 
 @Composable
 fun TTLoading(
@@ -24,14 +25,15 @@ fun TTLoading(
         verticalArrangement = Arrangement.Center
     ) {
         CircularProgressIndicator(
-            color = TecodeAccent,
+            color = FaiPrimary,
             strokeWidth = 3.dp
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = text,
             fontSize = 13.sp,
-            color = TecodeTextMuted
+            fontFamily = FaiFontFamily,
+            color = FaiTextMuted
         )
     }
 }

@@ -186,7 +186,7 @@ interface ErpApi {
     @GET("audit")
     suspend fun getAuditLogs(@Query("limit") limit: Int = 20): Response<ApiResponse<List<AuditLogDto>>>
 
-    // Obras & Centros de Costo (ERP Constructor)
+    // Obras & Centros de Costo
     @GET("projects")
     suspend fun getProjects(
         @Query("page") page: Int = 1,

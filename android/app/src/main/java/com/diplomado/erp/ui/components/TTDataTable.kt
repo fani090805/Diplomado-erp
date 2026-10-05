@@ -41,13 +41,13 @@ fun <T> TTDataTable(
                     text = title,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TecodeTextPrimary
+                    color = FaiTextPrimary
                 )
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
                         fontSize = 13.sp,
-                        color = TecodeTextMuted
+                        color = FaiTextMuted
                     )
                 }
             }

@@ -50,13 +50,13 @@ fun AccountsScreen(
                                     text = account.name,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Código: ${account.code} • Tipo: ${account.type.uppercase()} • ${account.currency}",
                                     fontSize = 12.sp,
-                                    color = TecodeTextMuted
+                                    color = FaiTextMuted
                                 )
                             }
                             Column(horizontalAlignment = Alignment.End) {
@@ -64,7 +64,7 @@ fun AccountsScreen(
                                     text = "$${String.format("%.2f", account.balance)}",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TecodeAccent
+                                    color = FaiPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 TTBadge(status = account.status)

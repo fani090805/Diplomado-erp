@@ -74,7 +74,7 @@ object TokenStorage {
     fun getUserEmail(): String = prefs.getString(KEY_USER_EMAIL, "") ?: ""
     fun getUserName(): String = prefs.getString(KEY_USER_NAME, "") ?: ""
     fun getRoleLabel(): String = prefs.getString(KEY_ROLE_LABEL, "") ?: ""
-    fun getCompanyName(): String = prefs.getString(KEY_COMPANY_NAME, "Tec[ode ERP") ?: "Tec[ode ERP"
+    fun getCompanyName(): String = prefs.getString(KEY_COMPANY_NAME, "FAI Solution ERP") ?: "FAI Solution ERP"
     fun getBranchName(): String = prefs.getString(KEY_BRANCH_NAME, "") ?: ""
 
     fun clear() {

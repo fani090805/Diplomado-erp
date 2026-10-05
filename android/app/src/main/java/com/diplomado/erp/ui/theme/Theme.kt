@@ -2,49 +2,60 @@ package com.diplomado.erp.ui.theme
 
 import android.app.Activity
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val TecodeDarkColorScheme = darkColorScheme(
-    primary = TecodeAccent,
-    onPrimary = TecodeTextDark,
-    primaryContainer = TecodePrimary,
-    onPrimaryContainer = TecodeTextPrimary,
-    secondary = TecodeInfo,
-    onSecondary = TecodeTextDark,
-    background = TecodeBackground,
-    onBackground = TecodeTextPrimary,
-    surface = TecodeSurface,
-    onSurface = TecodeTextPrimary,
-    surfaceVariant = TecodeCard,
-    onSurfaceVariant = TecodeTextSecondary,
-    outline = TecodeBorder,
-    error = TecodeError,
-    onError = TecodeTextPrimary
+private val FaiLightColorScheme = lightColorScheme(
+    primary = FaiPrimary,
+    onPrimary = FaiCream,
+    primaryContainer = FaiPrimaryGlow,
+    onPrimaryContainer = FaiPrimaryDark,
+    secondary = FaiPrimaryLight,
+    onSecondary = FaiCream,
+    secondaryContainer = FaiSage,
+    onSecondaryContainer = FaiPrimaryDark,
+    tertiary = FaiAccent,
+    onTertiary = FaiCream,
+    background = FaiBackground,
+    onBackground = FaiTextPrimary,
+    surface = FaiSurface,
+    onSurface = FaiTextPrimary,
+    surfaceVariant = FaiBackground,
+    onSurfaceVariant = FaiTextSecondary,
+    outline = FaiBorder,
+    outlineVariant = FaiBorder,
+    error = FaiError,
+    onError = FaiCream
 )
 
 @Composable
-fun DiplomadoERPTheme(
+fun FaiTheme(
     content: @Composable () -> Unit
 ) {
-    val colorScheme = TecodeDarkColorScheme
+    val colorScheme = FaiLightColorScheme
     val view = LocalView.current
 
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
+            // Barra de estado clara con íconos oscuros.
             window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            window.navigationBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = true
+                isAppearanceLightNavigationBars = true
+            }
         }
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = Shapes,
         content = content
     )
 }

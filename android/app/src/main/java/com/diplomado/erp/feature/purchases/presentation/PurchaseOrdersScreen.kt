@@ -56,13 +56,13 @@ fun PurchaseOrdersScreen(
                                         text = "Folio: ${order.code}",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = TecodeTextPrimary
+                                        color = FaiTextPrimary
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "Proveedor: ${order.supplier?.name ?: "Proveedor de Insumos"} • Total: $${String.format("%.2f", order.total)}",
                                         fontSize = 13.sp,
-                                        color = TecodeTextMuted
+                                        color = FaiTextMuted
                                     )
                                 }
                                 TTBadge(status = order.status)
@@ -82,7 +82,7 @@ fun PurchaseOrdersScreen(
                                     )
                                     TTButton(
                                         text = "Rechazar",
-                                        onClick = { viewModel.rejectOrder(order.id, "Rechazado desde App Tec[ode") },
+                                        onClick = { viewModel.rejectOrder(order.id, "Rechazado desde la app FAI ERP") },
                                         variant = TTButtonVariant.Danger,
                                         modifier = Modifier.weight(1f)
                                     )

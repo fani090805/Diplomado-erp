@@ -3,7 +3,6 @@ package com.diplomado.erp.ui.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,24 +22,27 @@ fun TTCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = TecodeCard),
-        border = BorderStroke(1.dp, TecodeBorder)
+        shape = FaiShapes.Card,
+        colors = CardDefaults.cardColors(containerColor = FaiCard),
+        border = BorderStroke(1.dp, FaiBorder),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             if (title != null) {
                 Text(
                     text = title,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TecodeTextPrimary
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = FaiFontFamily,
+                    color = FaiTextPrimary
                 )
                 if (subtitle != null) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
                         fontSize = 13.sp,
-                        color = TecodeTextMuted
+                        fontFamily = FaiFontFamily,
+                        color = FaiTextMuted
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
@@ -56,13 +58,14 @@ fun TTStatCard(
     value: String,
     modifier: Modifier = Modifier,
     trend: String? = null,
-    accentColor: Color = TecodeInfo
+    accentColor: Color = FaiPrimary
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = TecodeCard),
-        border = BorderStroke(1.dp, TecodeBorder)
+        shape = FaiShapes.Card,
+        colors = CardDefaults.cardColors(containerColor = FaiCard),
+        border = BorderStroke(1.dp, FaiBorder),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Box(
@@ -77,23 +80,26 @@ fun TTStatCard(
                 Text(
                     text = label.uppercase(),
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TecodeTextMuted,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFamily = FaiFontFamily,
+                    color = FaiTextMuted,
                     letterSpacing = 0.5.sp
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = value,
                     fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = TecodeTextPrimary
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FaiFontFamily,
+                    color = FaiTextPrimary
                 )
                 if (trend != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = trend,
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = FaiFontFamily,
                         color = accentColor
                     )
                 }

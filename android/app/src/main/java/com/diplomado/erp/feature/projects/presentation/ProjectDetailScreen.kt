@@ -1,5 +1,8 @@
 package com.diplomado.erp.feature.projects.presentation
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Engineering
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -84,22 +87,22 @@ fun ProjectDetailScreen(
                                     text = project.name,
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
 
                                 if (!project.location.isNullOrEmpty()) {
-                                    Text(
-                                        text = "📍 Ubicación: ${project.location}",
+                                    TTIconText(
+                                        icon = Icons.Outlined.LocationOn,
+                                        text = "Ubicación: ${project.location}",
                                         fontSize = 13.sp,
-                                        color = TecodeTextSecondary
+                                        color = FaiTextSecondary
                                     )
                                 }
 
                                 if (!project.managerName.isNullOrEmpty()) {
-                                    Text(
-                                        text = "👷 Residente a cargo: ${project.managerName}",
-                                        fontSize = 12.sp,
-                                        color = TecodeTextMuted
+                                    TTIconText(
+                                        icon = Icons.Outlined.Engineering,
+                                        text = "Residente a cargo: ${project.managerName}"
                                     )
                                 }
                             }
@@ -112,7 +115,7 @@ fun ProjectDetailScreen(
                             text = "Control Presupuestario de Obra",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TecodeTextPrimary
+                            color = FaiTextPrimary
                         )
                     }
 
@@ -125,14 +128,14 @@ fun ProjectDetailScreen(
                                 label = "Presupuesto Total",
                                 value = "$${String.format("%.2f", project.budget)}",
                                 trend = "Aprobado",
-                                accentColor = TecodeAccent,
+                                accentColor = FaiPrimary,
                                 modifier = Modifier.weight(1f)
                             )
                             TTStatCard(
                                 label = "Gastos Ejecutados",
                                 value = "$${String.format("%.2f", project.executedAmount)}",
                                 trend = "$percentage% gastado",
-                                accentColor = TecodeInfo,
+                                accentColor = FaiInfo,
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -143,7 +146,7 @@ fun ProjectDetailScreen(
                             label = "Disponible para Ejecutar",
                             value = "$${String.format("%.2f", available)}",
                             trend = "Fondo restante",
-                            accentColor = if (available > 0) TecodeAccent else TecodeError
+                            accentColor = if (available > 0) FaiPrimary else FaiError
                         )
                     }
 
@@ -156,13 +159,13 @@ fun ProjectDetailScreen(
                                         .fillMaxWidth()
                                         .height(10.dp)
                                         .clip(RoundedCornerShape(5.dp)),
-                                    color = if (percentage > 90) TecodeError else TecodeAccent,
-                                    trackColor = TecodeBorder,
+                                    color = if (percentage > 90) FaiError else FaiPrimary,
+                                    trackColor = FaiBorder,
                                 )
                                 Text(
                                     text = "Se ha ejecutado el $percentage% del presupuesto total de la obra.",
                                     fontSize = 12.sp,
-                                    color = TecodeTextMuted
+                                    color = FaiTextMuted
                                 )
                             }
                         }
@@ -174,7 +177,7 @@ fun ProjectDetailScreen(
                             text = "Partidas y Centros de Costo (${costCenters.size})",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TecodeTextPrimary
+                            color = FaiTextPrimary
                         )
                     }
 
@@ -184,7 +187,7 @@ fun ProjectDetailScreen(
                                 Text(
                                     text = "Sin partidas ni centros de costo registrados para esta obra.",
                                     fontSize = 13.sp,
-                                    color = TecodeTextMuted
+                                    color = FaiTextMuted
                                 )
                             }
                         }
@@ -201,7 +204,7 @@ fun ProjectDetailScreen(
                                             text = "${cc.code} · ${cc.name}",
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = TecodeTextPrimary
+                                            color = FaiTextPrimary
                                         )
                                         TTBadge(status = "active", customLabel = cc.category)
                                     }
@@ -213,13 +216,13 @@ fun ProjectDetailScreen(
                                         Text(
                                             text = "Ejecutado: $${String.format("%.2f", cc.executedAmount)}",
                                             fontSize = 12.sp,
-                                            color = TecodeTextSecondary
+                                            color = FaiTextSecondary
                                         )
                                         Text(
                                             text = "Presupuesto: $${String.format("%.2f", cc.budget)}",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = TecodeAccent
+                                            color = FaiPrimary
                                         )
                                     }
                                 }

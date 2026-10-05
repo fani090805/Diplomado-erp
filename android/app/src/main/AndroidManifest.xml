@@ -7,9 +7,9 @@
     <application
         android:name=".ErpApplication"
         android:allowBackup="false"
-        android:icon="@android:drawable/sym_def_app_icon"
+        android:icon="@drawable/fai_logo"
         android:label="FAI ERP"
-        android:roundIcon="@android:drawable/sym_def_app_icon"
+        android:roundIcon="@drawable/fai_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.DiplomadoERP"
         android:usesCleartextTraffic="false">

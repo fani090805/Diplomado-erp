@@ -31,7 +31,7 @@ class ProjectsViewModel : ViewModel() {
                 if (res.isSuccessful) {
                     _uiState.value = ProjectsUiState.Success(res.body()?.data ?: emptyList())
                 } else {
-                    _uiState.value = ProjectsUiState.Error("No se pudieron cargar las obras de construcción.")
+                    _uiState.value = ProjectsUiState.Error("No se pudieron cargar las obras.")
                 }
             } catch (e: Exception) {
                 _uiState.value = ProjectsUiState.Error(e.message ?: "Error de red al consultar obras.")

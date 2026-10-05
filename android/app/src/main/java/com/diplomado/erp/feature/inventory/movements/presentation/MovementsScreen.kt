@@ -50,19 +50,19 @@ fun MovementsScreen(
                                     text = "${movement.type} · ${movement.product?.name ?: "Material"}",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Bodega: ${movement.warehouse?.name ?: "Bodega Central"} • Cantidad: ${movement.quantity}",
                                     fontSize = 12.sp,
-                                    color = TecodeTextMuted
+                                    color = FaiTextMuted
                                 )
                                 if (!movement.reason.isNullOrBlank()) {
                                     Text(
                                         text = "Motivo: ${movement.reason}",
                                         fontSize = 11.sp,
-                                        color = TecodeTextSecondary
+                                        color = FaiTextSecondary
                                     )
                                 }
                             }

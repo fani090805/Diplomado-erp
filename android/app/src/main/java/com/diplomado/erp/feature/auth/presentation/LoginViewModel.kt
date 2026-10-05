@@ -64,15 +64,15 @@ class LoginViewModel : ViewModel() {
                     name = me.user.name,
                     roleLabel = me.role?.label ?: me.role?.code ?: "Usuario",
                     permissions = me.role?.permissions ?: emptyList(),
-                    companyName = me.company?.name ?: "Tec[ode ERP",
+                    companyName = me.company?.name ?: "FAI Solution ERP",
                     branchName = me.branch?.name ?: ""
                 )
             } else {
-                TokenStorage.saveSessionInfo(emailFallback, "Operador", "Usuario", emptyList(), "Tec[ode ERP", "")
+                TokenStorage.saveSessionInfo(emailFallback, "Operador", "Usuario", emptyList(), "FAI Solution ERP", "")
             }
             _uiState.value = LoginUiState.Success
         } catch (e: Exception) {
-            TokenStorage.saveSessionInfo(emailFallback, "Operador", "Usuario", emptyList(), "Tec[ode ERP", "")
+            TokenStorage.saveSessionInfo(emailFallback, "Operador", "Usuario", emptyList(), "FAI Solution ERP", "")
             _uiState.value = LoginUiState.Success
         }
     }

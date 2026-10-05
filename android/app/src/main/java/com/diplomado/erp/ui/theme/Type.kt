@@ -4,55 +4,87 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
+import com.diplomado.erp.R
+
+// Poppins descargable desde Google Fonts (vía Google Play Services).
+private val provider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs
+)
+
+private val Poppins = GoogleFont("Poppins")
+
+/**
+ * Si la descarga falla (sin Play Services o sin red), Compose recurre a la
+ * fuente del sistema, equivalente a FontFamily.Default.
+ */
+val FaiFontFamily = FontFamily(
+    Font(googleFont = Poppins, fontProvider = provider, weight = FontWeight.Normal),
+    Font(googleFont = Poppins, fontProvider = provider, weight = FontWeight.Medium),
+    Font(googleFont = Poppins, fontProvider = provider, weight = FontWeight.SemiBold),
+    Font(googleFont = Poppins, fontProvider = provider, weight = FontWeight.Bold)
+)
 
 val Typography = Typography(
     displayLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.ExtraBold,
+        fontFamily = FaiFontFamily,
+        fontWeight = FontWeight.Bold,
         fontSize = 32.sp,
-        color = TecodeTextPrimary
+        color = FaiTextPrimary
     ),
     displayMedium = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = FaiFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 24.sp,
-        color = TecodeTextPrimary
+        color = FaiTextPrimary
     ),
     titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = FaiFontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 20.sp,
-        color = TecodeTextPrimary
+        color = FaiTextPrimary
     ),
     titleMedium = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = FaiFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 16.sp,
-        color = TecodeTextPrimary
+        color = FaiTextPrimary
     ),
     bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = FaiFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 15.sp,
-        color = TecodeTextPrimary
+        color = FaiTextPrimary
     ),
     bodyMedium = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = FaiFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
-        color = TecodeTextSecondary
+        color = FaiTextSecondary
     ),
     bodySmall = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = FaiFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
-        color = TecodeTextMuted
+        color = FaiTextMuted
     ),
     labelLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 14.sp,
-        color = TecodeTextDark
+        fontFamily = FaiFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp
+    ),
+    labelMedium = TextStyle(
+        fontFamily = FaiFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 13.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = FaiFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp
     )
 )

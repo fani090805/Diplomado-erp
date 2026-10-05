@@ -56,13 +56,13 @@ fun SalesOrdersScreen(
                                         text = "Folio: ${order.code}",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = TecodeTextPrimary
+                                        color = FaiTextPrimary
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "Cliente Contratante: ${order.customer?.name ?: "Desarrolladora"} • Total: $${String.format("%.2f", order.total)}",
                                         fontSize = 13.sp,
-                                        color = TecodeTextMuted
+                                        color = FaiTextMuted
                                     )
                                 }
                                 TTBadge(status = order.status)

@@ -89,20 +89,20 @@ fun LeadsScreen(
                                     text = lead.name,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Empresa: ${lead.company ?: "Particular"} • Email: ${lead.email ?: "—"}",
                                     fontSize = 12.sp,
-                                    color = TecodeTextMuted
+                                    color = FaiTextMuted
                                 )
                                 if ((lead.expectedAmount ?: 0.0) > 0) {
                                     Text(
                                         text = "Monto estimado: $${String.format("%.2f", lead.expectedAmount)}",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = TecodeAccent
+                                        color = FaiPrimary
                                     )
                                 }
                             }

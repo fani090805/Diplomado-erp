@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Fondo crema desde el arranque: evita el destello oscuro antes de que cargue Compose. -->
     <style name="Theme.DiplomadoERP" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/fai_background</item>
         <item name="android:colorPrimary">@color/fai_primary</item>
@@ -8,5 +7,6 @@
         <item name="android:statusBarColor">@color/fai_background</item>
         <item name="android:navigationBarColor">@color/fai_background</item>
         <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>

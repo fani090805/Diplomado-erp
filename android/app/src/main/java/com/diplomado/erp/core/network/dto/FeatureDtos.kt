@@ -174,7 +174,7 @@ data class AuditLogDto(
     @SerializedName("createdAt") val createdAt: String? = null
 )
 
-// Obras / Proyectos ERP Constructor
+// Obras / Proyectos
 data class ProjectDto(
     @SerializedName("_id") val id: String,
     @SerializedName("code") val code: String,

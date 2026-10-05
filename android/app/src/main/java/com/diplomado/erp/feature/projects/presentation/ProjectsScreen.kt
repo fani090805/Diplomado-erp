@@ -1,5 +1,8 @@
 package com.diplomado.erp.feature.projects.presentation
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Engineering
+import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -45,12 +48,12 @@ fun ProjectsScreen(
                     text = "Mis Obras",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TecodeTextPrimary
+                    color = FaiTextPrimary
                 )
                 Text(
-                    text = "Proyectos de Construcción y Centros de Control",
+                    text = "Proyectos y centros de costo",
                     fontSize = 12.sp,
-                    color = TecodeTextMuted
+                    color = FaiTextMuted
                 )
             }
         }
@@ -67,7 +70,7 @@ fun ProjectsScreen(
 
         when (val state = uiState) {
             is ProjectsUiState.Loading -> {
-                TTLoading(text = "Cargando obras de construcción...")
+                TTLoading(text = "Cargando obras...")
             }
             is ProjectsUiState.Error -> {
                 TTEmptyState(
@@ -81,7 +84,7 @@ fun ProjectsScreen(
                 if (state.projects.isEmpty()) {
                     TTEmptyState(
                         title = "Sin obras registradas",
-                        description = "No existen proyectos de construcción que coincidan con la búsqueda."
+                        description = "No existen proyectos que coincidan con la búsqueda."
                     )
                 } else {
                     LazyColumn(
@@ -120,14 +123,10 @@ fun ProjectCard(
                         text = "${project.code} · ${project.name}",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TecodeTextPrimary
+                        color = FaiTextPrimary
                     )
                     if (!project.location.isNullOrEmpty()) {
-                        Text(
-                            text = "📍 ${project.location}",
-                            fontSize = 12.sp,
-                            color = TecodeTextMuted
-                        )
+                        TTIconText(icon = Icons.Outlined.LocationOn, text = project.location ?: "")
                     }
                 }
                 TTBadge(
@@ -140,7 +139,7 @@ fun ProjectCard(
                 Text(
                     text = project.description,
                     fontSize = 12.sp,
-                    color = TecodeTextSecondary
+                    color = FaiTextSecondary
                 )
             }
 
@@ -152,13 +151,13 @@ fun ProjectCard(
                     Text(
                         text = "Ejecutado: $${String.format("%.2f", project.executedAmount)}",
                         fontSize = 11.sp,
-                        color = TecodeTextSecondary
+                        color = FaiTextSecondary
                     )
                     Text(
                         text = "Presupuesto: $${String.format("%.2f", project.budget)} ($percentage%)",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TecodeAccent
+                        color = FaiPrimary
                     )
                 }
 
@@ -168,16 +167,16 @@ fun ProjectCard(
                         .fillMaxWidth()
                         .height(8.dp)
                         .clip(RoundedCornerShape(4.dp)),
-                    color = if (percentage > 90) TecodeError else TecodeAccent,
-                    trackColor = TecodeBorder,
+                    color = if (percentage > 90) FaiError else FaiPrimary,
+                    trackColor = FaiBorder,
                 )
             }
 
             if (!project.managerName.isNullOrEmpty()) {
-                Text(
-                    text = "👷 Responsable: ${project.managerName}",
-                    fontSize = 11.sp,
-                    color = TecodeTextMuted
+                TTIconText(
+                    icon = Icons.Outlined.Engineering,
+                    text = "Responsable: ${project.managerName}",
+                    fontSize = 11.sp
                 )
             }
         }

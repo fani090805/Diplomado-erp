@@ -89,13 +89,13 @@ fun EmployeesScreen(
                                     text = "${emp.firstName} ${emp.lastName}",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Doc: ${emp.documentId} • Puesto: ${emp.position ?: "Operativo"} • Cuadrilla: ${emp.department ?: "General"}",
                                     fontSize = 12.sp,
-                                    color = TecodeTextMuted
+                                    color = FaiTextMuted
                                 )
                             }
                             TTBadge(status = emp.status)

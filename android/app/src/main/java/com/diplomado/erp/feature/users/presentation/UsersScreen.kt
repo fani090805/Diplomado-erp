@@ -1,5 +1,8 @@
 package com.diplomado.erp.feature.users.presentation
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -81,14 +84,10 @@ fun UsersScreen(
                                         text = "${user.name} ${user.lastName ?: ""}".trim(),
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = TecodeTextPrimary
+                                        color = FaiTextPrimary
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = "📧 ${user.email}",
-                                        fontSize = 12.sp,
-                                        color = TecodeTextMuted
-                                    )
+                                    TTIconText(icon = Icons.Outlined.Email, text = user.email)
                                 }
                                 TTBadge(status = user.status)
                             }
@@ -116,12 +115,12 @@ fun UsersScreen(
                                     text = "Confirmar Eliminación",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TecodeError
+                                    color = FaiError
                                 )
                                 Text(
                                     text = "¿Está seguro de eliminar al usuario ${userToDelete?.email}?",
                                     fontSize = 13.sp,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -165,21 +164,21 @@ fun UsersScreen(
                                     text = "Nuevo Usuario",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
 
                                 Text(
                                     text = "Al guardar, se enviará un correo de bienvenida con la contraseña asignada vía Resend.",
                                     fontSize = 12.sp,
-                                    color = TecodeTextMuted
+                                    color = FaiTextMuted
                                 )
 
                                 if (formError != null) {
-                                    Text(
-                                        text = "⚠️ $formError",
-                                        fontSize = 12.sp,
-                                        color = TecodeError,
-                                        fontWeight = FontWeight.Bold
+                                    TTIconText(
+                                        icon = Icons.Outlined.ErrorOutline,
+                                        text = formError ?: "",
+                                        color = FaiError,
+                                        fontWeight = FontWeight.SemiBold
                                     )
                                 }
 
@@ -217,7 +216,7 @@ fun UsersScreen(
                                     text = "Seleccionar Rol Asignado:",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
 
                                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -237,7 +236,7 @@ fun UsersScreen(
                                                     text = role.label,
                                                     fontSize = 13.sp,
                                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                                    color = if (isSelected) TecodeAccent else TecodeTextPrimary
+                                                    color = if (isSelected) FaiPrimary else FaiTextPrimary
                                                 )
                                                 if (isSelected) {
                                                     TTBadge(status = "active", customLabel = "Seleccionado")

@@ -50,13 +50,13 @@ fun StockScreen(
                                     text = stock.product?.name ?: "Material sin nombre",
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "SKU: ${stock.product?.sku ?: "—"} • Bodega: ${stock.warehouse?.name ?: "Bodega Central"}",
                                     fontSize = 12.sp,
-                                    color = TecodeTextMuted
+                                    color = FaiTextMuted
                                 )
                             }
                             Column(horizontalAlignment = Alignment.End) {
@@ -64,7 +64,7 @@ fun StockScreen(
                                     text = "${stock.quantity} ${stock.product?.unit ?: "ud"}",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TecodeAccent
+                                    color = FaiPrimary
                                 )
                                 val min = stock.product?.minStock ?: 0.0
                                 if (stock.quantity <= min && min > 0) {

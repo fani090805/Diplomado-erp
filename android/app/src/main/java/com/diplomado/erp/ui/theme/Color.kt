@@ -2,25 +2,57 @@ package com.diplomado.erp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val TecodeBackground = Color(0xFF080B14)
-val TecodeSurface = Color(0xFF0D111C)
-val TecodeCard = Color(0xFF111622)
-val TecodeCardElevated = Color(0xFF151B28)
-val TecodeBorder = Color(0xFF252D3D)
-val TecodeBorderHover = Color(0xFF3B475D)
+// Paleta FAI Solution ERP (espejo de frontend/src/design-system/tokens/colors.js).
 
-val TecodePrimary = Color(0xFF7C3AED)
-val TecodePrimaryLight = Color(0xFF9333EA)
-val TecodePrimaryDark = Color(0xFF5B21B6)
+// Estructura
+val FaiBackground = Color(0xFFF7F3E8)
+val FaiSurface = Color(0xFFFFFFFF)
+val FaiCard = Color(0xFFFFFFFF)
+val FaiCardElevated = Color(0xFFFFFFFF)
+val FaiBorder = Color(0xFFE6E0D0)
+val FaiBorderHover = Color(0xFFD3CCBA)
+val FaiBorderFocus = Color(0xFF45552F)
 
-val TecodeAccent = Color(0xFFB6FF00) // Lime/Verde Tec[ode
-val TecodeAccentHover = Color(0xFFA2E000)
+// Marca
+val FaiPrimary = Color(0xFF334024)
+val FaiPrimaryLight = Color(0xFF45552F)
+val FaiPrimaryDark = Color(0xFF252F1A)
+val FaiPrimaryGlow = Color(0x1F334024)
+val FaiCream = Color(0xFFF5EEDB)
+val FaiSage = Color(0xFFC0CB87)
 
-val TecodeInfo = Color(0xFF00D9FF) // Cyan
-val TecodeWarning = Color(0xFFF59E0B)
-val TecodeError = Color(0xFFEF4444)
+// Acento terracota (uso puntual, nunca para estados positivos)
+val FaiAccent = Color(0xFFCB623B)
+val FaiAccentHover = Color(0xFFD88465)
 
-val TecodeTextPrimary = Color(0xFFF8FAFC)
-val TecodeTextSecondary = Color(0xFFCBD5E1)
-val TecodeTextMuted = Color(0xFF94A3B8)
-val TecodeTextDark = Color(0xFF080B14)
+// Estados
+val FaiInfo = Color(0xFF45552F)
+val FaiSuccess = Color(0xFF5E7A2E)
+val FaiSuccessText = Color(0xFF58712B)
+val FaiWarning = Color(0xFF8B5200)
+val FaiError = Color(0xFFA84329)
+
+// Texto (tonos oscuros cálidos)
+val FaiTextPrimary = Color(0xFF1E2616)
+val FaiTextSecondary = Color(0xFF55584F)
+val FaiTextMuted = Color(0xFF696B61)
+val FaiTextDark = Color(0xFF14170E)
+val FaiTextInverted = Color(0xFFF5EEDB)
+
+// Badges de estado (estilo suave: fondo claro, borde, texto oscuro y punto medio)
+val FaiStatusPositiveBg = Color(0xFFEEF2E3)
+val FaiStatusPositiveBorder = Color(0xFFCBD6AE)
+val FaiStatusPositiveText = Color(0xFF3E5320)
+val FaiStatusPositiveDot = Color(0xFF5E7A2E)
+val FaiStatusNeutralBg = Color(0xFFF1EFEA)
+val FaiStatusNeutralBorder = Color(0xFFDDD9CF)
+val FaiStatusNeutralText = Color(0xFF6B6656)
+val FaiStatusNeutralDot = Color(0xFFA39E90)
+val FaiStatusPendingBg = Color(0xFFFBF1DF)
+val FaiStatusPendingBorder = Color(0xFFEBD3A6)
+val FaiStatusPendingText = Color(0xFF7A4A06)
+val FaiStatusPendingDot = Color(0xFFB9781A)
+val FaiStatusNegativeBg = Color(0xFFF8E9E3)
+val FaiStatusNegativeBorder = Color(0xFFE9C3B4)
+val FaiStatusNegativeText = Color(0xFF8E3A22)
+val FaiStatusNegativeDot = Color(0xFFCB623B)

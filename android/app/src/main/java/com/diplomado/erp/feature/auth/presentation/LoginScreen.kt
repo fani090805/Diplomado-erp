@@ -1,10 +1,17 @@
 package com.diplomado.erp.feature.auth.presentation
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -35,52 +43,81 @@ fun LoginScreen(
         }
     }
 
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .background(TecodeBackground)
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
+            .background(FaiBackground)
+            .verticalScroll(rememberScrollState())
     ) {
-        Column(
+        // Bloque de marca (igual que la web en celular)
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .widthIn(max = 440.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(FaiPrimary)
+                .padding(horizontal = 24.dp, vertical = 40.dp),
+            contentAlignment = Alignment.Center
         ) {
-            TTCard {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    TecodeLogo(isLarge = true, showTagline = true)
+            FaiLogo(size = FaiLogoSize.Lg, variant = FaiLogoVariant.Dark, vertical = true)
+        }
 
-                    Spacer(modifier = Modifier.height(24.dp))
-
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 480.dp),
+                shape = FaiShapes.CardLarge,
+                colors = CardDefaults.cardColors(containerColor = FaiSurface),
+                border = BorderStroke(1.dp, FaiBorder),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(modifier = Modifier.padding(24.dp)) {
                     Text(
-                        text = "ERP Constructor",
+                        text = "Iniciar Sesión",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TecodeTextPrimary
+                        fontFamily = FaiFontFamily,
+                        color = FaiTextPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Plataforma Móvil para Gestión de Obras y Construcción",
+                        text = "Ingrese sus credenciales para acceder al ecosistema.",
                         fontSize = 13.sp,
-                        color = TecodeTextMuted
+                        fontFamily = FaiFontFamily,
+                        color = FaiTextMuted
                     )
 
                     Spacer(modifier = Modifier.height(20.dp))
 
                     if (uiState is LoginUiState.Error) {
-                        Text(
-                            text = "⚠️ ${(uiState as LoginUiState.Error).message}",
-                            color = TecodeError,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 14.dp)
+                                .background(FaiStatusNegativeBg, FaiShapes.Control)
+                                .border(1.dp, FaiStatusNegativeBorder, FaiShapes.Control)
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.ErrorOutline,
+                                contentDescription = null,
+                                tint = FaiError,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = (uiState as LoginUiState.Error).message,
+                                color = FaiStatusNegativeText,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = FaiFontFamily
+                            )
+                        }
                     }
 
                     TTTextField(
@@ -108,7 +145,7 @@ fun LoginScreen(
                         )
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(22.dp))
 
                     TTButton(
                         text = "Acceder al Sistema",
@@ -118,17 +155,19 @@ fun LoginScreen(
                         loading = uiState is LoginUiState.Loading,
                         enabled = email.isNotEmpty() && password.isNotEmpty()
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = "Tec[ode ERP Constructor · Sistema Seguro SSL",
-                        fontSize = 11.sp,
-                        color = TecodeTextMuted,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
                 }
             }
         }
+
+        Text(
+            text = "FAI Solution ERP · Sistema Seguro SSL / TLS",
+            fontSize = 11.sp,
+            fontFamily = FaiFontFamily,
+            color = FaiTextMuted,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+        )
     }
 }

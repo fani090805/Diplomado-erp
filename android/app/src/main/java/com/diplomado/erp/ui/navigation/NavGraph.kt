@@ -26,7 +26,7 @@ import com.diplomado.erp.feature.sales.presentation.SalesOrdersScreen
 import com.diplomado.erp.feature.users.presentation.UsersScreen
 import com.diplomado.erp.ui.components.TTBottomBar
 import com.diplomado.erp.ui.components.TTTopBar
-import com.diplomado.erp.ui.theme.TecodeBackground
+import com.diplomado.erp.ui.theme.FaiBackground
 
 @Composable
 fun NavGraph(
@@ -91,7 +91,7 @@ fun MainContainer(
                 }
             )
         },
-        containerColor = TecodeBackground
+        containerColor = FaiBackground
     ) { innerPadding ->
         NavHost(
             navController = innerNavController,

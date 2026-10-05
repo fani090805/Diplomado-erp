@@ -1,10 +1,10 @@
 package com.diplomado.erp.ui.components
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.diplomado.erp.core.common.rbac.PermissionChecker
 import com.diplomado.erp.ui.theme.*
 
@@ -30,9 +30,9 @@ fun TTNavigationRail(
 
     NavigationRail(
         modifier = modifier,
-        containerColor = TecodeSurface,
+        containerColor = FaiPrimary,
         header = {
-            TecodeLogoIcon(sizeDp = 38)
+            FaiLogoIcon(size = 38.dp, modifier = Modifier.padding(vertical = 8.dp))
         }
     ) {
         items.forEach { item ->
@@ -41,22 +41,12 @@ fun TTNavigationRail(
             NavigationRailItem(
                 selected = selected,
                 onClick = { onNavigate(item.route) },
-                icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.title,
-                        tint = if (selected) TecodeAccent else TecodeTextMuted
-                    )
-                },
-                label = {
-                    Text(
-                        text = item.title,
-                        fontSize = 10.sp,
-                        color = if (selected) TecodeAccent else TecodeTextMuted
-                    )
-                },
+                icon = { Icon(imageVector = item.icon, contentDescription = item.title) },
+                label = { faiNavLabel(item.title, selected) },
                 colors = NavigationRailItemDefaults.colors(
-                    indicatorColor = TecodeAccent.copy(alpha = 0.15f)
+                    selectedIconColor = FaiPrimaryDark,
+                    unselectedIconColor = FaiCream.copy(alpha = 0.75f),
+                    indicatorColor = FaiSage
                 )
             )
         }

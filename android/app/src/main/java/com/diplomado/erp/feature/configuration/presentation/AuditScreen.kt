@@ -50,13 +50,13 @@ fun AuditScreen(
                                     text = "${log.action} · ${log.entity}",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Responsable: ${log.user?.email ?: "Sistema"} • Fecha: ${log.createdAt?.take(10) ?: "—"}",
                                     fontSize = 12.sp,
-                                    color = TecodeTextMuted
+                                    color = FaiTextMuted
                                 )
                             }
                             TTBadge(status = "POSTED", customLabel = "Inmutable")

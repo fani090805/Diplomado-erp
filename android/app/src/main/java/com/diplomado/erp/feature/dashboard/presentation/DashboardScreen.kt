@@ -1,5 +1,11 @@
 package com.diplomado.erp.feature.dashboard.presentation
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Apartment
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Security
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,12 +34,12 @@ fun DashboardScreen(
     val userName = TokenStorage.getUserName().ifEmpty { "Residente de Obra" }
     val userEmail = TokenStorage.getUserEmail()
     val roleLabel = TokenStorage.getRoleLabel()
-    val companyName = TokenStorage.getCompanyName().ifEmpty { "Empresa Constructora" }
+    val companyName = TokenStorage.getCompanyName().ifEmpty { "Mi empresa" }
 
     Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
         when (val state = uiState) {
             is DashboardUiState.Loading -> {
-                TTLoading(text = "Cargando métricas de ERP Constructor...")
+                TTLoading(text = "Cargando métricas de FAI Solution ERP...")
             }
             is DashboardUiState.Error -> {
                 TTEmptyState(
@@ -52,27 +58,27 @@ fun DashboardScreen(
                     item {
                         TTCard {
                             Column {
-                                TTBadge(status = "active", customLabel = "TEC[ODE ERP CONSTRUCTOR")
+                                TTBadge(status = "active", customLabel = "FAI Solution ERP")
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Buenos días, $userName",
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "$companyName · Control de Obras y Materiales",
+                                    text = "$companyName · Panel de control",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = TecodeAccent
+                                    color = FaiPrimary
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
-                                Text(
-                                    text = "👤 $userEmail  •  🛡️ $roleLabel",
-                                    fontSize = 12.sp,
-                                    color = TecodeTextMuted
-                                )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    TTIconText(icon = Icons.Outlined.Person, text = userEmail)
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    TTIconText(icon = Icons.Outlined.Shield, text = roleLabel)
+                                }
                             }
                         }
                     }
@@ -80,10 +86,10 @@ fun DashboardScreen(
                     // METRICAS / KPIS
                     item {
                         Text(
-                            text = "Métricas de Construcción",
+                            text = "Métricas del negocio",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TecodeTextPrimary
+                            color = FaiTextPrimary
                         )
                     }
 
@@ -96,14 +102,14 @@ fun DashboardScreen(
                                 label = "Estimaciones / Ventas",
                                 value = "$${String.format("%.2f", state.kpis?.sales?.total ?: 0.0)}",
                                 trend = "${state.kpis?.sales?.count ?: 0} contratadas",
-                                accentColor = TecodeAccent,
+                                accentColor = FaiPrimary,
                                 modifier = Modifier.weight(1f)
                             )
                             TTStatCard(
                                 label = "Compras Materiales",
                                 value = "$${String.format("%.2f", state.kpis?.purchases?.total ?: 0.0)}",
                                 trend = "${state.kpis?.purchases?.count ?: 0} órdenes",
-                                accentColor = TecodeInfo,
+                                accentColor = FaiInfo,
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -119,14 +125,14 @@ fun DashboardScreen(
                                 label = "Resultado Operativo",
                                 value = "$${String.format("%.2f", net)}",
                                 trend = if (net >= 0) "Superávit" else "Déficit",
-                                accentColor = if (net >= 0) TecodeAccent else TecodeError,
+                                accentColor = if (net >= 0) FaiPrimary else FaiError,
                                 modifier = Modifier.weight(1f)
                             )
                             TTStatCard(
                                 label = "Materiales Stock Bajo",
                                 value = "${state.kpis?.catalog?.lowStock ?: 0}",
                                 trend = "Insumos por reponer",
-                                accentColor = if ((state.kpis?.catalog?.lowStock ?: 0) > 0) TecodeError else TecodeAccent,
+                                accentColor = if ((state.kpis?.catalog?.lowStock ?: 0) > 0) FaiError else FaiPrimary,
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -134,22 +140,22 @@ fun DashboardScreen(
 
                     // SALUD DEL SISTEMA
                     item {
-                        TTCard(title = "Estado Operativo de Obras Tec[ode") {
+                        TTCard(title = "Estado operativo") {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(text = "🏗️ Obras & Centros de Costo", fontSize = 13.sp, color = TecodeTextPrimary)
-                                    TTBadge(status = "active", customLabel = "En Proceso")
+                                    TTIconText(icon = Icons.Outlined.Apartment, text = "Obras y centros de costo", fontSize = 13.sp, color = FaiTextPrimary, iconTint = FaiPrimaryLight)
+                                    TTBadge(status = "IN_PROGRESS")
                                 }
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(text = "🧱 Inventario Materiales & Bodegas", fontSize = 13.sp, color = TecodeTextPrimary)
+                                    TTIconText(icon = Icons.Outlined.Inventory2, text = "Inventario y almacenes", fontSize = 13.sp, color = FaiTextPrimary, iconTint = FaiPrimaryLight)
                                     TTBadge(status = "active", customLabel = "Óptimo")
                                 }
                                 Row(
@@ -157,7 +163,7 @@ fun DashboardScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text(text = "🛡️ Multi-tenant & Seguridad RBAC", fontSize = 13.sp, color = TecodeTextPrimary)
+                                    TTIconText(icon = Icons.Outlined.Security, text = "Multiempresa y seguridad RBAC", fontSize = 13.sp, color = FaiTextPrimary, iconTint = FaiPrimaryLight)
                                     TTBadge(status = "POSTED", customLabel = "Protegido")
                                 }
                             }
@@ -171,7 +177,7 @@ fun DashboardScreen(
                                 text = "Trazabilidad de Actividad",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TecodeTextPrimary
+                                color = FaiTextPrimary
                             )
                         }
 
@@ -187,12 +193,12 @@ fun DashboardScreen(
                                             text = "${log.action} (${log.entity})",
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = TecodeTextPrimary
+                                            color = FaiTextPrimary
                                         )
                                         Text(
                                             text = "${log.user?.email ?: "Sistema"} • ${log.createdAt?.take(10) ?: ""}",
                                             fontSize = 12.sp,
-                                            color = TecodeTextMuted
+                                            color = FaiTextMuted
                                         )
                                     }
                                     TTBadge(status = "active", customLabel = "Auditado")

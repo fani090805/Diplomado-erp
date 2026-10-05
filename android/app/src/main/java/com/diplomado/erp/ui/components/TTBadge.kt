@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,44 +15,73 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.diplomado.erp.ui.theme.*
 
+/** Tonos del badge, iguales a la web: fondo claro, borde de 1dp, texto oscuro y punto medio. */
+enum class TTBadgeTone(val background: Color, val border: Color, val text: Color, val dot: Color) {
+    Positive(FaiStatusPositiveBg, FaiStatusPositiveBorder, FaiStatusPositiveText, FaiStatusPositiveDot),
+    Neutral(FaiStatusNeutralBg, FaiStatusNeutralBorder, FaiStatusNeutralText, FaiStatusNeutralDot),
+    Pending(FaiStatusPendingBg, FaiStatusPendingBorder, FaiStatusPendingText, FaiStatusPendingDot),
+    Negative(FaiStatusNegativeBg, FaiStatusNegativeBorder, FaiStatusNegativeText, FaiStatusNegativeDot)
+}
+
+private fun toneFor(status: String): TTBadgeTone = when (status.uppercase()) {
+    "ACTIVE", "APPROVED", "DONE", "POSTED", "WON", "SUCCESS",
+    "COMPLETED", "PAID", "RECEIVED", "DELIVERED", "FINALIZADA" -> TTBadgeTone.Positive
+    "PENDING", "IN_REVIEW", "IN_PROGRESS", "RELEASED", "POSTING", "PARTIAL",
+    "NEW", "CONTACTED", "QUALIFIED", "EN_PROCESO", "PAUSADA" -> TTBadgeTone.Pending
+    "LOCKED", "SUSPENDED", "REJECTED", "LOST", "FAILURE", "OVERDUE" -> TTBadgeTone.Negative
+    else -> TTBadgeTone.Neutral // inactive, DRAFT, CANCELLED, VOID, PLANEADA, CANCELADA…
+}
+
+private fun labelFor(status: String): String = when (status.uppercase()) {
+    "ACTIVE" -> "Activo"
+    "INACTIVE" -> "Inactivo"
+    "PENDING" -> "Pendiente"
+    "LOCKED" -> "Bloqueado"
+    "SUSPENDED" -> "Suspendido"
+    "DRAFT" -> "Borrador"
+    "IN_REVIEW" -> "En revisión"
+    "APPROVED" -> "Aprobado"
+    "REJECTED" -> "Rechazado"
+    "RELEASED" -> "Liberada"
+    "IN_PROGRESS", "EN_PROCESO" -> "En proceso"
+    "DONE", "FINALIZADA" -> "Finalizada"
+    "COMPLETED" -> "Completado"
+    "CANCELLED" -> "Cancelado"
+    "CANCELADA" -> "Cancelada"
+    "POSTING" -> "Registrando"
+    "PARTIAL" -> "Parcial"
+    "POSTED" -> "Registrado"
+    "RECEIVED" -> "Recibido"
+    "DELIVERED" -> "Entregado"
+    "PAID" -> "Pagado"
+    "VOID" -> "Anulado"
+    "OVERDUE" -> "Vencido"
+    "NEW" -> "Nuevo"
+    "CONTACTED" -> "Contactado"
+    "QUALIFIED" -> "Calificado"
+    "WON" -> "Ganado"
+    "LOST" -> "Perdido"
+    "PLANEADA" -> "Planeada"
+    "PAUSADA" -> "Pausada"
+    "SUCCESS" -> "Éxito"
+    "FAILURE" -> "Fallo"
+    else -> status
+}
+
 @Composable
 fun TTBadge(
     status: String,
     modifier: Modifier = Modifier,
-    customLabel: String? = null
+    customLabel: String? = null,
+    tone: TTBadgeTone? = null
 ) {
-    val color = when (status) {
-        "active", "APPROVED", "WON", "POSTED", "DONE", "SUCCESS" -> TecodeAccent
-        "NEW", "RELEASED", "CONTACTED" -> TecodeInfo
-        "QUALIFIED" -> TecodeWarning
-        "LOCKED", "REJECTED", "LOST", "FAILURE" -> TecodeError
-        else -> TecodeTextMuted
-    }
-
-    val label = customLabel ?: when (status) {
-        "active" -> "Activo"
-        "inactive" -> "Inactivo"
-        "DRAFT" -> "Borrador"
-        "APPROVED" -> "Aprobado"
-        "REJECTED" -> "Rechazado"
-        "RELEASED" -> "Liberada"
-        "DONE" -> "Finalizada"
-        "CANCELLED" -> "Cancelado"
-        "POSTED" -> "Registrado"
-        "VOID" -> "Anulado"
-        "NEW" -> "Nuevo"
-        "CONTACTED" -> "Contactado"
-        "QUALIFIED" -> "Calificado"
-        "WON" -> "Ganado"
-        "LOST" -> "Perdido"
-        else -> status
-    }
+    val resolved = tone ?: toneFor(status)
 
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(100.dp),
-        color = color.copy(alpha = 0.12f),
-        border = BorderStroke(1.dp, color.copy(alpha = 0.35f))
+        shape = FaiShapes.Pill,
+        color = resolved.background,
+        border = BorderStroke(1.dp, resolved.border)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
@@ -61,15 +89,16 @@ fun TTBadge(
         ) {
             Box(
                 modifier = Modifier
-                    .size(6.dp)
-                    .background(color, CircleShape)
+                    .size(7.dp)
+                    .background(resolved.dot, CircleShape)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = label,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = color
+                text = customLabel ?: labelFor(status),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                fontFamily = FaiFontFamily,
+                color = resolved.text
             )
         }
     }

@@ -25,7 +25,7 @@ fun ProductsScreen(
 
     Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
         when (val state = uiState) {
-            is ProductsUiState.Loading -> TTLoading(text = "Cargando catálogo de materiales de construcción...")
+            is ProductsUiState.Loading -> TTLoading(text = "Cargando catálogo de productos...")
             is ProductsUiState.Error -> {
                 TTEmptyState(
                     title = "Error de materiales",
@@ -36,7 +36,7 @@ fun ProductsScreen(
             }
             is ProductsUiState.Success -> {
                 TTDataTable(
-                    title = "Materiales de Construcción",
+                    title = "Productos y materiales",
                     subtitle = "${state.total} insumos registrados",
                     items = state.products,
                     searchQuery = searchQuery,
@@ -45,7 +45,7 @@ fun ProductsScreen(
                         { /* Abrir diálogo crear material */ }
                     } else null,
                     createLabel = "Nuevo material",
-                    emptyText = "Sin materiales de construcción registrados."
+                    emptyText = "Sin productos registrados."
                 ) { material ->
                     TTCard(modifier = Modifier.fillMaxWidth()) {
                         Row(
@@ -58,19 +58,19 @@ fun ProductsScreen(
                                     text = material.name,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = TecodeTextPrimary
+                                    color = FaiTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "SKU: ${material.sku} • Unidad: ${material.unit ?: "unidad"} • Costo: $${String.format("%.2f", material.costPrice ?: 0.0)}",
                                     fontSize = 12.sp,
-                                    color = TecodeTextMuted
+                                    color = FaiTextMuted
                                 )
                                 if ((material.minStock ?: 0.0) > 0) {
                                     Text(
                                         text = "Stock mín: ${material.minStock} | Stock máx: ${material.maxStock ?: "N/A"}",
                                         fontSize = 11.sp,
-                                        color = TecodeTextSecondary
+                                        color = FaiTextSecondary
                                     )
                                 }
                             }
