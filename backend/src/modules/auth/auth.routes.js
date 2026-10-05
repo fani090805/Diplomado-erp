@@ -13,6 +13,7 @@ const router = Router();
  * Autenticación.
  *
  * POST /api/v1/auth/login            — público; límite estricto (fuerza bruta)
+ * POST /api/v1/auth/register-company — público; solicitud de alta de empresa (pendiente de revisión)
  * POST /api/v1/auth/refresh          — público; rota el par de tokens
  * POST /api/v1/auth/logout           — autenticado; logout GLOBAL (tokenVersion++)
  * GET  /api/v1/auth/me               — autenticado; usuario + rol + empresa + sucursal
@@ -25,6 +26,13 @@ const router = Router();
 router.post('/login', authLimiter, validate({ body: schemas.loginSchema }), controller.login);
 
 router.post('/register', authLimiter, validate({ body: schemas.registerSchema }), controller.register);
+
+router.post(
+  '/register-company',
+  authLimiter,
+  validate({ body: schemas.registerCompanySchema }),
+  controller.registerCompany
+);
 
 router.post(
   '/forgot-password',

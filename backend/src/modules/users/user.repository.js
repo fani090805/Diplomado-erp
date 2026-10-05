@@ -101,6 +101,27 @@ class UserRepository extends BaseRepository {
       .exec();
   }
 
+  /** Super Admins de plataforma activos (destinatarios de avisos de plataforma). */
+  async findActivePlatformAdmins() {
+    return this.model
+      .find({ isPlatformAdmin: true, status: 'active' })
+      .select('email name lastName')
+      .lean()
+      .exec();
+  }
+
+  /** { [companyId]: número de usuarios activos } para el panel de plataforma. */
+  async countActiveByCompanies(companyIds) {
+    if (!companyIds.length) return {};
+    const rows = await this.model
+      .aggregate([
+        { $match: { companyId: { $in: companyIds }, status: 'active' } },
+        { $group: { _id: '$companyId', count: { $sum: 1 } } },
+      ])
+      .exec();
+    return Object.fromEntries(rows.map((row) => [String(row._id), row.count]));
+  }
+
   async resetPasswordByTokenHash(resetPasswordTokenHash, passwordHash, now) {
     return this.model
       .findOneAndUpdate(

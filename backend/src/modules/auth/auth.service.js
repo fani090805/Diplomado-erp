@@ -12,6 +12,7 @@ const userRepository = require('../users/user.repository');
 const roleRepository = require('../roles/role.repository');
 const companyRepository = require('../companies/company.repository');
 const branchRepository = require('../branches/branch.repository');
+const companyRequestRepository = require('../company-requests/company_request.repository');
 const auditService = require('../audit/audit.service');
 const {
   sendLoginNotification,
@@ -52,6 +53,8 @@ async function issueRefreshToken(user) {
   return refreshToken;
 }
 const INVALID_CREDENTIALS = 'Correo o contraseña incorrectos.';
+const COMPANY_IN_REVIEW = 'Tu empresa está en revisión. Te avisaremos por correo cuando esté lista.';
+const COMPANY_SUSPENDED = 'Tu empresa está suspendida. Contacta al soporte.';
 
 /**
  * Servicio de autenticación.
@@ -288,8 +291,16 @@ const authService = {
     };
 
     if (!user) {
+      // Solicitante de una empresa en revisión: sólo se informa con la contraseña correcta.
+      const pendingRequest = await companyRequestRepository.findPendingByEmail(email, {
+        withPasswordHash: true,
+      });
+      const hash = pendingRequest?.applicant?.passwordHash || (await getDummyHash());
       // Iguala el tiempo de respuesta con un login inexistente.
-      await verifyPassword(password, await getDummyHash());
+      const matchesRequest = await verifyPassword(password, hash);
+      if (pendingRequest && matchesRequest) {
+        return failLogin(COMPANY_IN_REVIEW, null, 'COMPANY_IN_REVIEW', 403);
+      }
       return failLogin(INVALID_CREDENTIALS, null, 'INVALID_CREDENTIALS');
     }
 
@@ -337,11 +348,7 @@ const authService = {
         return failLogin('La cuenta no pertenece a una empresa válida.', user, 'COMPANY_INVALID');
       }
       if (company.status !== 'active') {
-        return failLogin(
-          'La empresa está suspendida. Contacte al administrador de plataforma.',
-          user,
-          'COMPANY_SUSPENDED'
-        );
+        return failLogin(COMPANY_SUSPENDED, user, 'COMPANY_SUSPENDED');
       }
     }
 
@@ -394,9 +401,7 @@ const authService = {
     if (user.companyId) {
       const company = await companyRepository.findById(user.companyId);
       if (!company || company.status !== 'active') {
-        throw ApiError.forbidden(
-          'La empresa está suspendida. Contacte al administrador de plataforma.'
-        );
+        throw ApiError.forbidden(COMPANY_SUSPENDED);
       }
     }
 

@@ -3,6 +3,7 @@
 const { z, email } = require('../../utils/validators');
 const { passwordSchema } = require('../users/user.validation');
 const { isStrongPassword } = require('../../utils/password');
+const { companyWithAdminSchema } = require('../company-requests/company_request.validation');
 
 const loginSchema = z
   .object({
@@ -81,9 +82,13 @@ const resetPasswordSchema = z
   })
   .strict();
 
+/** Solicitud pública de alta de empresa: datos de la empresa + del administrador. */
+const registerCompanySchema = companyWithAdminSchema;
+
 module.exports = {
   loginSchema,
   registerSchema,
+  registerCompanySchema,
   refreshSchema,
   changePasswordSchema,
   forgotPasswordSchema,

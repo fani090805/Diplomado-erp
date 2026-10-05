@@ -6,6 +6,7 @@ import { api, setTokens, setOnSessionExpired } from '../api/client';
  * - login(email, password) → llama a /auth/login y guarda los tokens.
  * - logout() → /auth/logout (invalidación global en servidor) y limpia.
  * - session: salida de /auth/me ({ user, role, company, branch }).
+ * - isPlatformAdmin: Super Admin de plataforma (user.isPlatformAdmin de /auth/me).
  * TODO FASE 3: persistir tokens con AsyncStorage (hoy: memoria, se pierde al recargar).
  */
 const AuthContext = createContext(null);
@@ -69,6 +70,17 @@ export function AuthProvider({ children }) {
     []
   );
 
+  const registerCompany = useCallback(
+    (body, { signal } = {}) =>
+      api('/auth/register-company', {
+        method: 'POST',
+        body,
+        auth: false,
+        signal,
+      }),
+    []
+  );
+
   const forgotPassword = useCallback(
     (email, { signal } = {}) =>
       api('/auth/forgot-password', {
@@ -96,9 +108,38 @@ export function AuthProvider({ children }) {
     [session]
   );
 
+  const isPlatformAdmin = Boolean(
+    session?.user?.isPlatformAdmin || session?.role?.code === 'super_admin'
+  );
+  const hasCompany = Boolean(session?.company?._id || session?.user?.companyId);
+
   const value = useMemo(
-    () => ({ session, initializing, login, register, forgotPassword, resetPassword, logout, can }),
-    [session, initializing, login, register, forgotPassword, resetPassword, logout, can]
+    () => ({
+      session,
+      initializing,
+      isPlatformAdmin,
+      hasCompany,
+      login,
+      register,
+      registerCompany,
+      forgotPassword,
+      resetPassword,
+      logout,
+      can,
+    }),
+    [
+      session,
+      initializing,
+      isPlatformAdmin,
+      hasCompany,
+      login,
+      register,
+      registerCompany,
+      forgotPassword,
+      resetPassword,
+      logout,
+      can,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

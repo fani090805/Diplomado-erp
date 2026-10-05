@@ -1,6 +1,7 @@
 'use strict';
 
 const authService = require('./auth.service');
+const companyRequestService = require('../company-requests/company_request.service');
 const { ok, created } = require('../../utils/response');
 const asyncHandler = require('../../utils/asyncHandler');
 
@@ -16,6 +17,11 @@ const login = asyncHandler(async (req, res) => {
 
 const register = asyncHandler(async (req, res) => {
   const data = await authService.register(req.body, auditMeta(req));
+  return created(res, data);
+});
+
+const registerCompany = asyncHandler(async (req, res) => {
+  const data = await companyRequestService.submit(req.body, auditMeta(req));
   return created(res, data);
 });
 
@@ -52,6 +58,7 @@ const changePassword = asyncHandler(async (req, res) => {
 module.exports = {
   login,
   register,
+  registerCompany,
   forgotPassword,
   resetPassword,
   refresh,

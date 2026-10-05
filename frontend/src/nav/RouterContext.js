@@ -6,19 +6,27 @@ import React, { createContext, useCallback, useContext, useMemo, useState } from
  *  - navigate(name, params): empuja (botón "atrás" disponible).
  *  - go(name, params): reemplaza la pila (menú lateral: evita apilar clics).
  *  - back(): regresa un nivel.
+ *  - homeRoute: pantalla base de la pila ('home'; 'companies' para el Super Admin).
  */
 const RouterContext = createContext(null);
 
-export function RouterProvider({ children }) {
-  const [stack, setStack] = useState([{ name: 'home', params: {} }]);
+export function RouterProvider({ children, homeRoute = 'home' }) {
+  const [stack, setStack] = useState([{ name: homeRoute, params: {} }]);
 
   const navigate = useCallback((name, params = {}) => {
     setStack((s) => [...s, { name, params }]);
   }, []);
 
-  const go = useCallback((name, params = {}) => {
-    setStack([{ name: 'home', params: {} }, { name, params }]);
-  }, []);
+  const go = useCallback(
+    (name, params = {}) => {
+      setStack(
+        name === homeRoute
+          ? [{ name, params }]
+          : [{ name: homeRoute, params: {} }, { name, params }]
+      );
+    },
+    [homeRoute]
+  );
 
   const back = useCallback(() => {
     setStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
@@ -27,8 +35,8 @@ export function RouterProvider({ children }) {
   const route = stack[stack.length - 1];
 
   const value = useMemo(
-    () => ({ route, navigate, go, back, canGoBack: stack.length > 1 }),
-    [route, navigate, go, back, stack.length]
+    () => ({ route, navigate, go, back, homeRoute, canGoBack: stack.length > 1 }),
+    [route, navigate, go, back, homeRoute, stack.length]
   );
 
   return <RouterContext.Provider value={value}>{children}</RouterContext.Provider>;

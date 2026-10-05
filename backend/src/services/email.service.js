@@ -23,7 +23,7 @@ function escapeHtml(value = '') {
   });
 }
 
-function renderEmail({ title, greeting, paragraphs = [], details = [], button }) {
+function renderEmail({ title, greeting, paragraphs = [], details = [], highlight, button }) {
   const detailRows = details
     .map(
       ([label, value]) => `
@@ -39,6 +39,16 @@ function renderEmail({ title, greeting, paragraphs = [], details = [], button })
         `<p style="margin:0 0 16px;color:#55584F;font-size:15px;line-height:1.6;">${paragraph}</p>`
     )
     .join('');
+  const highlightHtml = highlight
+    ? `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:24px 0;">
+        <tr><td align="center" bgcolor="${BRAND.cream}" style="padding:20px 16px;background-color:${BRAND.cream};border-radius:12px;text-align:center;">
+          <div style="color:#696B61;font-size:12px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;">${escapeHtml(highlight.label)}</div>
+          <div style="margin-top:8px;color:${BRAND.olive};font-size:32px;font-weight:bold;letter-spacing:4px;font-family:'Courier New',Courier,monospace;">${escapeHtml(highlight.value)}</div>
+          ${highlight.hint ? `<div style="margin-top:8px;color:#55584F;font-size:13px;">${escapeHtml(highlight.hint)}</div>` : ''}
+        </td></tr>
+      </table>`
+    : '';
   const buttonHtml = button
     ? `
       <table role="presentation" cellspacing="0" cellpadding="0" style="margin:28px auto 8px;">
@@ -68,6 +78,7 @@ function renderEmail({ title, greeting, paragraphs = [], details = [], button })
               ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:20px 0;border-collapse:collapse;">${detailRows}</table>`
               : ''
           }
+          ${highlightHtml}
           ${buttonHtml}
         </td></tr>
         <tr><td align="center" style="padding:20px 24px;border-top:1px solid #E6E0D0;color:#696B61;font-size:12px;line-height:1.5;text-align:center;">
@@ -269,8 +280,100 @@ function sendLoginNotification({ email, name, ip }) {
   });
 }
 
+const INDUSTRY_LABELS = {
+  comercio: 'Comercio',
+  construccion: 'Construcción',
+  manufactura: 'Manufactura',
+  servicios: 'Servicios',
+  otro: 'Otro',
+};
+
+function sendCompanyRequestReceived({ email, name, companyName }) {
+  return sendEmail({
+    to: { email, name },
+    subject: `Recibimos la solicitud de ${companyName}`,
+    html: renderEmail({
+      title: `Recibimos la solicitud de ${companyName}`,
+      greeting: `Hola ${escapeHtml(name || 'te damos la bienvenida')},`,
+      paragraphs: [
+        `gracias por elegir FAI Solution ERP. Nuestro equipo revisará los datos de ${escapeHtml(companyName)} y te avisaremos por correo cuando tu empresa esté lista.`,
+        'Mientras tanto no es necesario que hagas nada más.',
+      ],
+    }),
+  });
+}
+
+function sendNewCompanyRequestToPlatform({
+  recipients = [],
+  companyName,
+  industry,
+  city,
+  applicantName,
+  applicantEmail,
+}) {
+  return sendEmail({
+    to: recipients,
+    subject: `Nueva solicitud de empresa: ${companyName}`,
+    html: renderEmail({
+      title: `Nueva solicitud de empresa: ${companyName}`,
+      greeting: 'Hola,',
+      paragraphs: ['Una empresa nueva solicitó su alta en FAI Solution ERP.'],
+      details: [
+        ['Empresa', companyName],
+        ['Giro', INDUSTRY_LABELS[industry] || industry || ''],
+        ...(city ? [['Ciudad', city]] : []),
+        ['Solicitante', applicantName || ''],
+        ['Correo', applicantEmail || ''],
+      ],
+      button: { label: 'Revisar solicitudes', url: process.env.APP_URL || '#' },
+    }),
+  });
+}
+
+function sendCompanyApproved({ email, name, companyName, joinCode }) {
+  return sendEmail({
+    to: { email, name },
+    subject: 'Tu empresa ya está lista en FAI Solution ERP',
+    html: renderEmail({
+      title: 'Tu empresa ya está lista en FAI Solution ERP',
+      greeting: `Hola ${escapeHtml(name || 'Administrador')},`,
+      paragraphs: [
+        `${escapeHtml(companyName)} ya está activa y tú eres su administrador. Ya puedes iniciar sesión con tu correo y la contraseña que registraste.`,
+      ],
+      highlight: joinCode
+        ? {
+            label: 'Código de empresa',
+            value: joinCode,
+            hint: 'Compártelo con tu equipo para que se unan.',
+          }
+        : undefined,
+      button: { label: 'Ingresar', url: process.env.APP_URL || '#' },
+    }),
+  });
+}
+
+function sendCompanyRejected({ email, name, companyName, reason }) {
+  return sendEmail({
+    to: { email, name },
+    subject: `Sobre la solicitud de ${companyName}`,
+    html: renderEmail({
+      title: `Sobre la solicitud de ${companyName}`,
+      greeting: name ? `Hola ${escapeHtml(name)},` : 'Hola,',
+      paragraphs: [
+        `gracias por tu interés en FAI Solution ERP. Revisamos la solicitud de ${escapeHtml(companyName)} y por ahora no pudimos aprobarla.`,
+        ...(reason ? [`<strong>Motivo:</strong> ${escapeHtml(reason)}`] : []),
+        'Si crees que se trata de un error o quieres corregir algún dato, puedes enviar una nueva solicitud cuando quieras.',
+      ],
+    }),
+  });
+}
+
 module.exports = {
   sendEmail,
+  sendCompanyRequestReceived,
+  sendNewCompanyRequestToPlatform,
+  sendCompanyApproved,
+  sendCompanyRejected,
   sendRegistrationReceived,
   sendNewPendingUserToAdmins,
   sendWelcomeEmail,

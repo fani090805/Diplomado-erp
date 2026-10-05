@@ -14,8 +14,24 @@ import { TTButton, TTIcon, TTInput } from '../design-system/components';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
 import { FaiLogo } from '../components/FaiLogo';
 import PasswordRequirements from '../components/PasswordRequirements';
+import CompanyRequestForm from './register/CompanyRequestForm';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const REGISTER_OPTIONS = [
+  {
+    mode: 'company',
+    icon: 'empresa',
+    title: 'Registrar mi empresa',
+    description: 'Soy el dueño o encargado y quiero usar FAI en mi negocio.',
+  },
+  {
+    mode: 'join',
+    icon: 'usuarios',
+    title: 'Unirme a mi empresa',
+    description: 'Mi empresa ya usa FAI y tengo un código.',
+  },
+];
 
 export default function RegisterScreen({ onGoLogin, onGoBack }) {
   const { register } = useAuth();
@@ -35,6 +51,15 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
   const [loading, setLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('');
   const [registrationSucceeded, setRegistrationSucceeded] = useState(false);
+  // null = elegir opción | 'join' = unirse con código | 'company' = registrar empresa
+  const [mode, setMode] = useState(null);
+  const [companySubmitted, setCompanySubmitted] = useState(false);
+
+  const changeOption = () => {
+    setMode(null);
+    setServerError('');
+    setErrors({});
+  };
 
   const update = (field) => (value) => {
     setForm((current) => ({
@@ -168,7 +193,52 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.card}>
-            {registrationSucceeded ? (
+            {mode && !registrationSucceeded && !companySubmitted ? (
+              <Pressable
+                onPress={changeOption}
+                accessibilityRole="button"
+                style={({ hovered }) => [styles.changeOption, hovered && styles.changeOptionHovered]}
+              >
+                <Text style={styles.changeOptionText}>← Cambiar opción</Text>
+              </Pressable>
+            ) : null}
+            {mode === null ? (
+              <>
+                <Text style={styles.title}>Crear cuenta</Text>
+                <Text style={styles.subtitle}>¿Cómo quieres empezar con FAI Solution ERP?</Text>
+                {REGISTER_OPTIONS.map((option) => (
+                  <Pressable
+                    key={option.mode}
+                    onPress={() => setMode(option.mode)}
+                    accessibilityRole="button"
+                    accessibilityLabel={option.title}
+                    style={({ hovered, pressed }) => [
+                      styles.optionCard,
+                      hovered && styles.optionCardHovered,
+                      pressed && styles.optionCardPressed,
+                    ]}
+                  >
+                    <View style={styles.optionIcon}>
+                      <TTIcon name={option.icon} size={28} color={COLORS.primary} />
+                    </View>
+                    <View style={styles.optionText}>
+                      <Text style={styles.optionTitle}>{option.title}</Text>
+                      <Text style={styles.optionDescription}>{option.description}</Text>
+                    </View>
+                    <TTIcon name="flechaDerecha" size={20} color={COLORS.textMuted} />
+                  </Pressable>
+                ))}
+                <Pressable onPress={onGoLogin} style={styles.loginLink}>
+                  <Text style={styles.loginPrompt}>¿Ya tienes cuenta? </Text>
+                  <Text style={styles.loginAction}>Inicia sesión</Text>
+                </Pressable>
+              </>
+            ) : mode === 'company' ? (
+              <CompanyRequestForm
+                onSubmitted={() => setCompanySubmitted(true)}
+                onGoHome={onGoBack}
+              />
+            ) : registrationSucceeded ? (
               <View style={styles.successContent}>
                 <TTIcon name="check" size={64} color={COLORS.successText} />
                 <Text style={styles.title}>¡Cuenta creada!</Text>
@@ -363,6 +433,65 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize['2xl'],
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     fontFamily: TYPOGRAPHY.fontFamily.display,
+  },
+  changeOption: {
+    alignSelf: 'flex-start',
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    marginLeft: -SPACING.sm,
+    borderRadius: RADIUS.sm,
+  },
+  changeOptionHovered: {
+    backgroundColor: COLORS.background,
+  },
+  changeOptionText: {
+    color: COLORS.primary,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.lg,
+    padding: SPACING.xl,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.background,
+    ...Platform.select({
+      web: { cursor: 'pointer', transition: 'border-color 160ms ease, transform 160ms ease' },
+    }),
+  },
+  optionCardHovered: {
+    borderColor: COLORS.primary,
+    transform: [{ translateY: -2 }],
+  },
+  optionCardPressed: {
+    opacity: 0.85,
+  },
+  optionIcon: {
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.primaryGlow,
+  },
+  optionText: {
+    flex: 1,
+    gap: SPACING.xs,
+  },
+  optionTitle: {
+    color: COLORS.textPrimary,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: TYPOGRAPHY.fontWeight.bold,
+    fontFamily: TYPOGRAPHY.fontFamily.display,
+  },
+  optionDescription: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
   },
   successContent: {
     alignItems: 'center',

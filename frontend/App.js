@@ -9,7 +9,7 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import ForgotPasswordScreen from './src/screens/ForgotPasswordScreen';
 import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 import LandingScreen from './src/screens/public/LandingScreen';
-import { SCREENS } from './src/screens';
+import { PLATFORM_ROUTES, SCREENS } from './src/screens';
 import { COLORS } from './src/design-system/tokens';
 import { warmUp } from './src/api/client';
 
@@ -17,8 +17,11 @@ import { warmUp } from './src/api/client';
  * Shell Tec[ode ERP: cabecera + menú lateral responsive + 22 pantallas.
  */
 function Shell() {
-  const { route } = useNav();
-  const Screen = SCREENS[route.name] || SCREENS.home;
+  const { route, homeRoute } = useNav();
+  const { hasCompany } = useAuth();
+  // Sin empresa (Super Admin de plataforma) sólo existen las pantallas de plataforma.
+  const allowed = hasCompany || PLATFORM_ROUTES.includes(route.name);
+  const Screen = (allowed && SCREENS[route.name]) || SCREENS[homeRoute] || SCREENS.home;
   return (
     <Layout>
       <Screen />
@@ -27,7 +30,7 @@ function Shell() {
 }
 
 function Root() {
-  const { session, initializing } = useAuth();
+  const { session, initializing, isPlatformAdmin } = useAuth();
   const [viewState, setViewState] = useState('landing'); // 'landing' | 'login'
   const [resetToken, setResetToken] = useState(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
@@ -108,7 +111,7 @@ function Root() {
   }
 
   return (
-    <RouterProvider>
+    <RouterProvider homeRoute={isPlatformAdmin ? 'companies' : 'home'}>
       <Shell />
     </RouterProvider>
   );

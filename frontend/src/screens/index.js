@@ -36,6 +36,12 @@ import RolesScreen from './config/RolesScreen';
 import BranchesScreen from './config/BranchesScreen';
 import AuditScreen from './config/AuditScreen';
 
+// Plataforma (Super Admin)
+import CompaniesScreen from './platform/CompaniesScreen';
+
+/** Pantallas que no requieren empresa (Super Admin de plataforma). */
+export const PLATFORM_ROUTES = ['companies'];
+
 export const SCREENS = {
   home: HomeScreen,
   products: ProductsScreen,
@@ -60,4 +66,5 @@ export const SCREENS = {
   roles: RolesScreen,
   branches: BranchesScreen,
   audit: AuditScreen,
+  companies: CompaniesScreen,
 };

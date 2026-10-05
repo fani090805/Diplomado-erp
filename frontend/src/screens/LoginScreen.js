@@ -49,7 +49,8 @@ export default function LoginScreen({ onGoRegister, onGoForgot, onGoBack }) {
       if (!timedOut) {
         setError({
           message: e.message || 'Credenciales inválidas. Verifique sus datos.',
-          pending: e.code === 'ACCOUNT_PENDING',
+          // Cuenta o empresa en revisión: aviso ámbar en lugar de error.
+          pending: e.code === 'ACCOUNT_PENDING' || e.code === 'COMPANY_IN_REVIEW',
         });
       }
     } finally {

@@ -74,14 +74,22 @@ export const MENU_CATEGORIES = [
   },
 ];
 
+/** Sección exclusiva del Super Admin de plataforma (va arriba del menú). */
+export const PLATFORM_CATEGORY = {
+  category: 'PLATAFORMA',
+  items: [{ route: 'companies', label: 'Empresas', icon: 'empresa', permission: null }],
+};
+
+const ALL_CATEGORIES = [PLATFORM_CATEGORY, ...MENU_CATEGORIES];
+
 export const MENU = MENU_CATEGORIES.map((cat) => ({
   section: cat.category,
   items: cat.items,
 }));
 
 export default function Layout({ children }) {
-  const { session, logout, can } = useAuth();
-  const { route, go, back, canGoBack } = useNav();
+  const { session, logout, can, isPlatformAdmin, hasCompany } = useAuth();
+  const { route, go, back, canGoBack, homeRoute } = useNav();
   const { width } = useWindowDimensions();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -95,17 +103,22 @@ export default function Layout({ children }) {
   const drawerWidth = Math.min(288, width * 0.86);
   const { company, user, role, branch } = session || {};
   const displayName = [user?.name, user?.lastName].filter(Boolean).join(' ') || user?.email || 'Usuario';
-  const companyName = company?.name || 'FAI Solution ERP';
+  const companyName = company?.name || (isPlatformAdmin ? 'Plataforma FAI' : 'FAI Solution ERP');
   const roleName = role?.label || role?.code || 'Usuario';
   const isSidebarCollapsed = isTablet || collapsed;
 
-  const filteredCategories = MENU_CATEGORIES.map((category) => ({
+  // Super Admin sin empresa: sólo la sección Plataforma.
+  const visibleCategories = [
+    ...(isPlatformAdmin ? [PLATFORM_CATEGORY] : []),
+    ...(hasCompany ? MENU_CATEGORIES : []),
+  ];
+  const filteredCategories = visibleCategories.map((category) => ({
     ...category,
     items: category.items.filter((item) => !item.permission || can(item.permission)),
   })).filter((category) => category.items.length > 0);
 
-  const currentItem = MENU_CATEGORIES.flatMap((category) => category.items).find((item) => item.route === route.name);
-  const currentCategory = MENU_CATEGORIES.find((category) => category.items.some((item) => item.route === route.name));
+  const currentItem = ALL_CATEGORIES.flatMap((category) => category.items).find((item) => item.route === route.name);
+  const currentCategory = ALL_CATEGORIES.find((category) => category.items.some((item) => item.route === route.name));
   const breadcrumbs = ['FAI Solution ERP', ...(currentCategory ? [currentCategory.category] : [])];
 
   useEffect(() => {
@@ -235,7 +248,7 @@ export default function Layout({ children }) {
         ) : (
           <>
             <View style={styles.headerDesktopLeft}>
-              {canGoBack && route.name !== 'home' ? (
+              {canGoBack && route.name !== homeRoute ? (
                 <Pressable style={styles.backBtn} onPress={back}>
                   <View style={styles.backBtnContent}>
                     <TTIcon name="flechaIzquierda" size={15} color={COLORS.primary} />
@@ -281,19 +294,35 @@ export default function Layout({ children }) {
                 <Text style={styles.dropdownSub}>{user?.email}</Text>
                 <Text style={styles.dropdownRole}>Rol: {roleName}</Text>
               </View>
-              <Pressable
-                style={styles.dropdownItem}
-                onPress={() => {
-                  setUserMenuOpen(false);
-                  go('home');
-                }}
-              >
-                <View style={styles.dropdownItemContent}>
-                  <TTIcon name="dashboard" size={16} color={COLORS.textSecondary} />
-                  <Text style={styles.dropdownItemText}>Dashboard</Text>
-                </View>
-              </Pressable>
-              {can('users.read') ? (
+              {isPlatformAdmin ? (
+                <Pressable
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setUserMenuOpen(false);
+                    go('companies');
+                  }}
+                >
+                  <View style={styles.dropdownItemContent}>
+                    <TTIcon name="empresa" size={16} color={COLORS.textSecondary} />
+                    <Text style={styles.dropdownItemText}>Empresas</Text>
+                  </View>
+                </Pressable>
+              ) : null}
+              {hasCompany ? (
+                <Pressable
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setUserMenuOpen(false);
+                    go('home');
+                  }}
+                >
+                  <View style={styles.dropdownItemContent}>
+                    <TTIcon name="dashboard" size={16} color={COLORS.textSecondary} />
+                    <Text style={styles.dropdownItemText}>Dashboard</Text>
+                  </View>
+                </Pressable>
+              ) : null}
+              {hasCompany && can('users.read') ? (
                 <Pressable
                   style={styles.dropdownItem}
                   onPress={() => {
