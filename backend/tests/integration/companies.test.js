@@ -4,6 +4,7 @@ const request = require('supertest');
 const { describeIfDb, connectTestDb, closeTestDb, app } = require('../helpers/setup');
 const { createPlatformSuperAdmin, login, auth } = require('../helpers/fixtures');
 const MasterData = require('../../src/modules/master-data/master_data.model');
+const { DEFAULT_ROLES } = require('../../src/config/permissions');
 
 describeIfDb('API /companies (integración, rol plataforma)', () => {
   let superToken;
@@ -44,7 +45,7 @@ describeIfDb('API /companies (integración, rol plataforma)', () => {
     expect(warehouse.isDefault).toBe(true);
     expect(String(warehouse.companyId)).toBe(String(company._id));
     expect(String(warehouse.branchId)).toBe(String(branch._id));
-    expect(roles).toHaveLength(10);
+    expect(roles).toHaveLength(Object.keys(DEFAULT_ROLES).length);
     expect(roles.map((r) => r.code)).toContain('administrador');
     for (const r of roles) expect(r.isSystem).toBe(true);
 
