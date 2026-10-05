@@ -21,8 +21,30 @@ const USER_REFERENCE_FIELDS = new Set([
   'voidedBy',
 ]);
 
-/** Colecciones que no cuentan como historial: el propio usuario y sus sesiones. */
-const IGNORED_MODELS = new Set(['User', 'Session']);
+/**
+ * Colecciones que no son documentos de negocio: el propio usuario, sus sesiones
+ * y la auditoría (que se evalúa aparte, filtrando por módulo).
+ */
+const IGNORED_MODELS = new Set(['User', 'Session', 'AuditLog']);
+
+/**
+ * Módulos de auditoría que NO cuentan como historial de negocio: autenticación
+ * (LOGIN, LOGOUT, REGISTER, FORGOT/RESET/CHANGE_PASSWORD, refresh) y la gestión
+ * de cuentas y configuración (alta, aprobación, rechazo, desactivación,
+ * reactivación y cambios de perfil viven en "users"). Cualquier otro módulo
+ * (ventas, compras, inventario, finanzas, producción, CRM, obras, RRHH…) sí cuenta.
+ */
+const NON_BUSINESS_AUDIT_MODULES = [
+  'auth',
+  'users',
+  'roles',
+  'companies',
+  'branches',
+  'master-data',
+  'audit',
+  'reports',
+  'unknown',
+];
 
 /** Rutas (incluidas las anidadas) de un esquema que apuntan a un usuario. */
 function userReferencePaths(schema, prefix = '') {
@@ -142,11 +164,23 @@ class UserRepository extends BaseRepository {
   }
 
   /**
-   * ¿El usuario figura como autor/responsable en alguna colección (auditoría incluida)?
+   * ¿El usuario es autor/responsable de documentos de negocio o actor de acciones
+   * exitosas sobre ellos? Los eventos de sesión y de su propia cuenta no cuentan.
    * Recorre todos los modelos registrados para no depender de una lista fija.
    */
   async hasRelatedRecords(userId) {
     const id = new mongoose.Types.ObjectId(String(userId));
+    const AuditLog = mongoose.models.AuditLog;
+    if (
+      AuditLog &&
+      (await AuditLog.exists({
+        userId: id,
+        result: 'SUCCESS',
+        module: { $nin: NON_BUSINESS_AUDIT_MODULES },
+      }))
+    ) {
+      return true;
+    }
     for (const name of mongoose.modelNames()) {
       if (IGNORED_MODELS.has(name)) continue;
       const model = mongoose.model(name);

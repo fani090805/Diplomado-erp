@@ -146,11 +146,63 @@ describeIfDb('API /users ciclo de vida: desactivar, reactivar y eliminar (integr
     expect(await User.findById(user._id).lean()).toBeNull();
   });
 
-  test('borrado permanente de un inactivo con registros → 409 y se conserva', async () => {
-    const user = await createInTenantA('con-registros@test.local');
-    // Su inicio de sesión queda en la auditoría como actor.
-    await login('con-registros@test.local', 'Clave1234');
+  test('un usuario que solo tuvo eventos de sesión y de su cuenta SÍ se borra y la auditoría se conserva', async () => {
+    const AuditLog = require('../../src/modules/audit/audit.model');
+    const user = await createInTenantA('solo-sesion@test.local');
+
+    // Login, refresh, cambio de su propia contraseña, logout y un login fallido.
+    const loginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'solo-sesion@test.local', password: 'Clave1234' });
+    expect(loginRes.status).toBe(200);
+    const refreshed = await request(app)
+      .post('/api/v1/auth/refresh')
+      .send({ refreshToken: loginRes.body.data.refreshToken });
+    expect(refreshed.status).toBe(200);
+    const changed = await request(app)
+      .post('/api/v1/auth/change-password')
+      .set(auth(refreshed.body.data.accessToken))
+      .send({ currentPassword: 'Clave1234', newPassword: 'Cambiada123' });
+    expect(changed.status).toBe(200);
+    const relogin = await login('solo-sesion@test.local', 'Cambiada123');
+    await request(app).post('/api/v1/auth/logout').set(auth(relogin));
+    await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'solo-sesion@test.local', password: 'Incorrecta999' });
+    // Cambio de su propio perfil (módulo users) y baja por el administrador.
+    await AuditLog.create({
+      userId: user._id,
+      companyId: tenantA.company._id,
+      module: 'users',
+      action: 'PATCH_USERS',
+      resourceId: String(user._id),
+      result: 'SUCCESS',
+    });
     await request(app).patch(`/api/v1/users/${user._id}/deactivate`).set(auth(adminToken));
+    const auditBefore = await AuditLog.countDocuments({ userId: user._id });
+    expect(auditBefore).toBeGreaterThan(0);
+
+    const res = await request(app)
+      .delete(`/api/v1/users/${user._id}/permanent`)
+      .set(auth(adminToken));
+
+    expect(res.status).toBe(200);
+    expect(await User.findById(user._id).lean()).toBeNull();
+    // El historial de auditoría del usuario borrado se conserva intacto.
+    expect(await AuditLog.countDocuments({ userId: user._id })).toBe(auditBefore);
+  });
+
+  test('un usuario que creó una venta NO se borra → 409 y se conserva', async () => {
+    const SalesOrder = require('../../src/modules/sales-orders/sales_order.model');
+    const user = await createInTenantA('autor-venta@test.local');
+    await User.updateOne({ _id: user._id }, { $set: { status: 'inactive' } });
+    // Inserción directa: solo importa que la venta referencie al usuario como autor.
+    await SalesOrder.collection.insertOne({
+      companyId: tenantA.company._id,
+      code: 'SO-HIST-1',
+      total: 100,
+      createdBy: user._id,
+    });
 
     const res = await request(app)
       .delete(`/api/v1/users/${user._id}/permanent`)
@@ -158,15 +210,32 @@ describeIfDb('API /users ciclo de vida: desactivar, reactivar y eliminar (integr
 
     expect(res.status).toBe(409);
     expect(res.body.error.message).toBe(HAS_RECORDS);
-    const stored = await User.findById(user._id).lean();
-    expect(stored.status).toBe('inactive');
+    expect((await User.findById(user._id).lean()).status).toBe('inactive');
   });
 
-  test('borrado permanente con registros como autor en otra colección → 409', async () => {
+  test('un usuario que registró un movimiento de inventario NO se borra → 409', async () => {
+    const InventoryMovement = require('../../src/modules/inventory/inventory_movement.model');
+    const user = await createInTenantA('autor-movimiento@test.local');
+    await User.updateOne({ _id: user._id }, { $set: { status: 'inactive' } });
+    await InventoryMovement.collection.insertOne({
+      companyId: tenantA.company._id,
+      type: 'ENTRY',
+      quantity: 5,
+      userId: user._id,
+    });
+
+    const res = await request(app)
+      .delete(`/api/v1/users/${user._id}/permanent`)
+      .set(auth(adminToken));
+
+    expect(res.status).toBe(409);
+    expect(res.body.error.message).toBe(HAS_RECORDS);
+  });
+
+  test('un usuario autor de un lead de CRM NO se borra → 409', async () => {
+    const Lead = require('../../src/modules/crm/lead.model');
     const user = await createInTenantA('autor-lead@test.local');
     await User.updateOne({ _id: user._id }, { $set: { status: 'inactive' } });
-    const Lead = require('../../src/modules/crm/lead.model');
-    // Inserción directa: solo importa que la colección referencie al usuario como autor.
     await Lead.collection.insertOne({
       companyId: tenantA.company._id,
       name: 'Prospecto histórico',
@@ -178,7 +247,41 @@ describeIfDb('API /users ciclo de vida: desactivar, reactivar y eliminar (integr
       .set(auth(adminToken));
 
     expect(res.status).toBe(409);
-    expect(res.body.error.message).toBe(HAS_RECORDS);
+  });
+
+  test('auditoría de una acción exitosa sobre un documento de negocio impide el borrado; una fallida no', async () => {
+    const AuditLog = require('../../src/modules/audit/audit.model');
+    const failed = await createInTenantA('accion-fallida@test.local');
+    const succeeded = await createInTenantA('accion-exitosa@test.local');
+    await User.updateMany(
+      { _id: { $in: [failed._id, succeeded._id] } },
+      { $set: { status: 'inactive' } }
+    );
+    await AuditLog.create({
+      userId: failed._id,
+      companyId: tenantA.company._id,
+      module: 'sales-orders',
+      action: 'POST_SALES-ORDERS',
+      result: 'FAILURE',
+      statusCode: 422,
+    });
+    await AuditLog.create({
+      userId: succeeded._id,
+      companyId: tenantA.company._id,
+      module: 'finance',
+      action: 'POST_FINANCE',
+      result: 'SUCCESS',
+    });
+
+    const okDelete = await request(app)
+      .delete(`/api/v1/users/${failed._id}/permanent`)
+      .set(auth(adminToken));
+    expect(okDelete.status).toBe(200);
+
+    const blocked = await request(app)
+      .delete(`/api/v1/users/${succeeded._id}/permanent`)
+      .set(auth(adminToken));
+    expect(blocked.status).toBe(409);
   });
 
   test('borrado permanente de un usuario activo → 400', async () => {
