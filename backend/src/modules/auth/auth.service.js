@@ -11,7 +11,6 @@ const Session = require('./session.model');
 const userRepository = require('../users/user.repository');
 const roleRepository = require('../roles/role.repository');
 const companyRepository = require('../companies/company.repository');
-const companyService = require('../companies/company.service');
 const branchRepository = require('../branches/branch.repository');
 const auditService = require('../audit/audit.service');
 const { sendLoginNotification } = require('../../services/email.service');
@@ -74,10 +73,9 @@ function stripSecrets(user) {
 }
 
 const authService = {
-  async register({ name, lastName, companyName, email, password }, meta = {}) {
-    let provisioned = null;
+  async register({ name, lastName, companyCode, email, password }, meta = {}) {
+    let company = null;
     let user = null;
-    let failure = null;
 
     try {
       if (process.env.ALLOW_PUBLIC_SIGNUP === 'false') {
@@ -88,31 +86,20 @@ const authService = {
         throw new ConflictError('Ya existe una cuenta con este correo.');
       }
 
-      provisioned = await companyService.create({ name: companyName, email });
-      const adminRole = await roleRepository.findOne({
-        companyId: provisioned.company._id,
-        code: 'administrador',
-      });
-      if (!adminRole) throw new Error('No se encontró el rol administrador de la empresa.');
+      company = await companyRepository.findByJoinCode(String(companyCode).trim().toUpperCase());
+      if (!company || company.status !== 'active') {
+        throw ApiError.badRequest('El código de empresa no es válido.');
+      }
 
       user = await userRepository.create({
-        companyId: provisioned.company._id,
-        roleId: adminRole._id,
-        branchId: provisioned.branch._id,
+        companyId: company._id,
         name,
         ...(lastName ? { lastName } : {}),
         email,
         passwordHash: await hashPassword(password),
-        status: 'active',
+        status: 'pending',
         isPlatformAdmin: false,
       });
-
-      const tokenUser = toTokenUser(user);
-      const result = {
-        user: stripSecrets({ ...user, failedLoginAttempts: 0, lastLoginAt: new Date() }),
-        accessToken: signAccessToken(tokenUser),
-        refreshToken: await issueRefreshToken(user),
-      };
 
       await auditService.log({
         module: 'auth',
@@ -125,30 +112,27 @@ const authService = {
         result: 'SUCCESS',
         ...meta,
       });
-      return result;
+      return { message: 'Cuenta creada. Un administrador debe aprobar tu acceso.' };
     } catch (error) {
-      failure = error;
-      const rollbackOps = [
-        ...(user
-          ? [Session.deleteMany({ userId: user._id }), userRepository.deleteById(user._id)]
-          : []),
-        ...(provisioned ? [companyService.rollbackCreate(provisioned)] : []),
-      ];
-      const rollbackResults = await Promise.allSettled(rollbackOps);
-      const rollbackFailures = rollbackResults.filter((result) => result.status === 'rejected');
-      if (rollbackFailures.length) {
-        logger.error({ failed: rollbackFailures.length }, 'Rollback incompleto al registrar una cuenta');
+      if (user) {
+        const rollbackResults = await Promise.allSettled([userRepository.deleteById(user._id)]);
+        if (rollbackResults.some((result) => result.status === 'rejected')) {
+          logger.error(
+            { userId: String(user._id) },
+            'Rollback incompleto al registrar una solicitud de acceso'
+          );
+        }
       }
-
-      if (error?.code === 11000 && error?.keyPattern?.email) {
-        failure = new ConflictError('Ya existe una cuenta con este correo.');
-      }
+      const failure =
+        error?.code === 11000 && error?.keyPattern?.email
+          ? new ConflictError('Ya existe una cuenta con este correo.')
+          : error;
       await auditService.log({
         module: 'auth',
         action: 'REGISTER',
         resourceType: 'user',
         resourceId: user ? String(user._id) : null,
-        companyId: provisioned?.company?._id || null,
+        companyId: company?._id || null,
         userId: user ? String(user._id) : null,
         userEmail: email,
         result: 'FAILURE',
@@ -162,7 +146,7 @@ const authService = {
   async login({ email, password }, meta = {}) {
     const user = await userRepository.findByEmail(email);
 
-    const failLogin = async (message, target, code) => {
+    const failLogin = async (message, target, code, statusCode = 401) => {
       await auditService.log({
         module: 'auth',
         action: 'LOGIN',
@@ -175,6 +159,7 @@ const authService = {
         message,
         ...meta,
       });
+      if (statusCode === 403) throw new ApiError(403, message, { code });
       throw ApiError.unauthorized(message, code);
     };
 
@@ -208,6 +193,14 @@ const authService = {
         'La cuenta está bloqueada por seguridad. Contacte al administrador.',
         user,
         'ACCOUNT_LOCKED'
+      );
+    }
+    if (user.status === 'pending') {
+      return failLogin(
+        'Tu cuenta está pendiente de aprobación por el administrador.',
+        user,
+        'ACCOUNT_PENDING',
+        403
       );
     }
     if (user.status !== 'active') {

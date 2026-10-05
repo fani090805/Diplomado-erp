@@ -1,6 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
+const generateJoinCode = require('./join-code');
 
 /**
  * COMPANY — Tenant raíz del sistema multiempresa.
@@ -10,6 +11,12 @@ const mongoose = require('mongoose');
 const companySchema = new mongoose.Schema(
   {
     name: { type: String, required: [true, 'El nombre es obligatorio.'], trim: true, maxlength: 120 },
+    joinCode: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      match: /^FAI-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/,
+    },
     legalName: { type: String, trim: true, maxlength: 160 },
     taxId: { type: String, trim: true, maxlength: 30 }, // RFC/NIT/CIF/etc.
     email: { type: String, trim: true, lowercase: true, maxlength: 120 },
@@ -26,8 +33,13 @@ const companySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+companySchema.pre('validate', function assignJoinCode() {
+  if (!this.joinCode) this.joinCode = generateJoinCode();
+});
+
 companySchema.index({ name: 1 }, { unique: true });
 companySchema.index({ taxId: 1 }, { sparse: true });
 companySchema.index({ status: 1 });
+companySchema.index({ joinCode: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Company', companySchema);

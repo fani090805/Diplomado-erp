@@ -12,7 +12,10 @@ const list = asyncHandler(async (req, res) => {
   const { page, limit, skip, sort } = parsePagination(req.query);
 
   const extra = searchFilterMulti(['name', 'lastName', 'email'], req.query.search);
-  if (req.query.status) extra.status = req.query.status;
+  if (req.query.status === 'pending' && !req.user.companyId) {
+    throw ApiError.forbidden('Las solicitudes pendientes solo se listan dentro de una empresa.');
+  }
+  extra.status = req.query.status || { $ne: 'pending' };
   if (req.query.roleId) extra.roleId = req.query.roleId;
   if (req.query.branchId) extra.branchId = req.query.branchId;
 
@@ -53,4 +56,24 @@ const remove = asyncHandler(async (req, res) => {
   return ok(res, { _id: after._id, status: after.status });
 });
 
-module.exports = { list, getById, create, update, remove };
+const approve = asyncHandler(async (req, res) => {
+  const before = await userService.getById(req.params.id, req.user);
+  if (!before) throw ApiError.notFound('Recurso no encontrado.');
+  req.auditBefore = before;
+  req.auditResourceId = String(req.params.id);
+
+  const after = await userService.approve(req.params.id, req.body, req.user);
+  return ok(res, after);
+});
+
+const reject = asyncHandler(async (req, res) => {
+  const before = await userService.getById(req.params.id, req.user);
+  if (!before) throw ApiError.notFound('Recurso no encontrado.');
+  req.auditBefore = before;
+  req.auditResourceId = String(req.params.id);
+
+  const after = await userService.reject(req.params.id, req.user);
+  return ok(res, after);
+});
+
+module.exports = { list, getById, create, update, remove, approve, reject };

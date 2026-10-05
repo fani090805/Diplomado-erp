@@ -59,8 +59,14 @@ export function AuthProvider({ children }) {
   );
 
   const register = useCallback(
-    (body, { signal } = {}) => establishSession('/auth/register', body, signal),
-    [establishSession]
+    (body, { signal } = {}) =>
+      api('/auth/register', {
+        method: 'POST',
+        body,
+        auth: false,
+        signal,
+      }),
+    []
   );
 
   const can = useCallback(

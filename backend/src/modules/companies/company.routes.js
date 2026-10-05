@@ -42,6 +42,22 @@ router.get(
 router.get('/me', authenticate, requireTenant, controller.getMe);
 
 router.get(
+  '/me/join-code',
+  authenticate,
+  requireTenant,
+  authorize('users.create'),
+  controller.getJoinCode
+);
+
+router.post(
+  '/me/join-code/regenerate',
+  authenticate,
+  requireTenant,
+  authorize('users.create'),
+  controller.regenerateJoinCode
+);
+
+router.get(
   '/me/settings',
   authenticate,
   requireTenant,

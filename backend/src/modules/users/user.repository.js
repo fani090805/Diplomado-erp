@@ -30,6 +30,24 @@ class UserRepository extends BaseRepository {
     return this.model.countDocuments({ roleId });
   }
 
+  async approvePending(id, companyId, data) {
+    return this.model
+      .findOneAndUpdate(
+        { _id: id, companyId, status: 'pending' },
+        { $set: data, $inc: { tokenVersion: 1 } },
+        { new: true, runValidators: true }
+      )
+      .lean()
+      .exec();
+  }
+
+  async deletePending(id, companyId) {
+    return this.model
+      .findOneAndDelete({ _id: id, companyId, status: 'pending' })
+      .lean()
+      .exec();
+  }
+
   /** Usuarios activos con alguno de los roles administrativos indicados. */
   async countActiveAdmins(companyId, adminRoleIds) {
     if (!companyId) return 0;

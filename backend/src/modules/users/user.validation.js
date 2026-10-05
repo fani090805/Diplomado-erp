@@ -44,12 +44,27 @@ const updateSchema = z
     message: 'Debe indicar al menos un campo a actualizar.',
   });
 
+const approveSchema = z
+  .object({
+    roleId: objectId,
+    branchId: objectId.optional(),
+  })
+  .strict();
+
 const listQuery = paginationQuery.extend({
-  status: z.enum(['active', 'inactive', 'locked']).optional(),
+  status: z.enum(['active', 'inactive', 'locked', 'pending']).optional(),
   roleId: objectId.optional(),
   branchId: objectId.optional(),
   // Sólo Super Admin (sin tenant): listado global de usuarios.
   allCompanies: z.enum(['true', 'false']).optional(),
 });
 
-module.exports = { idParams, CREATE_FIELDS, createSchema, updateSchema, listQuery, passwordSchema };
+module.exports = {
+  idParams,
+  CREATE_FIELDS,
+  createSchema,
+  updateSchema,
+  approveSchema,
+  listQuery,
+  passwordSchema,
+};

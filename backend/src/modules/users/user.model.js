@@ -20,7 +20,14 @@ const userSchema = new mongoose.Schema(
       index: true,
     },
     branchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch', default: null },
-    roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true, index: true },
+    roleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Role',
+      required: function roleRequired() {
+        return this.status !== 'pending';
+      },
+      index: true,
+    },
 
     name: { type: String, required: [true, 'El nombre es obligatorio.'], trim: true, maxlength: 100 },
     lastName: { type: String, trim: true, maxlength: 100 },
@@ -34,7 +41,7 @@ const userSchema = new mongoose.Schema(
     },
     passwordHash: { type: String, required: true, select: false },
 
-    status: { type: String, enum: ['active', 'inactive', 'locked'], default: 'active' },
+    status: { type: String, enum: ['active', 'inactive', 'locked', 'pending'], default: 'active' },
     isPlatformAdmin: { type: Boolean, default: false },
 
     lastLoginAt: { type: Date, default: null },

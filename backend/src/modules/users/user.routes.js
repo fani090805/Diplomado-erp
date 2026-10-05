@@ -3,7 +3,7 @@
 const { Router } = require('express');
 const controller = require('./user.controller');
 const { authenticate } = require('../../middlewares/authenticate');
-const { authorize } = require('../../middlewares/authorize');
+const { authorize, requireTenant } = require('../../middlewares/authorize');
 const validate = require('../../middlewares/validate');
 const preventUnknownFields = require('../../middlewares/preventUnknownFields');
 const schemas = require('./user.validation');
@@ -26,6 +26,24 @@ router.get(
   authorize('users.read'),
   validate({ query: schemas.listQuery }),
   controller.list
+);
+
+router.patch(
+  '/:id/approve',
+  authenticate,
+  requireTenant,
+  authorize('users.update'),
+  validate({ params: schemas.idParams, body: schemas.approveSchema }),
+  controller.approve
+);
+
+router.post(
+  '/:id/reject',
+  authenticate,
+  requireTenant,
+  authorize('users.update'),
+  validate({ params: schemas.idParams }),
+  controller.reject
 );
 
 router.post(

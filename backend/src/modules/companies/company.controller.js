@@ -29,6 +29,21 @@ const getMe = asyncHandler(async (req, res) => {
   return ok(res, doc);
 });
 
+const getJoinCode = asyncHandler(async (req, res) => {
+  const joinCode = await companyService.getJoinCode(req.user.companyId);
+  return ok(res, { joinCode });
+});
+
+const regenerateJoinCode = asyncHandler(async (req, res) => {
+  const before = await companyService.getOwn(req.user.companyId);
+  if (!before) throw ApiError.notFound('Recurso no encontrado.');
+  req.auditBefore = { joinCode: before.joinCode || null };
+  req.auditResourceId = String(req.user.companyId);
+
+  const joinCode = await companyService.regenerateJoinCode(req.user.companyId);
+  return ok(res, { joinCode });
+});
+
 const getSettings = asyncHandler(async (req, res) => {
   return ok(res, await companyService.getSettings(req.user.companyId));
 });
@@ -71,4 +86,15 @@ const remove = asyncHandler(async (req, res) => {
   return ok(res, after);
 });
 
-module.exports = { list, getMe, getSettings, updateSettings, getById, create, update, remove };
+module.exports = {
+  list,
+  getMe,
+  getJoinCode,
+  regenerateJoinCode,
+  getSettings,
+  updateSettings,
+  getById,
+  create,
+  update,
+  remove,
+};

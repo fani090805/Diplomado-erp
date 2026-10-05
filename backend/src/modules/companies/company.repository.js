@@ -15,6 +15,24 @@ class CompanyRepository extends BaseRepository {
     super(Company, { requireTenant: false });
   }
 
+  async findByJoinCode(joinCode) {
+    return this.model.findOne({ joinCode }).lean().exec();
+  }
+
+  async setJoinCodeIfMissing(companyId, joinCode) {
+    return this.model
+      .findOneAndUpdate(
+        {
+          _id: companyId,
+          $or: [{ joinCode: { $exists: false } }, { joinCode: null }, { joinCode: '' }],
+        },
+        { $set: { joinCode } },
+        { new: true, runValidators: true }
+      )
+      .lean()
+      .exec();
+  }
+
   /** Actualiza sólo claves de settings ya validadas y sin reemplazar el objeto completo. */
   async updateSettings(companyId, settings) {
     const set = Object.fromEntries(

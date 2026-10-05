@@ -1,7 +1,7 @@
 'use strict';
 
 const authService = require('./auth.service');
-const { ok } = require('../../utils/response');
+const { ok, created } = require('../../utils/response');
 const asyncHandler = require('../../utils/asyncHandler');
 
 /** Metadatos de auditoría (IP y agente) comunes a todas las operaciones. */
@@ -16,7 +16,7 @@ const login = asyncHandler(async (req, res) => {
 
 const register = asyncHandler(async (req, res) => {
   const data = await authService.register(req.body, auditMeta(req));
-  return ok(res, data);
+  return created(res, data);
 });
 
 const refresh = asyncHandler(async (req, res) => {

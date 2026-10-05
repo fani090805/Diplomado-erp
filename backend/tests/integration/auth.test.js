@@ -3,14 +3,30 @@
 const request = require('supertest');
 const { describeIfDb, connectTestDb, closeTestDb, app } = require('../helpers/setup');
 const { createTenant, createUser, login, auth } = require('../helpers/fixtures');
+const Company = require('../../src/modules/companies/company.model');
+const companyRepository = require('../../src/modules/companies/company.repository');
+const User = require('../../src/modules/users/user.model');
 
 describeIfDb('API /auth (integración)', () => {
   let tenant;
+  let tenantB;
+  let legacyTenant;
+  let suspendedTenant;
   let admin;
+  let joinedUser;
+  let legacyAdmin;
 
   beforeAll(async () => {
     await connectTestDb();
     tenant = await createTenant({ name: 'Empresa Auth' });
+    tenantB = await createTenant({ name: 'Empresa Auth Secundaria' });
+    legacyTenant = await createTenant({ name: 'Empresa Auth Sin Código' });
+    suspendedTenant = await createTenant({ name: 'Empresa Auth Suspendida' });
+    await Company.collection.updateOne(
+      { _id: legacyTenant.company._id },
+      { $unset: { joinCode: '' } }
+    );
+    await companyRepository.updateById(suspendedTenant.company._id, { status: 'suspended' });
     admin = await createUser({
       company: tenant.company,
       role: tenant.roles.administrador,
@@ -39,6 +55,13 @@ describeIfDb('API /auth (integración)', () => {
       password: 'Clave1234',
       name: 'Change',
     });
+    legacyAdmin = await createUser({
+      company: legacyTenant.company,
+      role: legacyTenant.roles.administrador,
+      email: 'admin-legacy-code@test.local',
+      password: 'Clave1234',
+      name: 'Legacy Admin',
+    });
   });
 
   afterAll(async () => {
@@ -59,35 +82,88 @@ describeIfDb('API /auth (integración)', () => {
     expect(res.body.data.user.tokenVersion).toBe(0);
   });
 
-  test('registro público crea empresa y administrador, y devuelve tokens', async () => {
+  test('cada empresa tiene código y las empresas existentes lo generan al consultarlo', async () => {
+    expect(tenant.company.joinCode).toMatch(/^FAI-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/);
+
+    const token = await login('admin-legacy-code@test.local', 'Clave1234');
+    const res = await request(app).get('/api/v1/companies/me/join-code').set(auth(token));
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.joinCode).toMatch(/^FAI-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/);
+    expect(res.body.data.joinCode.slice(4)).not.toMatch(/[0O1IL]/);
+    expect(await Company.findById(legacyTenant.company._id).lean()).toHaveProperty(
+      'joinCode',
+      res.body.data.joinCode
+    );
+  });
+
+  test('un administrador regenera el código y el anterior deja de servir', async () => {
+    const token = await login('admin-auth@test.local', 'Clave1234');
+    const originalCode = tenant.company.joinCode;
+    const regenerated = await request(app)
+      .post('/api/v1/companies/me/join-code/regenerate')
+      .set(auth(token));
+
+    expect(regenerated.status).toBe(200);
+    expect(regenerated.body.data.joinCode).toMatch(/^FAI-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$/);
+    expect(regenerated.body.data.joinCode).not.toBe(originalCode);
+    tenant.company.joinCode = regenerated.body.data.joinCode;
+
+    const oldCode = await request(app).post('/api/v1/auth/register').send({
+      name: 'Código anterior',
+      companyCode: originalCode,
+      email: 'old-company-code@test.local',
+      password: 'Registro123',
+    });
+    expect(oldCode.status).toBe(400);
+    expect(oldCode.body.error.message).toBe('El código de empresa no es válido.');
+  });
+
+  test('registro con código válido crea usuario pendiente sin rol ni tokens', async () => {
     const res = await request(app).post('/api/v1/auth/register').send({
       name: 'Nuevo',
-      lastName: 'Administrador',
-      companyName: 'Empresa Registro Auth',
+      lastName: 'Integrante',
+      companyCode: tenant.company.joinCode.toLowerCase(),
       email: 'nuevo-registro@test.local',
       password: 'Registro123',
     });
 
-    expect(res.status).toBe(200);
-    expect(res.body.data.accessToken).toBeDefined();
-    expect(res.body.data.refreshToken).toBeDefined();
-    expect(res.body.data.user.email).toBe('nuevo-registro@test.local');
-    expect(res.body.data.user.passwordHash).toBeUndefined();
+    expect(res.status).toBe(201);
+    expect(res.body.data).toEqual({
+      message: 'Cuenta creada. Un administrador debe aprobar tu acceso.',
+    });
 
-    const me = await request(app)
-      .get('/api/v1/auth/me')
-      .set(auth(res.body.data.accessToken));
-    expect(me.status).toBe(200);
-    expect(me.body.data.role.code).toBe('administrador');
-    expect(me.body.data.company.name).toBe('Empresa Registro Auth');
-    expect(me.body.data.branch.name).toBe('Principal');
-    expect(me.body.data.user.isPlatformAdmin).toBe(false);
+    joinedUser = await User.findOne({ email: 'nuevo-registro@test.local' }).lean();
+    expect(String(joinedUser.companyId)).toBe(String(tenant.company._id));
+    expect(joinedUser.status).toBe('pending');
+    expect(joinedUser.roleId).toBeUndefined();
+    expect(joinedUser.isPlatformAdmin).toBe(false);
+  });
+
+  test('código inexistente o empresa suspendida → 400 con mensaje uniforme', async () => {
+    const invalid = await request(app).post('/api/v1/auth/register').send({
+      name: 'Inválido',
+      companyCode: 'FAI-OOOOOO',
+      email: 'codigo-invalido@test.local',
+      password: 'Registro123',
+    });
+    expect(invalid.status).toBe(400);
+    expect(invalid.body.error.message).toBe('El código de empresa no es válido.');
+
+    const suspended = await request(app).post('/api/v1/auth/register').send({
+      name: 'Suspendido',
+      companyCode: suspendedTenant.company.joinCode,
+      email: 'empresa-suspendida@test.local',
+      password: 'Registro123',
+    });
+    expect(suspended.status).toBe(400);
+    expect(suspended.body.error.message).toBe('El código de empresa no es válido.');
   });
 
   test('registro con correo duplicado → 409', async () => {
     const res = await request(app).post('/api/v1/auth/register').send({
       name: 'Nuevo',
-      companyName: 'Otra Empresa Registro',
+      companyCode: tenant.company.joinCode,
       email: 'admin-auth@test.local',
       password: 'Registro123',
     });
@@ -99,7 +175,7 @@ describeIfDb('API /auth (integración)', () => {
   test('registro con contraseña débil → error de validación', async () => {
     const res = await request(app).post('/api/v1/auth/register').send({
       name: 'Nuevo',
-      companyName: 'Empresa Contraseña Débil',
+      companyCode: tenant.company.joinCode,
       email: 'debil@test.local',
       password: '12345678',
     });
@@ -114,7 +190,7 @@ describeIfDb('API /auth (integración)', () => {
     try {
       const res = await request(app).post('/api/v1/auth/register').send({
         name: 'Nuevo',
-        companyName: 'Empresa Registro Cerrado',
+        companyCode: tenant.company.joinCode,
         email: 'cerrado@test.local',
         password: 'Registro123',
       });
@@ -124,6 +200,85 @@ describeIfDb('API /auth (integración)', () => {
       if (previousValue === undefined) delete process.env.ALLOW_PUBLIC_SIGNUP;
       else process.env.ALLOW_PUBLIC_SIGNUP = previousValue;
     }
+  });
+
+  test('login pendiente → 403 sin incrementar intentos fallidos', async () => {
+    const res = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'nuevo-registro@test.local', password: 'Registro123' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('ACCOUNT_PENDING');
+    expect(res.body.error.message).toBe(
+      'Tu cuenta está pendiente de aprobación por el administrador.'
+    );
+    const user = await User.findById(joinedUser._id).lean();
+    expect(user.failedLoginAttempts).toBe(0);
+  });
+
+  test('el administrador lista y aprueba solicitudes; el usuario ya puede iniciar sesión', async () => {
+    const token = await login('admin-auth@test.local', 'Clave1234');
+    const pending = await request(app).get('/api/v1/users?status=pending').set(auth(token));
+    expect(pending.status).toBe(200);
+    expect(pending.body.data.map((user) => user.email)).toContain('nuevo-registro@test.local');
+
+    const approved = await request(app)
+      .patch(`/api/v1/users/${joinedUser._id}/approve`)
+      .set(auth(token))
+      .send({ roleId: tenant.roles.ventas._id });
+    expect(approved.status).toBe(200);
+    expect(approved.body.data.status).toBe('active');
+    expect(String(approved.body.data.roleId)).toBe(String(tenant.roles.ventas._id));
+    expect(String(approved.body.data.branchId)).toBe(String(tenant.branch._id));
+
+    const loginRes = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'nuevo-registro@test.local', password: 'Registro123' });
+    expect(loginRes.status).toBe(200);
+    expect(loginRes.body.data.accessToken).toBeDefined();
+  });
+
+  test('el administrador puede rechazar y eliminar una solicitud pendiente', async () => {
+    const registered = await request(app).post('/api/v1/auth/register').send({
+      name: 'Rechazado',
+      companyCode: tenant.company.joinCode,
+      email: 'rechazado@test.local',
+      password: 'Registro123',
+    });
+    expect(registered.status).toBe(201);
+    const user = await User.findOne({ email: 'rechazado@test.local' }).lean();
+    const token = await login('admin-auth@test.local', 'Clave1234');
+    const rejected = await request(app)
+      .post(`/api/v1/users/${user._id}/reject`)
+      .set(auth(token));
+
+    expect(rejected.status).toBe(200);
+    expect(rejected.body.data.status).toBe('rejected');
+    expect(await User.findById(user._id)).toBeNull();
+  });
+
+  test('un administrador no puede listar ni aprobar pendientes de otra empresa', async () => {
+    const registered = await request(app).post('/api/v1/auth/register').send({
+      name: 'Otra empresa',
+      companyCode: tenantB.company.joinCode,
+      email: 'otra-empresa-pendiente@test.local',
+      password: 'Registro123',
+    });
+    expect(registered.status).toBe(201);
+    const otherUser = await User.findOne({ email: 'otra-empresa-pendiente@test.local' }).lean();
+    const token = await login('admin-auth@test.local', 'Clave1234');
+
+    const approval = await request(app)
+      .patch(`/api/v1/users/${otherUser._id}/approve`)
+      .set(auth(token))
+      .send({ roleId: tenant.roles.ventas._id });
+    expect(approval.status).toBe(404);
+
+    const pending = await request(app).get('/api/v1/users?status=pending').set(auth(token));
+    expect(pending.status).toBe(200);
+    expect(pending.body.data.map((user) => user.email)).not.toContain(
+      'otra-empresa-pendiente@test.local'
+    );
   });
 
   test('contraseña incorrecta → 401 con mensaje genérico (anti-enumeración)', async () => {

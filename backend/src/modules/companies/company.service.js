@@ -8,6 +8,13 @@ const branchRepository = require('../branches/branch.repository');
 const roleRepository = require('../roles/role.repository');
 const warehouseRepository = require('../warehouses/warehouse.repository');
 const masterDataRepository = require('../master-data/master_data.repository');
+const generateJoinCode = require('./join-code');
+
+const JOIN_CODE_RETRY_LIMIT = 5;
+
+function isJoinCodeDuplicate(error) {
+  return error?.code === 11000 && Boolean(error?.keyPattern?.joinCode);
+}
 
 async function rollbackCompanyProvisioning({ company, branch, warehouse, roles = [], baseCurrency }) {
   const currencyId = baseCurrency?._id || company?.currencyId;
@@ -104,6 +111,49 @@ const companyService = {
     return companyRepository.findById(companyId);
   },
 
+  async getJoinCode(companyId) {
+    let company = await companyRepository.findById(companyId);
+    if (!company) throw ApiError.notFound('Recurso no encontrado.');
+    if (company.joinCode) return company.joinCode;
+
+    for (let attempt = 0; attempt < JOIN_CODE_RETRY_LIMIT; attempt += 1) {
+      try {
+        const updated = await companyRepository.setJoinCodeIfMissing(
+          companyId,
+          generateJoinCode()
+        );
+        if (updated?.joinCode) return updated.joinCode;
+
+        company = await companyRepository.findById(companyId);
+        if (company?.joinCode) return company.joinCode;
+        if (!company) throw ApiError.notFound('Recurso no encontrado.');
+      } catch (error) {
+        if (!isJoinCodeDuplicate(error) || attempt === JOIN_CODE_RETRY_LIMIT - 1) throw error;
+      }
+    }
+
+    throw ApiError.internal('No fue posible generar el código de la empresa.');
+  },
+
+  async regenerateJoinCode(companyId) {
+    const company = await companyRepository.findById(companyId);
+    if (!company) throw ApiError.notFound('Recurso no encontrado.');
+
+    for (let attempt = 0; attempt < JOIN_CODE_RETRY_LIMIT; attempt += 1) {
+      try {
+        const updated = await companyRepository.updateById(companyId, {
+          joinCode: generateJoinCode(company.joinCode),
+        });
+        if (!updated) throw ApiError.notFound('Recurso no encontrado.');
+        return updated.joinCode;
+      } catch (error) {
+        if (!isJoinCodeDuplicate(error) || attempt === JOIN_CODE_RETRY_LIMIT - 1) throw error;
+      }
+    }
+
+    throw ApiError.internal('No fue posible generar el código de la empresa.');
+  },
+
   /**
    * Crea la empresa y la aprovisiona: sucursal predeterminada + almacén MAIN
    * + roles semilla. Si el aprovisionamiento falla, se revierte la creación
@@ -121,7 +171,20 @@ const companyService = {
       });
     }
 
-    let company = await companyRepository.create({ ...data, status: 'active' });
+    let company = null;
+    for (let attempt = 0; attempt < JOIN_CODE_RETRY_LIMIT; attempt += 1) {
+      try {
+        company = await companyRepository.create({
+          ...data,
+          joinCode: generateJoinCode(),
+          status: 'active',
+        });
+        break;
+      } catch (error) {
+        if (!isJoinCodeDuplicate(error) || attempt === JOIN_CODE_RETRY_LIMIT - 1) throw error;
+      }
+    }
+    if (!company) throw ApiError.internal('No fue posible generar el código de la empresa.');
 
     let branch = null;
     let warehouse = null;

@@ -24,7 +24,7 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
   const [form, setForm] = useState({
     name: '',
     lastName: '',
-    companyName: '',
+    companyCode: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -33,9 +33,13 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('');
+  const [registrationSucceeded, setRegistrationSucceeded] = useState(false);
 
   const update = (field) => (value) => {
-    setForm((current) => ({ ...current, [field]: value }));
+    setForm((current) => ({
+      ...current,
+      [field]: field === 'companyCode' ? value.toUpperCase() : value,
+    }));
     setErrors((current) => ({ ...current, [field]: '' }));
     setServerError('');
   };
@@ -51,11 +55,11 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
     if (form.name.trim().length < 2) next.name = 'Ingresa un nombre de al menos 2 caracteres.';
     if (form.name.trim().length > 100) next.name = 'El nombre no puede exceder 100 caracteres.';
     if (form.lastName.trim().length > 100) next.lastName = 'El apellido no puede exceder 100 caracteres.';
-    if (form.companyName.trim().length < 2) {
-      next.companyName = 'Ingresa un nombre de empresa de al menos 2 caracteres.';
+    if (!form.companyCode.trim()) {
+      next.companyCode = 'Ingresa el código de tu empresa.';
     }
-    if (form.companyName.trim().length > 120) {
-      next.companyName = 'El nombre de la empresa no puede exceder 120 caracteres.';
+    if (form.companyCode.trim().length > 10) {
+      next.companyCode = 'El código de empresa no puede exceder 10 caracteres.';
     }
     if (!EMAIL_PATTERN.test(form.email.trim())) next.email = 'Ingresa un correo electrónico válido.';
     if (!passwordRequirements.every((requirement) => requirement.met)) {
@@ -87,10 +91,11 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
       await register({
         name: form.name.trim(),
         lastName: form.lastName.trim(),
-        companyName: form.companyName.trim(),
+        companyCode: form.companyCode.trim().toUpperCase(),
         email: form.email.trim().toLowerCase(),
         password: form.password,
       }, { signal: controller.signal });
+      setRegistrationSucceeded(true);
     } catch (error) {
       if (!timedOut) {
         setServerError(
@@ -164,121 +169,138 @@ export default function RegisterScreen({ onGoLogin, onGoBack }) {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.card}>
-            <Text style={styles.title}>Crear cuenta</Text>
-            <Text style={styles.subtitle}>
-              Registra tu empresa y empieza a usar FAI Solution ERP
-            </Text>
-
-            {serverError ? (
-              <View accessibilityRole="alert" style={styles.serverError}>
-                <Text style={styles.serverErrorText}>{serverError}</Text>
+            {registrationSucceeded ? (
+              <View style={styles.successContent}>
+                <TTIcon name="check" size={64} color={COLORS.successText} />
+                <Text style={styles.title}>¡Cuenta creada!</Text>
+                <Text style={styles.successMessage}>
+                  Un administrador debe aprobar tu acceso. Te avisaremos cuando puedas entrar.
+                </Text>
+                <TTButton variant="primary" size="lg" onPress={onGoLogin}>
+                  Ir a iniciar sesión
+                </TTButton>
               </View>
-            ) : null}
+            ) : (
+              <>
+                <Text style={styles.title}>Crear cuenta</Text>
+                <Text style={styles.subtitle}>
+                  Únete al espacio de tu empresa en FAI Solution ERP
+                </Text>
 
-            <TTInput
-              label="Nombre"
-              required
-              value={form.name}
-              onChangeText={update('name')}
-              placeholder="Tu nombre"
-              autoComplete="name-given"
-              disabled={loading}
-              error={errors.name}
-            />
-            <TTInput
-              label="Apellido"
-              value={form.lastName}
-              onChangeText={update('lastName')}
-              placeholder="Tu apellido"
-              autoComplete="name-family"
-              disabled={loading}
-              error={errors.lastName}
-            />
-            <TTInput
-              label="Nombre de la empresa"
-              required
-              value={form.companyName}
-              onChangeText={update('companyName')}
-              placeholder="Nombre de tu empresa"
-              disabled={loading}
-              error={errors.companyName}
-            />
-            <TTInput
-              label="Correo electrónico"
-              required
-              value={form.email}
-              onChangeText={update('email')}
-              placeholder="tu@empresa.com"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              disabled={loading}
-              error={errors.email}
-            />
-            <TTInput
-              label="Contraseña"
-              required
-              value={form.password}
-              onChangeText={update('password')}
-              placeholder="Crea una contraseña"
-              secureTextEntry
-              autoComplete="new-password"
-              disabled={loading}
-              error={errors.password}
-            />
-            <View style={styles.requirements}>
-              {passwordRequirements.map((requirement) => (
-                <View key={requirement.label} style={styles.requirementRow}>
-                  <TTIcon
-                    name={requirement.met ? 'check' : 'punto'}
-                    size={requirement.met ? 14 : 8}
-                    color={requirement.met ? COLORS.successText : COLORS.textMuted}
-                  />
-                  <Text
-                    style={[
-                      styles.requirementText,
-                      requirement.met ? styles.requirementMet : styles.requirementUnmet,
-                    ]}
-                  >
-                    {requirement.label}
-                  </Text>
+                {serverError ? (
+                  <View accessibilityRole="alert" style={styles.serverError}>
+                    <Text style={styles.serverErrorText}>{serverError}</Text>
+                  </View>
+                ) : null}
+
+                <TTInput
+                  label="Nombre"
+                  required
+                  value={form.name}
+                  onChangeText={update('name')}
+                  placeholder="Tu nombre"
+                  autoComplete="name-given"
+                  disabled={loading}
+                  error={errors.name}
+                />
+                <TTInput
+                  label="Apellido"
+                  value={form.lastName}
+                  onChangeText={update('lastName')}
+                  placeholder="Tu apellido"
+                  autoComplete="name-family"
+                  disabled={loading}
+                  error={errors.lastName}
+                />
+                <TTInput
+                  label="Código de empresa"
+                  required
+                  value={form.companyCode}
+                  onChangeText={update('companyCode')}
+                  placeholder="FAI-XXXXXX"
+                  autoCapitalize="characters"
+                  disabled={loading}
+                  error={errors.companyCode}
+                  hint="Pídeselo al administrador de tu empresa"
+                />
+                <TTInput
+                  label="Correo electrónico"
+                  required
+                  value={form.email}
+                  onChangeText={update('email')}
+                  placeholder="tu@empresa.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  disabled={loading}
+                  error={errors.email}
+                />
+                <TTInput
+                  label="Contraseña"
+                  required
+                  value={form.password}
+                  onChangeText={update('password')}
+                  placeholder="Crea una contraseña"
+                  secureTextEntry
+                  autoComplete="new-password"
+                  disabled={loading}
+                  error={errors.password}
+                />
+                <View style={styles.requirements}>
+                  {passwordRequirements.map((requirement) => (
+                    <View key={requirement.label} style={styles.requirementRow}>
+                      <TTIcon
+                        name={requirement.met ? 'check' : 'punto'}
+                        size={requirement.met ? 14 : 8}
+                        color={requirement.met ? COLORS.successText : COLORS.textMuted}
+                      />
+                      <Text
+                        style={[
+                          styles.requirementText,
+                          requirement.met ? styles.requirementMet : styles.requirementUnmet,
+                        ]}
+                      >
+                        {requirement.label}
+                      </Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
-            <TTInput
-              label="Confirmar contraseña"
-              required
-              value={form.confirmPassword}
-              onChangeText={update('confirmPassword')}
-              placeholder="Repite tu contraseña"
-              secureTextEntry
-              autoComplete="new-password"
-              disabled={loading}
-              error={errors.confirmPassword}
-            />
+                <TTInput
+                  label="Confirmar contraseña"
+                  required
+                  value={form.confirmPassword}
+                  onChangeText={update('confirmPassword')}
+                  placeholder="Repite tu contraseña"
+                  secureTextEntry
+                  autoComplete="new-password"
+                  disabled={loading}
+                  error={errors.confirmPassword}
+                />
 
-            <TTButton
-              variant="primary"
-              size="lg"
-              loading={loading}
-              disabled={loading}
-              onPress={onSubmit}
-              style={styles.submitButton}
-            >
-              Crear cuenta
-            </TTButton>
-            {connectionStatus ? (
-              <Text style={styles.connectionMessage}>
-                {connectionStatus === 'timeout'
-                  ? 'El servidor no responde. Intenta de nuevo en un momento.'
-                  : 'Conectando con el servidor, esto puede tardar unos segundos la primera vez…'}
-              </Text>
-            ) : null}
+                <TTButton
+                  variant="primary"
+                  size="lg"
+                  loading={loading}
+                  disabled={loading}
+                  onPress={onSubmit}
+                  style={styles.submitButton}
+                >
+                  Crear cuenta
+                </TTButton>
+                {connectionStatus ? (
+                  <Text style={styles.connectionMessage}>
+                    {connectionStatus === 'timeout'
+                      ? 'El servidor no responde. Intenta de nuevo en un momento.'
+                      : 'Conectando con el servidor, esto puede tardar unos segundos la primera vez…'}
+                  </Text>
+                ) : null}
 
-            <Pressable onPress={onGoLogin} style={styles.loginLink}>
-              <Text style={styles.loginPrompt}>¿Ya tienes cuenta? </Text>
-              <Text style={styles.loginAction}>Inicia sesión</Text>
-            </Pressable>
+                <Pressable onPress={onGoLogin} style={styles.loginLink}>
+                  <Text style={styles.loginPrompt}>¿Ya tienes cuenta? </Text>
+                  <Text style={styles.loginAction}>Inicia sesión</Text>
+                </Pressable>
+              </>
+            )}
           </View>
         </ScrollView>
       </View>
@@ -360,6 +382,17 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize['2xl'],
     fontWeight: TYPOGRAPHY.fontWeight.bold,
     fontFamily: TYPOGRAPHY.fontFamily.display,
+  },
+  successContent: {
+    alignItems: 'center',
+    gap: SPACING.lg,
+    paddingVertical: SPACING.xl,
+  },
+  successMessage: {
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.fontSize.md,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+    textAlign: 'center',
   },
   subtitle: {
     marginBottom: SPACING.xs,

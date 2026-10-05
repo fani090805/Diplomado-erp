@@ -214,6 +214,66 @@ const userService = {
     );
   },
 
+  async approve(id, data, actor) {
+    if (!actor?.companyId) {
+      throw ApiError.forbidden('La aprobación requiere pertenecer a una empresa.');
+    }
+
+    const user = await userRepository.findById(id, { companyId: actor.companyId });
+    if (!user) throw ApiError.notFound('Recurso no encontrado.');
+    if (user.status !== 'pending') {
+      throw ApiError.conflict('El usuario ya no está pendiente de aprobación.');
+    }
+
+    await this._assertRoleForCompany(data.roleId, user.companyId, actor);
+
+    let branchId;
+    if (data.branchId) {
+      const branch = await branchRepository.findById(data.branchId, {
+        companyId: user.companyId,
+      });
+      if (!branch) {
+        throw ApiError.unprocessable('Los datos enviados no son válidos.', [
+          { field: 'branchId', message: 'La sucursal indicada no existe en la empresa.' },
+        ]);
+      }
+      branchId = branch._id;
+    } else {
+      const branch = await branchRepository.findDefault(user.companyId);
+      if (!branch) {
+        throw ApiError.unprocessable('Los datos enviados no son válidos.', [
+          { field: 'branchId', message: 'La sucursal principal no está configurada.' },
+        ]);
+      }
+      branchId = branch._id;
+    }
+
+    const approved = await userRepository.approvePending(id, user.companyId, {
+      roleId: data.roleId,
+      branchId,
+      status: 'active',
+      failedLoginAttempts: 0,
+    });
+    if (!approved) throw ApiError.conflict('El usuario ya no está pendiente de aprobación.');
+    return approved;
+  },
+
+  async reject(id, actor) {
+    if (!actor?.companyId) {
+      throw ApiError.forbidden('El rechazo requiere pertenecer a una empresa.');
+    }
+
+    const user = await userRepository.findById(id, { companyId: actor.companyId });
+    if (!user) throw ApiError.notFound('Recurso no encontrado.');
+    if (user.status !== 'pending') {
+      throw ApiError.conflict('El usuario ya no está pendiente de aprobación.');
+    }
+
+    const deleted = await userRepository.deletePending(id, user.companyId);
+    if (!deleted) throw ApiError.conflict('El usuario ya no está pendiente de aprobación.');
+    return { _id: deleted._id, status: 'rejected' };
+  },
+
   /**
    * Guardia de integridad: la empresa nunca se queda sin administrador activo.
    * Aplica a usuarios con el rol semilla 'administrador'.

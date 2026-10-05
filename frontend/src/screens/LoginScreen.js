@@ -46,7 +46,12 @@ export default function LoginScreen({ onGoRegister, onGoBack }) {
     try {
       await login(email.trim(), password, { signal: controller.signal });
     } catch (e) {
-      if (!timedOut) setError(e.message || 'Credenciales inválidas. Verifique sus datos.');
+      if (!timedOut) {
+        setError({
+          message: e.message || 'Credenciales inválidas. Verifique sus datos.',
+          pending: e.code === 'ACCOUNT_PENDING',
+        });
+      }
     } finally {
       clearTimeout(slowTimer);
       clearTimeout(timeoutTimer);
@@ -111,9 +116,15 @@ export default function LoginScreen({ onGoRegister, onGoBack }) {
             <Text style={styles.welcomeSub}>Ingrese sus credenciales para acceder al ecosistema.</Text>
 
             {error ? (
-              <View style={styles.errorBox}>
-                <TTIcon name="alerta" size={18} color={COLORS.error} />
-                <Text style={styles.errorText}>{error}</Text>
+              <View style={[styles.errorBox, error.pending && styles.pendingBox]}>
+                <TTIcon
+                  name="alerta"
+                  size={18}
+                  color={error.pending ? COLORS.warning : COLORS.error}
+                />
+                <Text style={[styles.errorText, error.pending && styles.pendingText]}>
+                  {error.message}
+                </Text>
               </View>
             ) : null}
 
@@ -274,6 +285,13 @@ const styles = StyleSheet.create({
     color: COLORS.error,
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: TYPOGRAPHY.fontWeight.semibold,
+  },
+  pendingBox: {
+    backgroundColor: COLORS.warningGlow,
+    borderColor: `${COLORS.warning}40`,
+  },
+  pendingText: {
+    color: COLORS.warning,
   },
   submitBtn: {
     marginTop: SPACING.sm,

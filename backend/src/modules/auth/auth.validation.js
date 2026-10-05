@@ -23,14 +23,14 @@ const registerSchema = z
       .trim()
       .max(100, 'El apellido no puede exceder 100 caracteres.')
       .optional(),
-    companyName: z
+    companyCode: z
       .string({
-        required_error: 'El nombre de la empresa es obligatorio.',
-        invalid_type_error: 'El nombre de la empresa debe ser texto.',
+        required_error: 'El código de empresa es obligatorio.',
+        invalid_type_error: 'El código de empresa debe ser texto.',
       })
       .trim()
-      .min(2, 'El nombre de la empresa debe tener al menos 2 caracteres.')
-      .max(120, 'El nombre de la empresa no puede exceder 120 caracteres.'),
+      .min(1, 'El código de empresa es obligatorio.')
+      .max(10, 'El código de empresa no puede exceder 10 caracteres.'),
     email: z
       .string({ required_error: 'El correo electrónico es obligatorio.', invalid_type_error: 'El correo debe ser texto.' })
       .trim()
