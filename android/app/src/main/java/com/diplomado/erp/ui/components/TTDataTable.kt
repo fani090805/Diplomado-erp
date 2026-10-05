@@ -7,6 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,37 +28,75 @@ fun <T> TTDataTable(
     emptyText: String = "Sin registros para mostrar.",
     itemContent: @Composable (T) -> Unit
 ) {
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val isCompact = screenWidth < 550.dp
+
     Column(modifier = modifier.fillMaxSize()) {
-        // Header Row
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = title,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = FaiTextPrimary
-                )
-                if (subtitle != null) {
+        // Header / Adaptive Layout based on screen width
+        if (isCompact) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
-                        text = subtitle,
-                        fontSize = 13.sp,
-                        color = FaiTextMuted
+                        text = title,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = FaiTextPrimary
+                    )
+                    if (subtitle != null) {
+                        Text(
+                            text = subtitle,
+                            fontSize = 13.sp,
+                            color = FaiTextMuted
+                        )
+                    }
+                }
+
+                if (onCreateClick != null) {
+                    TTButton(
+                        text = "+ $createLabel",
+                        onClick = onCreateClick,
+                        variant = TTButtonVariant.Primary,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = FaiTextPrimary
+                    )
+                    if (subtitle != null) {
+                        Text(
+                            text = subtitle,
+                            fontSize = 13.sp,
+                            color = FaiTextMuted
+                        )
+                    }
+                }
 
-            if (onCreateClick != null) {
-                TTButton(
-                    text = "+ $createLabel",
-                    onClick = onCreateClick,
-                    variant = TTButtonVariant.Primary
-                )
+                if (onCreateClick != null) {
+                    Spacer(modifier = Modifier.width(16.dp))
+                    TTButton(
+                        text = "+ $createLabel",
+                        onClick = onCreateClick,
+                        variant = TTButtonVariant.Primary
+                    )
+                }
             }
         }
 

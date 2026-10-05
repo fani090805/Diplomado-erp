@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.purchases.presentation
 
+import com.diplomado.erp.core.common.formatMoney
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,15 +24,18 @@ fun PurchaseOrdersScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    TTRefreshable(
+        loading = uiState is PurchaseOrdersUiState.Loading,
+        onRefresh = { viewModel.loadOrders() },
+        modifier = modifier.fillMaxSize().padding(16.dp)
+    ) {
         when (val state = uiState) {
             is PurchaseOrdersUiState.Loading -> TTLoading(text = "Cargando órdenes de compra de materiales...")
             is PurchaseOrdersUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error de compras de obra",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadOrders() }
+                    message = state.message,
+                    onRetry = { viewModel.loadOrders() }
                 )
             }
             is PurchaseOrdersUiState.Success -> {
@@ -60,7 +65,7 @@ fun PurchaseOrdersScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "Proveedor: ${order.supplier?.name ?: "Proveedor de Insumos"} • Total: $${String.format("%.2f", order.total)}",
+                                        text = "Proveedor: ${order.supplier?.name ?: "Proveedor de Insumos"} • Total: ${formatMoney(order.total)}",
                                         fontSize = 13.sp,
                                         color = FaiTextMuted
                                     )

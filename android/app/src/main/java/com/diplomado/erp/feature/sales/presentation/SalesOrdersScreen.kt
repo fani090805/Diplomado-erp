@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.sales.presentation
 
+import com.diplomado.erp.core.common.formatMoney
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,15 +24,18 @@ fun SalesOrdersScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    TTRefreshable(
+        loading = uiState is SalesOrdersUiState.Loading,
+        onRefresh = { viewModel.loadOrders() },
+        modifier = modifier.fillMaxSize().padding(16.dp)
+    ) {
         when (val state = uiState) {
             is SalesOrdersUiState.Loading -> TTLoading(text = "Cargando estimaciones y contratos de obra...")
             is SalesOrdersUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error de contratos",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadOrders() }
+                    message = state.message,
+                    onRetry = { viewModel.loadOrders() }
                 )
             }
             is SalesOrdersUiState.Success -> {
@@ -60,7 +65,7 @@ fun SalesOrdersScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "Cliente Contratante: ${order.customer?.name ?: "Desarrolladora"} • Total: $${String.format("%.2f", order.total)}",
+                                        text = "Cliente Contratante: ${order.customer?.name ?: "Desarrolladora"} • Total: ${formatMoney(order.total)}",
                                         fontSize = 13.sp,
                                         color = FaiTextMuted
                                     )

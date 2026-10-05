@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.diplomado.erp.ui.theme.*
@@ -89,7 +90,9 @@ fun TTButton(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.SemiBold,
                     fontFamily = FaiFontFamily,
-                    color = textColor
+                    color = textColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

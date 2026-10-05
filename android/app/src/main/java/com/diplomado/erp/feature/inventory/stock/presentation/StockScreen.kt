@@ -21,15 +21,18 @@ fun StockScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    TTRefreshable(
+        loading = uiState is StockUiState.Loading,
+        onRefresh = { viewModel.loadStock() },
+        modifier = modifier.fillMaxSize().padding(16.dp)
+    ) {
         when (val state = uiState) {
             is StockUiState.Loading -> TTLoading(text = "Cargando existencias en bodegas de obra...")
             is StockUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error de existencias",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadStock() }
+                    message = state.message,
+                    onRetry = { viewModel.loadStock() }
                 )
             }
             is StockUiState.Success -> {

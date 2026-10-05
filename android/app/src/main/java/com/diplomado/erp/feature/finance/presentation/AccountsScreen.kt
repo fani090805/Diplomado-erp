@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.finance.presentation
 
+import com.diplomado.erp.core.common.formatMoney
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,15 +23,18 @@ fun AccountsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    TTRefreshable(
+        loading = uiState is AccountsUiState.Loading,
+        onRefresh = { viewModel.loadAccounts() },
+        modifier = modifier.fillMaxSize().padding(16.dp)
+    ) {
         when (val state = uiState) {
             is AccountsUiState.Loading -> TTLoading(text = "Cargando cajas chicas y cuentas de tesorería...")
             is AccountsUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error de finanzas de obra",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadAccounts() }
+                    message = state.message,
+                    onRetry = { viewModel.loadAccounts() }
                 )
             }
             is AccountsUiState.Success -> {
@@ -61,7 +66,7 @@ fun AccountsScreen(
                             }
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
-                                    text = "$${String.format("%.2f", account.balance)}",
+                                    text = "${formatMoney(account.balance)}",
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = FaiPrimary

@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.sales.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.network.client.RetrofitClient
@@ -35,7 +37,7 @@ class SalesOrdersViewModel : ViewModel() {
                     _uiState.value = SalesOrdersUiState.Error(res.body()?.error?.message ?: "Error al cargar pedidos de venta.")
                 }
             } catch (e: Exception) {
-                _uiState.value = SalesOrdersUiState.Error(e.message ?: "Error de red.")
+                _uiState.value = SalesOrdersUiState.Error(friendlyError(e, "Error de red."))
             }
         }
     }
@@ -50,7 +52,7 @@ class SalesOrdersViewModel : ViewModel() {
                     _uiState.value = SalesOrdersUiState.Error(res.body()?.error?.message ?: "Stock insuficiente para aprobar pedido.")
                 }
             } catch (e: Exception) {
-                _uiState.value = SalesOrdersUiState.Error(e.message ?: "Error de conexión.")
+                _uiState.value = SalesOrdersUiState.Error(friendlyError(e, "Error de conexión."))
             }
         }
     }

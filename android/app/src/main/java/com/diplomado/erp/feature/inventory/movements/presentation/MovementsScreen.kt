@@ -21,15 +21,18 @@ fun MovementsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    TTRefreshable(
+        loading = uiState is MovementsUiState.Loading,
+        onRefresh = { viewModel.loadMovements() },
+        modifier = modifier.fillMaxSize().padding(16.dp)
+    ) {
         when (val state = uiState) {
             is MovementsUiState.Loading -> TTLoading(text = "Cargando Kardex de movimientos de materiales...")
             is MovementsUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error de Kardex",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadMovements() }
+                    message = state.message,
+                    onRetry = { viewModel.loadMovements() }
                 )
             }
             is MovementsUiState.Success -> {

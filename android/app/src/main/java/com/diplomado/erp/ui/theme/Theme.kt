@@ -42,12 +42,12 @@ fun FaiTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Barra de estado clara con íconos oscuros.
-            window.statusBarColor = colorScheme.background.toArgb()
-            window.navigationBarColor = colorScheme.background.toArgb()
+            // Barras del sistema en verde olivo (igual que la barra superior e inferior) con íconos claros.
+            window.statusBarColor = FaiPrimary.toArgb()
+            window.navigationBarColor = FaiPrimary.toArgb()
             WindowCompat.getInsetsController(window, view).apply {
-                isAppearanceLightStatusBars = true
-                isAppearanceLightNavigationBars = true
+                isAppearanceLightStatusBars = false
+                isAppearanceLightNavigationBars = false
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.projects.presentation
 
+import com.diplomado.erp.core.common.formatMoney
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Engineering
 import androidx.compose.material.icons.outlined.LocationOn
@@ -44,11 +46,10 @@ fun ProjectDetailScreen(
                 TTLoading(text = "Cargando Centro de Control de la Obra...")
             }
             is ProjectDetailUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error de carga",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadProjectDetail(projectId) }
+                    message = state.message,
+                    onRetry = { viewModel.loadProjectDetail(projectId) }
                 )
             }
             is ProjectDetailUiState.Success -> {
@@ -126,14 +127,14 @@ fun ProjectDetailScreen(
                         ) {
                             TTStatCard(
                                 label = "Presupuesto Total",
-                                value = "$${String.format("%.2f", project.budget)}",
+                                value = "${formatMoney(project.budget)}",
                                 trend = "Aprobado",
                                 accentColor = FaiPrimary,
                                 modifier = Modifier.weight(1f)
                             )
                             TTStatCard(
                                 label = "Gastos Ejecutados",
-                                value = "$${String.format("%.2f", project.executedAmount)}",
+                                value = "${formatMoney(project.executedAmount)}",
                                 trend = "$percentage% gastado",
                                 accentColor = FaiInfo,
                                 modifier = Modifier.weight(1f)
@@ -144,7 +145,7 @@ fun ProjectDetailScreen(
                     item {
                         TTStatCard(
                             label = "Disponible para Ejecutar",
-                            value = "$${String.format("%.2f", available)}",
+                            value = "${formatMoney(available)}",
                             trend = "Fondo restante",
                             accentColor = if (available > 0) FaiPrimary else FaiError
                         )
@@ -154,7 +155,7 @@ fun ProjectDetailScreen(
                         TTCard(title = "Avance de Ejecución Financiera") {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 LinearProgressIndicator(
-                                    progress = progress,
+                                    progress = { progress },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(10.dp)
@@ -214,12 +215,12 @@ fun ProjectDetailScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = "Ejecutado: $${String.format("%.2f", cc.executedAmount)}",
+                                            text = "Ejecutado: ${formatMoney(cc.executedAmount)}",
                                             fontSize = 12.sp,
                                             color = FaiTextSecondary
                                         )
                                         Text(
-                                            text = "Presupuesto: $${String.format("%.2f", cc.budget)}",
+                                            text = "Presupuesto: ${formatMoney(cc.budget)}",
                                             fontSize = 12.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = FaiPrimary

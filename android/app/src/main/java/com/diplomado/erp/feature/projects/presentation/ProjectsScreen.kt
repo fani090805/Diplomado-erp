@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.projects.presentation
 
+import com.diplomado.erp.core.common.formatMoney
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Engineering
 import androidx.compose.material.icons.outlined.LocationOn
@@ -32,8 +34,13 @@ fun ProjectsScreen(
     val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
+    TTRefreshable(
+        loading = uiState is ProjectsUiState.Loading,
+        onRefresh = { viewModel.loadProjects(searchQuery.ifEmpty { null }) },
+        modifier = modifier.fillMaxSize()
+    ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -73,11 +80,10 @@ fun ProjectsScreen(
                 TTLoading(text = "Cargando obras...")
             }
             is ProjectsUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error al consultar obras",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadProjects() }
+                    message = state.message,
+                    onRetry = { viewModel.loadProjects() }
                 )
             }
             is ProjectsUiState.Success -> {
@@ -98,6 +104,7 @@ fun ProjectsScreen(
                 }
             }
         }
+    }
     }
 }
 
@@ -149,12 +156,12 @@ fun ProjectCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Ejecutado: $${String.format("%.2f", project.executedAmount)}",
+                        text = "Ejecutado: ${formatMoney(project.executedAmount)}",
                         fontSize = 11.sp,
                         color = FaiTextSecondary
                     )
                     Text(
-                        text = "Presupuesto: $${String.format("%.2f", project.budget)} ($percentage%)",
+                        text = "Presupuesto: ${formatMoney(project.budget)} ($percentage%)",
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = FaiPrimary
@@ -162,7 +169,7 @@ fun ProjectCard(
                 }
 
                 LinearProgressIndicator(
-                    progress = progress,
+                    progress = { progress },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)

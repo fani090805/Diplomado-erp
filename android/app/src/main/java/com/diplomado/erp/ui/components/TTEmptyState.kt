@@ -1,6 +1,11 @@
 package com.diplomado.erp.ui.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FolderOpen
@@ -25,15 +30,19 @@ fun TTEmptyState(
     modifier: Modifier = Modifier,
     icon: ImageVector = Icons.Outlined.FolderOpen,
     actionLabel: String? = null,
-    onAction: (() -> Unit)? = null
+    onAction: (() -> Unit)? = null,
+    iconTint: Color = FaiPrimary,
+    iconBackground: Color = FaiPrimaryGlow,
+    /** false dentro de otra tarjeta: sin borde ni margen propio. */
+    bordered: Boolean = true
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(if (bordered) 16.dp else 0.dp),
         shape = FaiShapes.Card,
         colors = CardDefaults.cardColors(containerColor = FaiCard),
-        border = BorderStroke(1.dp, FaiBorder),
+        border = if (bordered) BorderStroke(1.dp, FaiBorder) else null,
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
@@ -43,8 +52,16 @@ fun TTEmptyState(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(imageVector = icon, contentDescription = null, tint = FaiPrimaryLight, modifier = Modifier.size(36.dp))
-            Spacer(modifier = Modifier.height(8.dp))
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(iconBackground),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(30.dp))
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = title,
                 fontSize = 16.sp,
@@ -55,9 +72,9 @@ fun TTEmptyState(
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = description,
-                fontSize = 13.sp,
+                fontSize = 14.sp,
                 fontFamily = FaiFontFamily,
-                color = FaiTextMuted,
+                color = FaiTextSecondary,
                 textAlign = TextAlign.Center
             )
             if (actionLabel != null && onAction != null) {
@@ -70,4 +87,24 @@ fun TTEmptyState(
             }
         }
     }
+}
+
+/** Error de carga: mensaje amable, ícono de conexión y botón "Reintentar". */
+@Composable
+fun TTErrorState(
+    message: String,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+    title: String = "No pudimos cargar la información"
+) {
+    TTEmptyState(
+        title = title,
+        description = message,
+        modifier = modifier,
+        icon = Icons.Outlined.CloudOff,
+        actionLabel = "Reintentar",
+        onAction = onRetry,
+        iconTint = FaiStatusNegativeText,
+        iconBackground = FaiStatusNegativeBg
+    )
 }

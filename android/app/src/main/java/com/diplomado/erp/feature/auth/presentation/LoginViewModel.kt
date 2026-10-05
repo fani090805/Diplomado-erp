@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.auth.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.network.client.RetrofitClient
@@ -49,7 +51,7 @@ class LoginViewModel : ViewModel() {
                     _uiState.value = LoginUiState.Error(errorMsg)
                 }
             } catch (e: Exception) {
-                _uiState.value = LoginUiState.Error(e.message ?: "Error de conexión con el servidor.")
+                _uiState.value = LoginUiState.Error(friendlyError(e, "Error de conexión con el servidor."))
             }
         }
     }
@@ -61,7 +63,7 @@ class LoginViewModel : ViewModel() {
                 val me = meRes.body()!!.data!!
                 TokenStorage.saveSessionInfo(
                     email = me.user.email,
-                    name = me.user.name,
+                    name = listOfNotNull(me.user.name, me.user.lastName).joinToString(" ").trim(),
                     roleLabel = me.role?.label ?: me.role?.code ?: "Usuario",
                     permissions = me.role?.permissions ?: emptyList(),
                     companyName = me.company?.name ?: "FAI Solution ERP",

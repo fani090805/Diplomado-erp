@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.hr.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +49,7 @@ class EmployeesViewModel : ViewModel() {
                     _uiState.value = EmployeesUiState.Error("No se pudo cargar el personal de obra.")
                 }
             } catch (e: Exception) {
-                _uiState.value = EmployeesUiState.Error(e.message ?: "Error de red al consultar personal.")
+                _uiState.value = EmployeesUiState.Error(friendlyError(e, "Error de red al consultar personal."))
             }
         }
     }
@@ -60,15 +62,18 @@ fun EmployeesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    TTRefreshable(
+        loading = uiState is EmployeesUiState.Loading,
+        onRefresh = { viewModel.loadEmployees() },
+        modifier = modifier.fillMaxSize().padding(16.dp)
+    ) {
         when (val state = uiState) {
             is EmployeesUiState.Loading -> TTLoading(text = "Cargando personal y cuadrillas de obra...")
             is EmployeesUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error de personal",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadEmployees() }
+                    message = state.message,
+                    onRetry = { viewModel.loadEmployees() }
                 )
             }
             is EmployeesUiState.Success -> {

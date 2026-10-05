@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.purchases.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.network.client.RetrofitClient
@@ -35,7 +37,7 @@ class PurchaseOrdersViewModel : ViewModel() {
                     _uiState.value = PurchaseOrdersUiState.Error(res.body()?.error?.message ?: "Error al cargar órdenes de compra.")
                 }
             } catch (e: Exception) {
-                _uiState.value = PurchaseOrdersUiState.Error(e.message ?: "Error de red.")
+                _uiState.value = PurchaseOrdersUiState.Error(friendlyError(e, "Error de red."))
             }
         }
     }
@@ -50,7 +52,7 @@ class PurchaseOrdersViewModel : ViewModel() {
                     _uiState.value = PurchaseOrdersUiState.Error(res.body()?.error?.message ?: "No se pudo aprobar la orden.")
                 }
             } catch (e: Exception) {
-                _uiState.value = PurchaseOrdersUiState.Error(e.message ?: "Error de conexión.")
+                _uiState.value = PurchaseOrdersUiState.Error(friendlyError(e, "Error de conexión."))
             }
         }
     }
@@ -65,7 +67,7 @@ class PurchaseOrdersViewModel : ViewModel() {
                     _uiState.value = PurchaseOrdersUiState.Error(res.body()?.error?.message ?: "No se pudo rechazar la orden.")
                 }
             } catch (e: Exception) {
-                _uiState.value = PurchaseOrdersUiState.Error(e.message ?: "Error de conexión.")
+                _uiState.value = PurchaseOrdersUiState.Error(friendlyError(e, "Error de conexión."))
             }
         }
     }

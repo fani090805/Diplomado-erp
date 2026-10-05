@@ -166,11 +166,16 @@ data class ProductionOrderDto(
 )
 
 // Auditoría
+/** Espejo de backend/src/modules/audit/audit.model.js (GET /audit). */
 data class AuditLogDto(
     @SerializedName("_id") val id: String,
-    @SerializedName("action") val action: String,
-    @SerializedName("entity") val entity: String,
-    @SerializedName("user") val user: UserDto? = null,
+    @SerializedName("module") val module: String? = null,
+    @SerializedName("action") val action: String? = null,
+    @SerializedName("resourceType") val resourceType: String? = null,
+    @SerializedName("resourceId") val resourceId: String? = null,
+    @SerializedName("userId") val userId: String? = null,
+    @SerializedName("userEmail") val userEmail: String? = null,
+    @SerializedName("result") val result: String? = null,
     @SerializedName("createdAt") val createdAt: String? = null
 )
 
@@ -219,4 +224,25 @@ data class CatalogKpisDto(
     @SerializedName("products") val products: Int = 0,
     @SerializedName("lowStock") val lowStock: Int = 0,
     @SerializedName("totalProducts") val totalProducts: Int = 0
+)
+
+// Reportes (GET /reports/sales|purchases|inventory|finance), igual que la web.
+data class MonthTotalDto(
+    @SerializedName("month") val month: String? = null,
+    @SerializedName("count") val count: Int = 0,
+    @SerializedName("total") val total: Double = 0.0
+)
+
+data class SeriesReportDto(
+    @SerializedName("byMonth") val byMonth: List<MonthTotalDto>? = null
+)
+
+data class InventoryReportDto(
+    @SerializedName("totalValue") val totalValue: Double? = null,
+    @SerializedName("totalQuantity") val totalQuantity: Double? = null,
+    @SerializedName("lowStock") val lowStock: Int? = null
+)
+
+data class FinanceReportDto(
+    @SerializedName("net") val net: Double? = null
 )

@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.inventory.products.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.network.client.RetrofitClient
@@ -46,7 +48,7 @@ class ProductsViewModel : ViewModel() {
                     _uiState.value = ProductsUiState.Error(res.body()?.error?.message ?: "Error al cargar productos.")
                 }
             } catch (e: Exception) {
-                _uiState.value = ProductsUiState.Error(e.message ?: "Error de red.")
+                _uiState.value = ProductsUiState.Error(friendlyError(e, "Error de red."))
             }
         }
     }

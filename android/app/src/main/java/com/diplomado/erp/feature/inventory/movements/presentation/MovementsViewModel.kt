@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.inventory.movements.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.network.client.RetrofitClient
@@ -37,7 +39,7 @@ class MovementsViewModel : ViewModel() {
                     _uiState.value = MovementsUiState.Error(res.body()?.error?.message ?: "Error al cargar movimientos.")
                 }
             } catch (e: Exception) {
-                _uiState.value = MovementsUiState.Error(e.message ?: "Error de red.")
+                _uiState.value = MovementsUiState.Error(friendlyError(e, "Error de red."))
             }
         }
     }

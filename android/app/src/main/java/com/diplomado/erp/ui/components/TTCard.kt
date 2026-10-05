@@ -1,5 +1,6 @@
 package com.diplomado.erp.ui.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -27,7 +28,8 @@ fun TTCard(
         border = BorderStroke(1.dp, FaiBorder),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        // animateContentSize: las tarjetas que se expanden lo hacen con suavidad.
+        Column(modifier = Modifier.animateContentSize().padding(16.dp)) {
             if (title != null) {
                 Text(
                     text = title,

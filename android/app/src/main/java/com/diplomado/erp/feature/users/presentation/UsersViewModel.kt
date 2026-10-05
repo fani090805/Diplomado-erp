@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.users.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.network.client.RetrofitClient
@@ -39,7 +41,7 @@ class UsersViewModel : ViewModel() {
                     _uiState.value = UsersUiState.Error("No se pudieron cargar los usuarios.")
                 }
             } catch (e: Exception) {
-                _uiState.value = UsersUiState.Error(e.message ?: "Error de red al consultar usuarios.")
+                _uiState.value = UsersUiState.Error(friendlyError(e, "Error de red al consultar usuarios."))
             }
         }
     }
@@ -62,7 +64,7 @@ class UsersViewModel : ViewModel() {
                     onComplete(false, res.body()?.error?.message ?: "Error al crear usuario.")
                 }
             } catch (e: Exception) {
-                onComplete(false, e.message ?: "Error de conexión.")
+                onComplete(false, friendlyError(e, "Error de conexión."))
             }
         }
     }
@@ -78,7 +80,7 @@ class UsersViewModel : ViewModel() {
                     onComplete(false, res.body()?.error?.message ?: "Error al eliminar usuario.")
                 }
             } catch (e: Exception) {
-                onComplete(false, e.message ?: "Error de conexión.")
+                onComplete(false, friendlyError(e, "Error de conexión."))
             }
         }
     }

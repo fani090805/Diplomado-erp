@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.finance.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.network.client.RetrofitClient
@@ -35,7 +37,7 @@ class AccountsViewModel : ViewModel() {
                     _uiState.value = AccountsUiState.Error(res.body()?.error?.message ?: "Error al cargar cuentas financieras.")
                 }
             } catch (e: Exception) {
-                _uiState.value = AccountsUiState.Error(e.message ?: "Error de red.")
+                _uiState.value = AccountsUiState.Error(friendlyError(e, "Error de red."))
             }
         }
     }

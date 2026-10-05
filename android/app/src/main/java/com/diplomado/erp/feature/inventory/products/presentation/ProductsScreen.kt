@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.inventory.products.presentation
 
+import com.diplomado.erp.core.common.formatMoney
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,15 +25,18 @@ fun ProductsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    TTRefreshable(
+        loading = uiState is ProductsUiState.Loading,
+        onRefresh = { viewModel.loadProducts() },
+        modifier = modifier.fillMaxSize().padding(16.dp)
+    ) {
         when (val state = uiState) {
             is ProductsUiState.Loading -> TTLoading(text = "Cargando catálogo de productos...")
             is ProductsUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error de materiales",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadProducts() }
+                    message = state.message,
+                    onRetry = { viewModel.loadProducts() }
                 )
             }
             is ProductsUiState.Success -> {
@@ -62,7 +67,7 @@ fun ProductsScreen(
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "SKU: ${material.sku} • Unidad: ${material.unit ?: "unidad"} • Costo: $${String.format("%.2f", material.costPrice ?: 0.0)}",
+                                    text = "SKU: ${material.sku} • Unidad: ${material.unit ?: "unidad"} • Costo: ${formatMoney(material.costPrice ?: 0.0)}",
                                     fontSize = 12.sp,
                                     color = FaiTextMuted
                                 )

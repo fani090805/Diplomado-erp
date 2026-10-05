@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.inventory.stock.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.network.client.RetrofitClient
@@ -35,7 +37,7 @@ class StockViewModel : ViewModel() {
                     _uiState.value = StockUiState.Error(res.body()?.error?.message ?: "Error al cargar existencias.")
                 }
             } catch (e: Exception) {
-                _uiState.value = StockUiState.Error(e.message ?: "Error de conexión.")
+                _uiState.value = StockUiState.Error(friendlyError(e, "Error de conexión."))
             }
         }
     }

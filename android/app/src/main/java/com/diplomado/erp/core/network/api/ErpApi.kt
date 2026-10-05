@@ -25,7 +25,31 @@ interface ErpApi {
 
     // Reports
     @GET("reports/kpis")
-    suspend fun getKpis(): Response<ApiResponse<KpisDataDto>>
+    suspend fun getKpis(
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null
+    ): Response<ApiResponse<KpisDataDto>>
+
+    @GET("reports/sales")
+    suspend fun getSalesReport(
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null
+    ): Response<ApiResponse<SeriesReportDto>>
+
+    @GET("reports/purchases")
+    suspend fun getPurchasesReport(
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null
+    ): Response<ApiResponse<SeriesReportDto>>
+
+    @GET("reports/inventory")
+    suspend fun getInventoryReport(): Response<ApiResponse<InventoryReportDto>>
+
+    @GET("reports/finance")
+    suspend fun getFinanceReport(
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null
+    ): Response<ApiResponse<FinanceReportDto>>
 
     // Products
     @GET("products")
@@ -171,7 +195,7 @@ interface ErpApi {
 
     // Users & Roles
     @GET("users")
-    suspend fun getUsers(): Response<ApiResponse<List<UserDto>>>
+    suspend fun getUsers(@Query("limit") limit: Int = 20): Response<ApiResponse<List<UserDto>>>
 
     @POST("users")
     suspend fun createUser(@Body user: Map<String, @JvmSuppressWildcards Any?>): Response<ApiResponse<UserDto>>
@@ -184,7 +208,10 @@ interface ErpApi {
 
     // Audit
     @GET("audit")
-    suspend fun getAuditLogs(@Query("limit") limit: Int = 20): Response<ApiResponse<List<AuditLogDto>>>
+    suspend fun getAuditLogs(
+        @Query("limit") limit: Int = 20,
+        @Query("result") result: String? = null
+    ): Response<ApiResponse<List<AuditLogDto>>>
 
     // Obras & Centros de Costo
     @GET("projects")

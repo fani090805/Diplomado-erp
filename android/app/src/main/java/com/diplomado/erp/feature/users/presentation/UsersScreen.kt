@@ -38,15 +38,18 @@ fun UsersScreen(
     var formError by remember { mutableStateOf<String?>(null) }
     var isSubmitting by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    TTRefreshable(
+        loading = uiState is UsersUiState.Loading,
+        onRefresh = { viewModel.loadUsers() },
+        modifier = modifier.fillMaxSize().padding(16.dp)
+    ) {
         when (val state = uiState) {
             is UsersUiState.Loading -> TTLoading(text = "Cargando usuarios...")
             is UsersUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error de usuarios",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadUsers() }
+                    message = state.message,
+                    onRetry = { viewModel.loadUsers() }
                 )
             }
             is UsersUiState.Success -> {

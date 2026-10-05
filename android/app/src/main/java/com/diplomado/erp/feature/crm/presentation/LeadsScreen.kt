@@ -1,5 +1,9 @@
 package com.diplomado.erp.feature.crm.presentation
 
+import com.diplomado.erp.core.common.formatMoney
+
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +51,7 @@ class LeadsViewModel : ViewModel() {
                     _uiState.value = LeadsUiState.Error("No se pudieron cargar los prospectos de obra.")
                 }
             } catch (e: Exception) {
-                _uiState.value = LeadsUiState.Error(e.message ?: "Error de red al consultar prospectos.")
+                _uiState.value = LeadsUiState.Error(friendlyError(e, "Error de red al consultar prospectos."))
             }
         }
     }
@@ -60,15 +64,18 @@ fun LeadsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize().padding(16.dp)) {
+    TTRefreshable(
+        loading = uiState is LeadsUiState.Loading,
+        onRefresh = { viewModel.loadLeads() },
+        modifier = modifier.fillMaxSize().padding(16.dp)
+    ) {
         when (val state = uiState) {
             is LeadsUiState.Loading -> TTLoading(text = "Cargando prospectos y proyectos comerciales...")
             is LeadsUiState.Error -> {
-                TTEmptyState(
+                TTErrorState(
                     title = "Error de prospectos",
-                    description = state.message,
-                    actionLabel = "Reintentar",
-                    onAction = { viewModel.loadLeads() }
+                    message = state.message,
+                    onRetry = { viewModel.loadLeads() }
                 )
             }
             is LeadsUiState.Success -> {
@@ -99,7 +106,7 @@ fun LeadsScreen(
                                 )
                                 if ((lead.expectedAmount ?: 0.0) > 0) {
                                     Text(
-                                        text = "Monto estimado: $${String.format("%.2f", lead.expectedAmount)}",
+                                        text = "Monto estimado: ${formatMoney(lead.expectedAmount)}",
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = FaiPrimary

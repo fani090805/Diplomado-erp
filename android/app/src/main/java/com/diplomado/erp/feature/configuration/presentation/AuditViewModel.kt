@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.configuration.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.network.client.RetrofitClient
@@ -28,14 +30,14 @@ class AuditViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = AuditUiState.Loading
             try {
-                val res = RetrofitClient.api.getAuditLogs(30)
+                val res = RetrofitClient.api.getAuditLogs(limit = 50, result = "SUCCESS")
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = AuditUiState.Success(res.body()!!.data!!)
                 } else {
                     _uiState.value = AuditUiState.Error(res.body()?.error?.message ?: "Error al cargar registros de auditoría.")
                 }
             } catch (e: Exception) {
-                _uiState.value = AuditUiState.Error(e.message ?: "Error de red.")
+                _uiState.value = AuditUiState.Error(friendlyError(e, "Error de red."))
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.projects.presentation
 
+import com.diplomado.erp.core.common.friendlyError
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.network.client.RetrofitClient
@@ -38,7 +40,7 @@ class ProjectDetailViewModel : ViewModel() {
                     _uiState.value = ProjectDetailUiState.Error("No se pudo obtener el detalle de la obra.")
                 }
             } catch (e: Exception) {
-                _uiState.value = ProjectDetailUiState.Error(e.message ?: "Error de red al consultar la obra.")
+                _uiState.value = ProjectDetailUiState.Error(friendlyError(e, "Error de red al consultar la obra."))
             }
         }
     }
