@@ -82,6 +82,29 @@ export const PLATFORM_CATEGORY = {
 
 const ALL_CATEGORIES = [PLATFORM_CATEGORY, ...MENU_CATEGORIES];
 
+const COLLAPSED_STORAGE_KEY = 'fai.menu.collapsed';
+
+/** Secciones del menú que el usuario colapsó (sólo web; sin storage => todas expandidas). */
+function loadCollapsedSections() {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return {};
+    const saved = JSON.parse(window.localStorage.getItem(COLLAPSED_STORAGE_KEY) || '[]');
+    return Array.isArray(saved) ? Object.fromEntries(saved.map((name) => [name, false])) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveCollapsedSections(expanded) {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    const collapsed = Object.keys(expanded).filter((name) => expanded[name] === false);
+    window.localStorage.setItem(COLLAPSED_STORAGE_KEY, JSON.stringify(collapsed));
+  } catch {
+    /* almacenamiento bloqueado: se conserva sólo en memoria */
+  }
+}
+
 export const MENU = MENU_CATEGORIES.map((cat) => ({
   section: cat.category,
   items: cat.items,
@@ -96,7 +119,8 @@ export default function Layout({ children }) {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState({});
+  // Todas expandidas por defecto; se recuerdan las que el usuario colapsó.
+  const [expandedCategories, setExpandedCategories] = useState(loadCollapsedSections);
   const drawerTranslateX = useRef(new Animated.Value(-288)).current;
 
   const { isMobile, isTablet } = getResponsiveLayout(width);
@@ -147,10 +171,11 @@ export default function Layout({ children }) {
   };
 
   const toggleCategory = (category) => {
-    setExpandedCategories((current) => ({
-      ...current,
-      [category]: current[category] === false,
-    }));
+    setExpandedCategories((current) => {
+      const next = { ...current, [category]: current[category] === false };
+      saveCollapsedSections(next);
+      return next;
+    });
   };
 
   const renderNavSection = (category) => {

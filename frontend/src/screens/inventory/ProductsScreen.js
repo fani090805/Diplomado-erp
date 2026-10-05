@@ -5,35 +5,9 @@ import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
-import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
+import ProductFormModal from '../../components/inventory/ProductFormModal';
 import { useList } from '../../hooks/useResource';
-
-const STATUS_OPTIONS = [
-  { value: 'active', label: 'Activo' },
-  { value: 'inactive', label: 'Inactivo' },
-];
-const TRACKING_OPTIONS = [
-  { value: 'none', label: 'Sin seguimiento' },
-  { value: 'lot', label: 'Por lote' },
-  { value: 'serial', label: 'Por serie' },
-];
-
-const FIELDS = [
-  { name: 'sku', label: 'SKU', required: true, placeholder: 'PROD-001' },
-  { name: 'name', label: 'Nombre', required: true },
-  { name: 'barcode', label: 'Código de barras' },
-  { name: 'category', label: 'Categoría' },
-  { name: 'unit', label: 'Unidad (ud, kg…)' },
-  { name: 'trackingMode', label: 'Trazabilidad', type: 'select', options: TRACKING_OPTIONS, defaultValue: 'none' },
-  { name: 'costPrice', label: 'Costo', type: 'number' },
-  { name: 'salePrice', label: 'Precio de venta', type: 'number' },
-  { name: 'taxRate', label: 'Impuesto (%)', type: 'number' },
-  { name: 'minStock', label: 'Stock mínimo', type: 'number' },
-  { name: 'maxStock', label: 'Stock máximo', type: 'number' },
-  { name: 'description', label: 'Descripción', type: 'textarea' },
-  { name: 'status', label: 'Estado', type: 'select', options: STATUS_OPTIONS, defaultValue: 'active' },
-];
 
 /** CRUD de productos (lectura, alta, edición y baja lógica por estado). */
 export default function ProductsScreen() {
@@ -43,13 +17,6 @@ export default function ProductsScreen() {
   const [editing, setEditing] = useState(null);
 
   const money = (n) => (n === null || n === undefined || n === '' ? '—' : `$${Number(n).toFixed(2)}`);
-
-  const submit = async (values) => {
-    if (editing && editing._id) await api(`/products/${editing._id}`, { method: 'PATCH', body: values });
-    else await api('/products', { method: 'POST', body: values });
-    setEditing(null);
-    list.reload();
-  };
 
   return (
     <>
@@ -97,12 +64,12 @@ export default function ProductsScreen() {
         ]}
       />
 
-      <FormModal
-        visible={Boolean(editing)}
-        title={editing && editing._id ? 'Editar producto' : 'Nuevo producto'}
-        fields={FIELDS}
-        initial={editing}
-        onSubmit={submit}
+      <ProductFormModal
+        product={editing}
+        onSaved={() => {
+          setEditing(null);
+          list.reload();
+        }}
         onCancel={() => setEditing(null)}
       />
       {confirmUI}

@@ -47,6 +47,8 @@ export function TTTable({
   createLabel = 'Nuevo',
   rowActions,
   emptyText = 'No hay datos registrados en este módulo.',
+  emptyTitle = 'Sin datos disponibles',
+  headerExtra = null,
   emptyIcon = 'carpetaVacia',
 }) {
   const [searchDraft, setSearchDraft] = useState(search);
@@ -87,6 +89,8 @@ export function TTTable({
               accessibilityLabel="Actualizar"
             />
           ) : null}
+
+          {headerExtra}
 
           {onCreate ? (
             <TTButton
@@ -132,7 +136,7 @@ export function TTTable({
             ) : rows.length === 0 ? (
               <TTEmptyState
                 icon={emptyIcon}
-                title="Sin datos disponibles"
+                title={emptyTitle}
                 description={error ? error : emptyText}
                 actionLabel={onCreate ? createLabel : undefined}
                 onAction={onCreate}

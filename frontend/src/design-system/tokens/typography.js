@@ -43,7 +43,8 @@ export const TYPOGRAPHY = {
   kpiValue: {
     fontSize: 30,
     fontWeight: '600',
-    lineHeight: 1.2,
+    // En React Native lineHeight es en píxeles (1.2 sería 1.2 px y el texto se encima).
+    lineHeight: 36,
     fontFamily: fontFamilyUI,
   },
   kpiLabel: {

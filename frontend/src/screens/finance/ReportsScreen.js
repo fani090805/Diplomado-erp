@@ -19,6 +19,7 @@ import {
 } from '../../design-system/tokens';
 import { TTButton, TTInput, TTStatCard } from '../../design-system/components';
 import { money } from '../../lib/format';
+import { endOfDayISO, startOfDayISO } from '../../lib/dateRange';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const currentYear = new Date().getFullYear();
@@ -111,9 +112,10 @@ export default function ReportsScreen() {
       if (/^\d{1,2}$/.test(month)) q.month = Number(month);
       return q;
     }
+    // Días completos en hora local: `to` incluye todo el día capturado.
     const q = {};
-    if (rangeOk(from) && from) q.from = from;
-    if (rangeOk(to) && to) q.to = to;
+    if (rangeOk(from) && from) q.from = startOfDayISO(from);
+    if (rangeOk(to) && to) q.to = endOfDayISO(to);
     return q;
   }, [tab, from, to, year, month]);
 
@@ -124,8 +126,8 @@ export default function ReportsScreen() {
     setExportError('');
     try {
       const parts = [];
-      if (rangeOk(from) && from) parts.push(`from=${from}`);
-      if (rangeOk(to) && to) parts.push(`to=${to}`);
+      if (rangeOk(from) && from) parts.push(`from=${encodeURIComponent(startOfDayISO(from))}`);
+      if (rangeOk(to) && to) parts.push(`to=${encodeURIComponent(endOfDayISO(to))}`);
       const qs = parts.length ? `?${parts.join('&')}` : '';
       const csv = await apiText(`/reports/finance/export${qs}`);
       if (Platform.OS === 'web') {

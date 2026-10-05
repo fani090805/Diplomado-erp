@@ -13,12 +13,12 @@ const kpis = asyncHandler(async (req, res) => {
 });
 
 const sales = asyncHandler(async (req, res) => {
-  const data = await reportService.salesReport(req.user.companyId, range(req));
+  const data = await reportService.salesReport(req.user.companyId, range(req), req.query.groupBy);
   return ok(res, data);
 });
 
 const purchases = asyncHandler(async (req, res) => {
-  const data = await reportService.purchasesReport(req.user.companyId, range(req));
+  const data = await reportService.purchasesReport(req.user.companyId, range(req), req.query.groupBy);
   return ok(res, data);
 });
 

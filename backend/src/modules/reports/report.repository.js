@@ -18,6 +18,12 @@ const FinanceAccount = require('../accounts/account.model');
  */
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 
+/** Zona horaria del negocio para agrupar series (México centro). */
+const REPORT_TIMEZONE = 'America/Mexico_City';
+
+/** Formato de la etiqueta de cada periodo: día, semana ISO (2026-W41) o mes. */
+const PERIOD_FORMATS = { day: '%Y-%m-%d', week: '%G-W%V', month: '%Y-%m' };
+
 /** Construye el filtro de fechas [{ $gte }, { $lte }] sobre `field`. */
 function dateRange(field, from, to) {
   const match = {};
@@ -91,6 +97,48 @@ const reportsRepository = {
       { $sort: { _id: 1 } },
     ]);
     return rows.map((r) => ({ month: r._id, count: r.count, total: Math.round(r.total * 100) / 100 }));
+  },
+
+  /**
+   * Serie de órdenes aprobadas agrupada por día, semana ISO (lunes a domingo)
+   * o mes, en la zona horaria de México. `start` es el inicio del periodo.
+   */
+  async ordersSeries(Model, companyId, { from, to } = {}, groupBy = 'month') {
+    const match = {
+      companyId: oid(companyId),
+      status: 'APPROVED',
+      ...dateRange('createdAt', from, to),
+    };
+    const rows = await Model.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: {
+            $dateTrunc: {
+              date: '$createdAt',
+              unit: groupBy,
+              timezone: REPORT_TIMEZONE,
+              startOfWeek: 'monday',
+            },
+          },
+          count: { $sum: 1 },
+          total: { $sum: '$total' },
+        },
+      },
+      { $sort: { _id: 1 } },
+      {
+        $project: {
+          _id: 0,
+          start: '$_id',
+          period: {
+            $dateToString: { format: PERIOD_FORMATS[groupBy], date: '$_id', timezone: REPORT_TIMEZONE },
+          },
+          count: 1,
+          total: 1,
+        },
+      },
+    ]);
+    return rows.map((r) => ({ ...r, total: Math.round(r.total * 100) / 100 }));
   },
 
   /** Suma/contador de ingresos o gastos (sólo POSTED) en un rango. */
@@ -209,6 +257,10 @@ reportsRepository.salesOrdersByMonth = (companyId, range) =>
   reportsRepository.ordersByMonth(SalesOrder, companyId, range);
 reportsRepository.purchaseOrdersByMonth = (companyId, range) =>
   reportsRepository.ordersByMonth(PurchaseOrder, companyId, range);
+reportsRepository.salesOrdersSeries = (companyId, range, groupBy) =>
+  reportsRepository.ordersSeries(SalesOrder, companyId, range, groupBy);
+reportsRepository.purchaseOrdersSeries = (companyId, range, groupBy) =>
+  reportsRepository.ordersSeries(PurchaseOrder, companyId, range, groupBy);
 reportsRepository.incomeTotal = (companyId, range) =>
   reportsRepository.movementsTotal(Income, companyId, range);
 reportsRepository.expenseTotal = (companyId, range) =>

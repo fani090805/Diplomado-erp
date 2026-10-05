@@ -2,11 +2,10 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS } from '../../design-system/tokens';
 import { TTIcon } from '../../design-system/components';
-import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/DataTable';
 import Dropdown from '../../components/Dropdown';
-import FormModal from '../../components/FormModal';
+import MovementFormModal from '../../components/inventory/MovementFormModal';
 import { useList, usePicklist } from '../../hooks/useResource';
 
 const TYPE_OPTIONS = [
@@ -48,48 +47,6 @@ export default function MovementsScreen() {
     if (v && typeof v === 'object') return v.name || v.sku || v.code || String(v._id);
     if (!v) return '—';
     return labels[v] || String(v);
-  };
-
-  const fields = useMemo(() => {
-    if (kind === 'TRANSFER') {
-      return [
-        { name: 'productId', label: 'Producto', type: 'select', options: products.options, required: true },
-        { name: 'fromWarehouseId', label: 'Almacén origen', type: 'select', options: warehouses.options, required: true },
-        { name: 'toWarehouseId', label: 'Almacén destino', type: 'select', options: warehouses.options, required: true },
-        { name: 'quantity', label: 'Cantidad', type: 'number', required: true },
-        { name: 'reason', label: 'Motivo' },
-        { name: 'reference', label: 'Referencia (documento)' },
-      ];
-    }
-    return [
-      { name: 'productId', label: 'Producto', type: 'select', options: products.options, required: true },
-      { name: 'warehouseId', label: 'Almacén', type: 'select', options: warehouses.options, required: true },
-      {
-        name: 'quantity',
-        label: kind === 'ADJUSTMENT' ? 'Cantidad final (recuento)' : 'Cantidad',
-        type: 'number',
-        required: true,
-      },
-      {
-        name: 'reason',
-        label: 'Motivo',
-        required: kind === 'ADJUSTMENT',
-        hint: kind === 'ADJUSTMENT' ? 'Obligatorio en ajustes.' : undefined,
-      },
-      { name: 'reference', label: 'Referencia (documento)' },
-    ];
-  }, [kind, products.options, warehouses.options]);
-
-  const submit = async (values) => {
-    const path = {
-      ENTRY: '/inventory/entries',
-      EXIT: '/inventory/exits',
-      ADJUSTMENT: '/inventory/adjustments',
-      TRANSFER: '/inventory/transfers',
-    }[kind];
-    await api(path, { method: 'POST', body: values });
-    setKind(null);
-    list.reload();
   };
 
   const dateOf = (v) => {
@@ -175,16 +132,14 @@ export default function MovementsScreen() {
         emptyText="Sin movimientos registrados."
       />
 
-      <FormModal
-        visible={Boolean(kind)}
-        title={
-          { ENTRY: 'Nueva entrada', EXIT: 'Nueva salida', ADJUSTMENT: 'Nuevo ajuste', TRANSFER: 'Nueva transferencia' }[
-            kind
-          ] || ''
-        }
-        fields={fields}
-        initial={null}
-        onSubmit={submit}
+      <MovementFormModal
+        kind={kind}
+        productOptions={products.options}
+        warehouseOptions={warehouses.options}
+        onSaved={() => {
+          setKind(null);
+          list.reload();
+        }}
         onCancel={() => setKind(null)}
       />
     </View>

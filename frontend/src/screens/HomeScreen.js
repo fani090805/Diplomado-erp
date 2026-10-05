@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
 import { TTIcon } from '../design-system/components';
 import { useNav } from '../nav/RouterContext';
+import { isoWeekKey, monthKey, startOfDaysAgoISO, startOfMonthISO } from '../lib/dateRange';
 
 const currency = new Intl.NumberFormat('es-MX', {
   style: 'currency',
@@ -13,22 +14,32 @@ const currency = new Intl.NumberFormat('es-MX', {
 });
 
 const monthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+/**
+ * Modos de la gráfica de ventas. Cada uno pide a la API una ventana y una
+ * agrupación (groupBy) reales: semanas ISO o meses, en hora de México.
+ */
 const RANGE_OPTIONS = {
-  mensual: { label: 'Mensual', days: 30 },
-  semanal: { label: 'Semanal', days: 7 },
-  anual: { label: 'Anual', days: 365 },
+  semanal: { label: 'Semanal', groupBy: 'week', periods: 8, from: () => startOfDaysAgoISO(7 * 7 + 6), caption: 'Últimas 8 semanas' },
+  mensual: { label: 'Mensual', groupBy: 'month', periods: 6, from: () => startOfMonthISO(5), caption: 'Últimos 6 meses' },
+  anual: { label: 'Anual', groupBy: 'month', periods: 12, from: () => startOfMonthISO(11), caption: 'Últimos 12 meses' },
 };
 
-function buildRangeQuery(mode = 'mensual') {
-  const cfg = RANGE_OPTIONS[mode] || RANGE_OPTIONS.mensual;
-  const end = new Date();
-  const start = new Date();
-  start.setDate(end.getDate() - cfg.days);
-  const pad = (value) => String(value).padStart(2, '0');
-  return {
-    from: `${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`,
-    to: `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}`,
-  };
+/**
+ * Completa los periodos sin ventas con total 0 (la API sólo devuelve periodos
+ * con movimientos) para que la gráfica no salte semanas o meses.
+ */
+function fillPeriods(series, cfg, now = new Date()) {
+  const byPeriod = new Map((series || []).map((item) => [item.period, item]));
+  const keys = [];
+  for (let ago = cfg.periods - 1; ago >= 0; ago -= 1) {
+    keys.push(
+      cfg.groupBy === 'week'
+        ? isoWeekKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - ago * 7))
+        : monthKey(ago, now)
+    );
+  }
+  return keys.map((key) => byPeriod.get(key) || { period: key, count: 0, total: 0 });
 }
 
 function formatMoney(value) {
@@ -36,12 +47,23 @@ function formatMoney(value) {
   return Number.isFinite(numeric) ? currency.format(numeric) : 'Sin datos aún';
 }
 
-function formatMonthLabel(value) {
-  if (!value) return 'Sin datos';
-  const [year, month] = String(value).split('-');
-  if (!year || !month) return value;
-  const monthIndex = Number(month) - 1;
-  return `${monthLabels[monthIndex] || month} ${year.slice(-2)}`;
+/** Etiqueta de un periodo de la API: "2026-10" → "Oct 26"; "2026-W41" → "Sem 41". */
+function formatPeriodLabel(item) {
+  const period = String(item?.period || item?.month || '');
+  const week = /^(\d{4})-W(\d{2})$/.exec(period);
+  if (week) return `Sem ${Number(week[2])}`;
+  const [year, month] = period.split('-');
+  if (!year || !month) return period || 'Sin datos';
+  return `${monthLabels[Number(month) - 1] || month} ${year.slice(-2)}`;
+}
+
+/** Detalle del tooltip: en semanas, la fecha del lunes con que inicia. */
+function formatPeriodDetail(item) {
+  if (/W\d{2}$/.test(String(item?.period || '')) && item?.start) {
+    const start = new Date(item.start);
+    return `Semana del ${start.getDate()} ${monthLabels[start.getMonth()]}`;
+  }
+  return formatPeriodLabel(item);
 }
 
 function safeNumber(value) {
@@ -49,11 +71,15 @@ function safeNumber(value) {
   return Number.isFinite(numeric) ? numeric : 0;
 }
 
-function computeTrend(values) {
-  if (!Array.isArray(values) || values.length < 2) return null;
-  const previous = safeNumber(values[values.length - 2]?.total ?? values[values.length - 2]?.amount ?? 0);
-  const current = safeNumber(values[values.length - 1]?.total ?? values[values.length - 1]?.amount ?? 0);
-  if (previous === 0) return null;
+/**
+ * % de cambio del mes en curso contra el mes anterior, buscando cada mes por
+ * su clave (sin suponer que la serie trae todos los meses). null si no hay base.
+ */
+function monthOverMonth(series) {
+  const totals = new Map((series || []).map((item) => [item.period || item.month, safeNumber(item.total)]));
+  const current = totals.get(monthKey(0)) ?? 0;
+  const previous = totals.get(monthKey(1));
+  if (!previous) return null;
   return Number((((current - previous) / previous) * 100).toFixed(1));
 }
 
@@ -65,18 +91,18 @@ function EmptyState({ label = 'Sin datos aún' }) {
   );
 }
 
-function TrendPill({ value, positive, compact = false }) {
+function TrendPill({ value, compact = false }) {
   const hasValue = value !== null && value !== undefined && Number.isFinite(Number(value));
   if (!hasValue) {
     return (
-      <View style={[styles.trendPill, styles.trendPillMuted]}>
-        <Text style={styles.trendPillTextMuted}>Sin datos</Text>
+      <View style={[styles.trendPill, styles.trendPillMuted, compact && styles.trendPillCompact]}>
+        <Text style={styles.trendPillTextMuted}>Sin comparativo</Text>
       </View>
     );
   }
 
   const delta = Math.abs(Number(value));
-  const direction = positive === undefined ? Number(value) >= 0 : Boolean(positive);
+  const direction = Number(value) >= 0;
 
   return (
     <View style={[styles.trendPill, direction ? styles.trendPillPositive : styles.trendPillNegative, compact && styles.trendPillCompact]}>
@@ -87,16 +113,14 @@ function TrendPill({ value, positive, compact = false }) {
           color={direction ? COLORS.success : COLORS.error}
         />
         <Text style={[styles.trendPillText, direction ? styles.trendPillTextPositive : styles.trendPillTextNegative]}>
-          {delta.toFixed(1)}%
+          {delta.toFixed(1)}% vs mes anterior
         </Text>
       </View>
     </View>
   );
 }
 
-function KPIStat({ label, value, trend, positive, detail, icon }) {
-  const hasValue = value !== null && value !== undefined && value !== 'Sin datos aún';
-
+function KPIStat({ label, value, trend, showTrend = false, detail, icon }) {
   return (
     <View style={styles.kpiCard}>
       <View style={styles.kpiHeader}>
@@ -106,13 +130,15 @@ function KPIStat({ label, value, trend, positive, detail, icon }) {
         </View>
       </View>
 
-      {hasValue ? (
+      {value !== null && value !== undefined ? (
         <>
           <Text style={styles.kpiValue}>{value}</Text>
           {detail ? <Text style={styles.kpiDetail}>{detail}</Text> : null}
-          <View style={styles.kpiTrendRow}>
-            <TrendPill value={trend} positive={positive} compact />
-          </View>
+          {showTrend ? (
+            <View style={styles.kpiTrendRow}>
+              <TrendPill value={trend} compact />
+            </View>
+          ) : null}
         </>
       ) : (
         <EmptyState />
@@ -121,57 +147,107 @@ function KPIStat({ label, value, trend, positive, detail, icon }) {
   );
 }
 
+/** Barras proporcionales con datos reales (sin valores de relleno). */
+function MiniBars({ items }) {
+  if (!items.length) return null;
+  const max = Math.max(...items.map((item) => item.value), 1);
+  return (
+    <View style={styles.miniChart}>
+      {items.map((item, index) => (
+        <View key={item.key} style={styles.miniBarWrap}>
+          <View
+            style={[
+              styles.miniBar,
+              index === items.length - 1 && styles.miniBarActive,
+              { height: `${Math.max((item.value / max) * 70, 4)}%` },
+            ]}
+          />
+          <Text style={styles.miniBarLabel}>{item.label}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function SecondaryCard({ title, value, detail, children }) {
+  return (
+    <View style={styles.secondaryCard}>
+      <Text style={styles.secondaryTitle}>{title}</Text>
+      <Text style={value ? styles.secondaryValue : styles.secondaryEmpty}>{value || 'Sin datos aún'}</Text>
+      {detail ? <Text style={styles.secondaryDetail}>{detail}</Text> : null}
+      {children}
+    </View>
+  );
+}
+
+/** Pide un reporte sólo si el usuario tiene permiso; un fallo deja el dato vacío. */
+function optionalReport(enabled, path, query) {
+  return enabled ? api(path, { query }).catch(() => null) : Promise.resolve(null);
+}
+
 export default function HomeScreen() {
-  const { can, session } = useAuth();
+  const { can } = useAuth();
   const { go } = useNav();
-  const { width } = useWindowDimensions();
-  const compact = width < 760;
 
   const [loading, setLoading] = useState(true);
-  const [reportData, setReportData] = useState({});
-  const [salesSeries, setSalesSeries] = useState([]);
-  const [purchasesSeries, setPurchasesSeries] = useState([]);
-  const [inventoryData, setInventoryData] = useState(null);
-  const [financeData, setFinanceData] = useState(null);
+  const [overview, setOverview] = useState({});
+  const [chartSeries, setChartSeries] = useState([]);
+  const [chartLoading, setChartLoading] = useState(true);
   const [activeBar, setActiveBar] = useState(null);
   const [rangeMode, setRangeMode] = useState('mensual');
 
+  const canReports = can('reports.read');
+
+  // Indicadores del mes en curso (hasta este momento, para incluir hoy) y su comparativo.
   useEffect(() => {
     let mounted = true;
-
     const load = async () => {
       setLoading(true);
-      try {
-        const rangeQuery = buildRangeQuery(rangeMode);
-        const [kpis, sales, purchases, inventory, finance] = await Promise.all([
-          can('reports.read') ? api('/reports/kpis', { query: rangeQuery }) : Promise.resolve(null),
-          can('sales.orders.read') ? api('/reports/sales', { query: rangeQuery }) : Promise.resolve(null),
-          can('purchases.read') ? api('/reports/purchases', { query: rangeQuery }) : Promise.resolve(null),
-          can('inventory.read') ? api('/reports/inventory') : Promise.resolve(null),
-          can('finance.accounts.read') ? api('/reports/finance', { query: rangeQuery }) : Promise.resolve(null),
-        ]);
-
-        if (!mounted) return;
-        setReportData(kpis || {});
-        setSalesSeries(Array.isArray(sales?.byMonth) ? sales.byMonth : []);
-        setPurchasesSeries(Array.isArray(purchases?.byMonth) ? purchases.byMonth : []);
-        setInventoryData(inventory || null);
-        setFinanceData(finance || null);
-      } catch (error) {
-        if (!mounted) return;
-        setReportData({});
-        setSalesSeries([]);
-        setPurchasesSeries([]);
-        setInventoryData(null);
-        setFinanceData(null);
-      } finally {
-        if (mounted) setLoading(false);
-      }
+      const now = new Date().toISOString();
+      const thisMonth = { from: startOfMonthISO(0), to: now };
+      const sixMonths = { from: startOfMonthISO(5), to: now, groupBy: 'month' };
+      const [kpis, sales, purchases, inventory, finance] = await Promise.all([
+        optionalReport(canReports, '/reports/kpis', thisMonth),
+        optionalReport(canReports && can('sales.orders.read'), '/reports/sales', sixMonths),
+        optionalReport(canReports && can('purchases.read'), '/reports/purchases', sixMonths),
+        optionalReport(canReports && can('inventory.read'), '/reports/inventory'),
+        optionalReport(canReports && can('finance.accounts.read'), '/reports/finance', thisMonth),
+      ]);
+      if (!mounted) return;
+      setOverview({
+        kpis,
+        salesMonthly: sales?.series || [],
+        purchasesMonthly: purchases?.series || [],
+        inventory,
+        finance,
+      });
+      setLoading(false);
     };
-
     load();
-    return () => { mounted = false; };
-  }, [can, rangeMode]);
+    return () => {
+      mounted = false;
+    };
+  }, [can, canReports]);
+
+  // Serie de la gráfica según el modo (semanas ISO o meses).
+  useEffect(() => {
+    let mounted = true;
+    const cfg = RANGE_OPTIONS[rangeMode];
+    setChartLoading(true);
+    setActiveBar(null);
+    optionalReport(canReports && can('sales.orders.read'), '/reports/sales', {
+      from: cfg.from(),
+      to: new Date().toISOString(),
+      groupBy: cfg.groupBy,
+    }).then((sales) => {
+      if (!mounted) return;
+      setChartSeries(sales?.series?.length ? fillPeriods(sales.series, cfg) : []);
+      setChartLoading(false);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [can, canReports, rangeMode]);
 
   const quickActions = useMemo(() => {
     const actions = [];
@@ -182,30 +258,33 @@ export default function HomeScreen() {
     return actions.slice(0, 4);
   }, [can]);
 
-  const salesTotal = reportData?.sales?.total;
-  const purchasesTotal = reportData?.purchases?.total;
-  const netTotal = reportData?.net;
-  const inventoryValue = inventoryData?.totalValue;
-  const financeNet = financeData?.net;
-  const salesTrend = computeTrend(salesSeries);
-  const purchasesTrend = computeTrend(purchasesSeries);
+  const { kpis, salesMonthly = [], purchasesMonthly = [], inventory, finance } = overview;
+  const salesTrend = monthOverMonth(salesMonthly);
+  const purchasesTrend = monthOverMonth(purchasesMonthly);
 
   const barValues = useMemo(() => {
-    const data = [...salesSeries].slice(-6);
-    if (!data.length) return [];
-    const max = Math.max(...data.map((item) => safeNumber(item.total || item.amount)), 1);
-    return data.map((item) => ({
-      label: formatMonthLabel(item.month),
-      value: safeNumber(item.total || item.amount),
-      height: Math.max((safeNumber(item.total || item.amount) / max) * 100, 10),
+    const max = Math.max(...chartSeries.map((item) => safeNumber(item.total)), 1);
+    return chartSeries.map((item) => ({
+      label: formatPeriodLabel(item),
+      detail: formatPeriodDetail(item),
+      value: safeNumber(item.total),
+      height: Math.max((safeNumber(item.total) / max) * 100, 4),
     }));
-  }, [salesSeries]);
+  }, [chartSeries]);
+  const chartTotal = chartSeries.reduce((sum, item) => sum + safeNumber(item.total), 0);
 
-  const salesDisplay = salesTotal != null ? formatMoney(salesTotal) : 'Sin datos aún';
-  const purchasesDisplay = purchasesTotal != null ? formatMoney(purchasesTotal) : 'Sin datos aún';
-  const netDisplay = netTotal != null ? formatMoney(netTotal) : 'Sin datos aún';
+  // Últimos 3 meses calendario (incluido el actual) a partir de la serie mensual real.
+  const quarter = useMemo(() => {
+    const totals = new Map(salesMonthly.map((item) => [item.period, safeNumber(item.total)]));
+    return [2, 1, 0].map((ago) => {
+      const key = monthKey(ago);
+      return { key, label: formatPeriodLabel({ period: key }), value: totals.get(key) ?? 0 };
+    });
+  }, [salesMonthly]);
+  const quarterTotal = quarter.reduce((sum, item) => sum + item.value, 0);
+  const hasQuarterData = salesMonthly.length > 0;
 
-  const noSalesData = !barValues.length;
+  const rangeCfg = RANGE_OPTIONS[rangeMode];
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
@@ -230,31 +309,31 @@ export default function HomeScreen() {
 
       {loading ? (
         <View style={styles.loadingCard}><Text style={styles.loadingText}>Cargando dashboard…</Text></View>
+      ) : !canReports ? (
+        <EmptyState label="Tu rol no tiene acceso a los reportes de la empresa." />
       ) : (
         <>
           <View style={styles.kpiGrid}>
             <KPIStat
               label="Ventas del mes"
-              value={salesDisplay}
+              value={kpis?.sales ? formatMoney(kpis.sales.total) : null}
               trend={salesTrend}
-              positive={salesTrend !== null ? salesTrend >= 0 : true}
-              detail={salesTotal != null ? 'Ventas aprobadas' : 'Sin ventas registradas'}
+              showTrend
+              detail={kpis?.sales ? `${kpis.sales.count} ${kpis.sales.count === 1 ? 'venta aprobada' : 'ventas aprobadas'}` : null}
               icon="ventas"
             />
             <KPIStat
               label="Compras del mes"
-              value={purchasesDisplay}
+              value={kpis?.purchases ? formatMoney(kpis.purchases.total) : null}
               trend={purchasesTrend}
-              positive={purchasesTrend !== null ? purchasesTrend >= 0 : true}
-              detail={purchasesTotal != null ? 'Compras en operación' : 'Sin compras registradas'}
+              showTrend
+              detail={kpis?.purchases ? `${kpis.purchases.count} ${kpis.purchases.count === 1 ? 'orden aprobada' : 'órdenes aprobadas'}` : null}
               icon="compras"
             />
             <KPIStat
-              label="Neto"
-              value={netDisplay}
-              trend={netTotal != null ? 0 : null}
-              positive={true}
-              detail={financeNet != null ? 'Resultado financiero' : 'Sin datos de finanzas'}
+              label="Neto del mes"
+              value={kpis && kpis.net !== undefined ? formatMoney(kpis.net) : null}
+              detail="Ingresos menos gastos registrados"
               icon="dinero"
             />
           </View>
@@ -263,7 +342,7 @@ export default function HomeScreen() {
             <View style={styles.cardHeaderRow}>
               <View>
                 <Text style={styles.cardLabel}>Desempeño de ventas</Text>
-                <Text style={styles.cardSubtitle}>Datos reales del reporte de ventas</Text>
+                <Text style={styles.cardSubtitle}>{rangeCfg.caption} · ventas aprobadas</Text>
               </View>
 
               <View style={styles.segmentedControl}>
@@ -271,6 +350,8 @@ export default function HomeScreen() {
                   <Pressable
                     key={key}
                     onPress={() => setRangeMode(key)}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: rangeMode === key }}
                     style={[styles.segmentedOption, rangeMode === key && styles.segmentedOptionActive]}
                   >
                     <Text style={[styles.segmentedText, rangeMode === key && styles.segmentedTextActive]}>{option.label}</Text>
@@ -281,97 +362,81 @@ export default function HomeScreen() {
 
             <View style={styles.salesSummaryRow}>
               <View>
-                <Text style={styles.salesTotalValue}>{salesTotal != null ? formatMoney(salesTotal) : 'Sin datos aún'}</Text>
-                <Text style={styles.salesMetaText}>{salesTotal != null ? 'Total aprobado' : 'Sin ventas registradas'}</Text>
+                <Text style={styles.salesTotalValue}>{chartSeries.length ? formatMoney(chartTotal) : 'Sin datos aún'}</Text>
+                <Text style={styles.salesMetaText}>
+                  {chartSeries.length ? `Total del periodo · ${rangeCfg.caption.toLowerCase()}` : 'Sin ventas aprobadas en el periodo'}
+                </Text>
               </View>
-              <TrendPill value={salesTrend} positive={salesTrend !== null ? salesTrend >= 0 : true} />
             </View>
 
             <View style={styles.chartWrap}>
-              {noSalesData ? (
+              {chartLoading ? (
+                <EmptyState label="Cargando serie…" />
+              ) : !barValues.length ? (
                 <EmptyState label="Sin datos aún" />
               ) : (
-                <>
-                  <View style={styles.chartBars}>
-                    {barValues.map((bar, index) => (
-                      <View key={`${bar.label}-${index}`} style={styles.barColumnWrap}>
-                        <Pressable
-                          onPress={() => setActiveBar(index === activeBar ? null : index)}
-                          onHoverIn={() => setActiveBar(index)}
-                          onHoverOut={() => setActiveBar(null)}
-                          style={styles.barButton}
-                        >
-                          <View
-                            style={[
-                              styles.barFill,
-                              index === barValues.length - 1 && styles.barFillLast,
-                              { height: `${bar.height}%` },
-                            ]}
-                          />
-                        </Pressable>
+                <View style={styles.chartBars}>
+                  {barValues.map((bar, index) => (
+                    <View key={`${bar.label}-${index}`} style={styles.barColumnWrap}>
+                      <Pressable
+                        onPress={() => setActiveBar(index === activeBar ? null : index)}
+                        onHoverIn={() => setActiveBar(index)}
+                        onHoverOut={() => setActiveBar(null)}
+                        style={styles.barButton}
+                        accessibilityLabel={`${bar.detail}: ${formatMoney(bar.value)}`}
+                      >
+                        <View
+                          style={[
+                            styles.barFill,
+                            (activeBar === index || (activeBar === null && index === barValues.length - 1)) && styles.barFillLast,
+                            { height: `${bar.height}%` },
+                          ]}
+                        />
+                      </Pressable>
 
-                        {activeBar === index ? (
-                          <View style={styles.tooltip}>
-                            <Text style={styles.tooltipText}>{bar.label}</Text>
-                            <Text style={styles.tooltipValue}>{formatMoney(bar.value)}</Text>
-                          </View>
-                        ) : null}
+                      {activeBar === index ? (
+                        <View style={styles.tooltip}>
+                          <Text style={styles.tooltipText}>{bar.detail}</Text>
+                          <Text style={styles.tooltipValue}>{formatMoney(bar.value)}</Text>
+                        </View>
+                      ) : null}
 
-                        <Text style={styles.barLabel}>{bar.label}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </>
+                      <Text style={styles.barLabel}>{bar.label}</Text>
+                    </View>
+                  ))}
+                </View>
               )}
             </View>
           </View>
 
           <View style={styles.secondaryGrid}>
-            <View style={styles.secondaryCard}>
-              <Text style={styles.secondaryTitle}>Trimestral</Text>
-              <Text style={styles.secondaryValue}>{salesSeries.length ? formatMoney(salesSeries.slice(-3).reduce((sum, item) => sum + safeNumber(item.total || item.amount), 0)) : 'Sin datos aún'}</Text>
-              <View style={styles.secondaryMetaRow}>
-                <TrendPill value={salesTrend} positive={salesTrend !== null ? salesTrend >= 0 : true} compact />
-              </View>
-              <View style={styles.miniChart}>
-                {[18, 26, 34, 40, 52, 49].map((value, index) => (
-                  <View
-                    key={index}
-                    style={[
-                      styles.miniBar,
-                      index === 5 && styles.miniBarActive,
-                      { height: `${value}%` },
-                    ]}
-                  />
-                ))}
-              </View>
-            </View>
+            <SecondaryCard
+              title="Trimestral"
+              value={hasQuarterData ? formatMoney(quarterTotal) : null}
+              detail={hasQuarterData ? 'Ventas aprobadas de los últimos 3 meses' : null}
+            >
+              {hasQuarterData ? <MiniBars items={quarter} /> : null}
+            </SecondaryCard>
 
-            <View style={styles.secondaryCard}>
-              <Text style={styles.secondaryTitle}>Inventario</Text>
-              <Text style={styles.secondaryValue}>{inventoryValue != null ? formatMoney(inventoryValue) : 'Sin datos aún'}</Text>
-              <View style={styles.secondaryMetaRow}>
-                <TrendPill value={null} positive />
-              </View>
-              <View style={styles.miniChart}>
-                {[15, 22, 16, 30, 27, 36].map((value, index) => (
-                  <View key={index} style={[styles.miniBar, { height: `${value}%` }]} />
-                ))}
-              </View>
-            </View>
+            <SecondaryCard
+              title="Inventario"
+              value={inventory ? formatMoney(inventory.totalValue) : null}
+              detail={
+                inventory
+                  ? `${safeNumber(inventory.totalQuantity)} unidades · ${safeNumber(inventory.lowStock)} con stock bajo`
+                  : null
+              }
+            />
 
-            <View style={styles.secondaryCard}>
-              <Text style={styles.secondaryTitle}>Finanzas</Text>
-              <Text style={styles.secondaryValue}>{financeNet != null ? formatMoney(financeNet) : 'Sin datos aún'}</Text>
-              <View style={styles.secondaryMetaRow}>
-                <TrendPill value={null} positive />
-              </View>
-              <View style={styles.miniChart}>
-                {[12, 25, 18, 32, 30, 46].map((value, index) => (
-                  <View key={index} style={[styles.miniLineTrack, { width: `${value}%` }]} />
-                ))}
-              </View>
-            </View>
+            <SecondaryCard
+              title="Finanzas del mes"
+              value={finance ? formatMoney(finance.net) : null}
+              detail={
+                finance
+                  ? `Ingresos ${formatMoney(finance.income?.total)} · Gastos ${formatMoney(finance.expense?.total)}`
+                  : null
+              }
+            />
           </View>
         </>
       )}
@@ -705,6 +770,7 @@ const styles = StyleSheet.create({
   },
   barFillLast: {
     backgroundColor: COLORS.primary,
+    opacity: 1,
   },
   tooltip: {
     position: 'absolute',
@@ -782,24 +848,43 @@ const styles = StyleSheet.create({
   },
   miniChart: {
     marginTop: 14,
-    height: 44,
+    height: 64,
     flexDirection: 'row',
     alignItems: 'flex-end',
     gap: 5,
   },
-  miniBar: {
+  miniBarWrap: {
     flex: 1,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 4,
+  },
+  miniBar: {
+    width: '100%',
     borderRadius: 999,
     backgroundColor: COLORS.primaryGlow,
   },
+  miniBarLabel: {
+    color: COLORS.textMuted,
+    fontSize: 9,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+  },
+  secondaryEmpty: {
+    color: COLORS.textMuted,
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 8,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+  },
+  secondaryDetail: {
+    color: COLORS.textMuted,
+    fontSize: 11,
+    marginTop: 6,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+  },
   miniBarActive: {
     backgroundColor: COLORS.primary,
-  },
-  miniLineTrack: {
-    height: 6,
-    borderRadius: 999,
-    backgroundColor: COLORS.primary,
-    opacity: 0.8,
   },
   emptyState: {
     minHeight: 80,

@@ -16,6 +16,22 @@ const rangeQuery = z
     message: 'El rango de fechas es inválido: from debe ser anterior o igual a to.',
   });
 
+/** Series de ventas/compras: rango + agrupación (día, semana ISO o mes). */
+const seriesQuery = z
+  .object({
+    from: z.coerce.date().optional(),
+    to: z.coerce.date().optional(),
+    groupBy: z
+      .enum(['day', 'week', 'month'], {
+        errorMap: () => ({ message: 'groupBy debe ser day, week o month.' }),
+      })
+      .default('month'),
+  })
+  .strict()
+  .refine((q) => !q.from || !q.to || q.from <= q.to, {
+    message: 'El rango de fechas es inválido: from debe ser anterior o igual a to.',
+  });
+
 const financeQuery = z
   .object({
     year: z.coerce.number().int().min(2000).max(2100).optional(),
@@ -35,4 +51,4 @@ const budgetsQuery = z
   })
   .strict();
 
-module.exports = { rangeQuery, financeQuery, budgetsQuery };
+module.exports = { rangeQuery, seriesQuery, financeQuery, budgetsQuery };

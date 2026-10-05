@@ -54,22 +54,27 @@ const reportService = {
     };
   },
 
-  /** Ventas: totales por estado y serie mensual de aprobadas. */
-  async salesReport(companyId, range) {
-    const [byStatus, byMonth] = await Promise.all([
+  /**
+   * Ventas: totales por estado, serie mensual (byMonth, compatibilidad) y
+   * `series` agrupada por día / semana ISO / mes en hora de México.
+   */
+  async salesReport(companyId, range, groupBy = 'month') {
+    const [byStatus, byMonth, series] = await Promise.all([
       reportsRepository.salesOrdersSummary(companyId, range),
       reportsRepository.salesOrdersByMonth(companyId, range),
+      reportsRepository.salesOrdersSeries(companyId, range, groupBy),
     ]);
-    return { period: { from: range.from || null, to: range.to || null }, byStatus, byMonth };
+    return { period: { from: range.from || null, to: range.to || null }, byStatus, byMonth, groupBy, series };
   },
 
-  /** Compras: totales por estado y serie mensual de aprobadas. */
-  async purchasesReport(companyId, range) {
-    const [byStatus, byMonth] = await Promise.all([
+  /** Compras: igual que ventas (byMonth + series agrupada). */
+  async purchasesReport(companyId, range, groupBy = 'month') {
+    const [byStatus, byMonth, series] = await Promise.all([
       reportsRepository.purchaseOrdersSummary(companyId, range),
       reportsRepository.purchaseOrdersByMonth(companyId, range),
+      reportsRepository.purchaseOrdersSeries(companyId, range, groupBy),
     ]);
-    return { period: { from: range.from || null, to: range.to || null }, byStatus, byMonth };
+    return { period: { from: range.from || null, to: range.to || null }, byStatus, byMonth, groupBy, series };
   },
 
   /** Inventario valorizado a costo (existencia total por producto). */

@@ -68,7 +68,23 @@ export function useList(path, query = {}) {
   };
 }
 
-const defaultLabel = (r) => r.name || r.sku || r.code || r.email || r.documentId || String(r._id);
+/**
+ * Descarga todas las páginas de un listado (de 100 en 100, tope `maxPages`).
+ * Para pantallas que necesitan totales o cruces que la API no pagina por ellas.
+ */
+export async function fetchAll(path, query = {}, { maxPages = 20 } = {}) {
+  const items = [];
+  for (let page = 1; page <= maxPages; page += 1) {
+    const res = await api(path, { query: { ...query, page, limit: 100 }, withMeta: true });
+    const data = Array.isArray(res.data) ? res.data : [];
+    items.push(...data);
+    const total = res.meta?.total ?? items.length;
+    if (data.length === 0 || items.length >= total) break;
+  }
+  return items;
+}
+
+const defaultLabel =(r) => r.name || r.sku || r.code || r.email || r.documentId || String(r._id);
 
 /** Catálogo para selects: se carga una vez por recurso. */
 export function usePicklist(path, labelOf = defaultLabel) {

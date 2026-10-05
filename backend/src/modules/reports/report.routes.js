@@ -26,7 +26,7 @@ router.get(
   authenticate,
   requireTenant,
   authorize('reports.read'),
-  validate({ query: schemas.rangeQuery }),
+  validate({ query: schemas.seriesQuery }),
   controller.sales
 );
 
@@ -35,7 +35,7 @@ router.get(
   authenticate,
   requireTenant,
   authorize('reports.read'),
-  validate({ query: schemas.rangeQuery }),
+  validate({ query: schemas.seriesQuery }),
   controller.purchases
 );
 
