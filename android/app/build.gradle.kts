@@ -21,16 +21,16 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "API_BASE_URL", "\"https://diplomado-cte0.onrender.com/api/v1/\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://diplomado-erp-d6su.onrender.com/api/v1/\"")
     }
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"https://diplomado-cte0.onrender.com/api/v1/\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://diplomado-erp-d6su.onrender.com/api/v1/\"")
             isMinifyEnabled = false
         }
         release {
-            buildConfigField("String", "API_BASE_URL", "\"https://api.tectode.app/api/v1/\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://diplomado-erp-d6su.onrender.com/api/v1/\"")
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

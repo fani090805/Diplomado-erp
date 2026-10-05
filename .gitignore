@@ -27,7 +27,12 @@ coverage/
 Thumbs.db
 
 # Native
-mobile-native/android/.gradle/
-mobile-native/android/app/build/
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/.kotlin/
+*.iml
 *.apk
 *.aab
