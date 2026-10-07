@@ -11,6 +11,7 @@ import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { dateOf, invert, labelFor } from '../../lib/format';
 import { useList, usePicklist } from '../../hooks/useResource';
+import { useUrlState } from '../../nav/urlState';
 
 const STATUS_OPTIONS = [
   { value: 'DRAFT', label: 'Borrador' },
@@ -30,7 +31,7 @@ export default function ProductionOrdersScreen() {
   const warehouses = usePicklist('/warehouses', (r) => r.name || r.code || String(r._id));
   const products = usePicklist('/products', (r) => r.name || r.sku || String(r._id));
 
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useUrlState('status', '', ['', 'DRAFT', 'RELEASED', 'DONE', 'CANCELLED']);
   const query = useMemo(() => (statusFilter ? { status: statusFilter } : {}), [statusFilter]);
   const list = useList('/production/orders', query);
 

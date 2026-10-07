@@ -10,6 +10,7 @@ import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { money } from '../../lib/format';
 import { useList, usePicklist } from '../../hooks/useResource';
+import { useUrlState } from '../../nav/urlState';
 
 const STATUS_LABEL = { NEW: 'Nuevo', CONTACTED: 'Contactado', QUALIFIED: 'Calificado', WON: 'Ganado', LOST: 'Perdido' };
 const TERMINAL = ['WON', 'LOST'];
@@ -32,7 +33,7 @@ export default function LeadsScreen() {
   const { can } = useAuth();
   const users = usePicklist('/users', (r) => `${r.name || ''} ${r.lastName || ''}`.trim() || r.email || String(r._id));
 
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useUrlState('status', '', ['', 'NEW', 'CONTACTED', 'QUALIFIED', 'WON', 'LOST']);
   const query = useMemo(() => (statusFilter ? { status: statusFilter } : {}), [statusFilter]);
   const list = useList('/crm/leads', query);
   const [confirmUI, confirm] = useConfirm();

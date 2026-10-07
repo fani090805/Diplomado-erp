@@ -9,6 +9,7 @@ import Dropdown from '../../components/Dropdown';
 import StatusBadge from '../../components/StatusBadge';
 import { dateOf } from '../../lib/format';
 import { useList } from '../../hooks/useResource';
+import { useUrlState } from '../../nav/urlState';
 
 const RESULT_OPTIONS = [
   { value: 'SUCCESS', label: 'Éxito' },
@@ -20,8 +21,8 @@ const RESULT_OPTIONS = [
  * El detalle (before/after) se carga con GET /audit/:id bajo demanda.
  */
 export default function AuditScreen() {
-  const [moduleF, setModuleF] = useState('');
-  const [resultF, setResultF] = useState('');
+  const [moduleF, setModuleF] = useUrlState('module', '');
+  const [resultF, setResultF] = useUrlState('result', '', ['', 'SUCCESS', 'FAILURE']);
 
   const query = useMemo(() => {
     const q = {};

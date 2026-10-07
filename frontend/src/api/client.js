@@ -17,10 +17,33 @@ let accessToken = null;
 let refreshToken = null;
 let onSessionExpired = null;
 let refreshPromise = null;
+const SESSION_KEY = 'fai.session.v1';
+
+function saveTokens() {
+  if (typeof window === 'undefined') return;
+  try {
+    if (!window.localStorage) return;
+    if (accessToken && refreshToken) window.localStorage.setItem(SESSION_KEY, JSON.stringify({ accessToken, refreshToken }));
+    else window.localStorage.removeItem(SESSION_KEY);
+  } catch { /* almacenamiento no disponible */ }
+}
+
+export function restoreTokens() {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (!window.localStorage) return false;
+    const saved = JSON.parse(window.localStorage.getItem(SESSION_KEY) || 'null');
+    if (!saved?.accessToken || !saved?.refreshToken) return false;
+    accessToken = saved.accessToken;
+    refreshToken = saved.refreshToken;
+    return true;
+  } catch { return false; }
+}
 
 export function setTokens({ access = null, refresh = null } = {}) {
   accessToken = access;
   refreshToken = refresh;
+  saveTokens();
 }
 
 export function getAccessToken() {

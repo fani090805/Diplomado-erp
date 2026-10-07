@@ -16,6 +16,7 @@ import FormModal from '../../components/FormModal';
 import { useList } from '../../hooks/useResource';
 import { dateOf } from '../../lib/format';
 import { INDUSTRY_LABELS, INDUSTRY_OPTIONS } from '../../lib/companyRequest';
+import { useUrlState } from '../../nav/urlState';
 
 const PENDING_QUERY = { status: 'pending' };
 const REJECTED_QUERY = { status: 'rejected' };
@@ -71,7 +72,7 @@ export default function CompaniesScreen() {
   const pendingList = useList('/platform/company-requests', PENDING_QUERY);
   const companiesList = useList('/platform/companies');
   const rejectedList = useList('/platform/company-requests', REJECTED_QUERY);
-  const [activeTab, setActiveTab] = useState('requests');
+  const [activeTab, setActiveTab] = useUrlState('tab', 'requests', ['requests', 'companies', 'rejected']);
   const [dialog, setDialog] = useState(null);
   const [notice, setNotice] = useState(null);
   const [rejecting, setRejecting] = useState(null);

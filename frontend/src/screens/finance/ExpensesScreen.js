@@ -9,6 +9,7 @@ import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { dateOf, invert, labelFor, money } from '../../lib/format';
 import { useList, usePicklist } from '../../hooks/useResource';
+import { useUrlState } from '../../nav/urlState';
 
 const METHOD_OPTIONS = [
   { value: 'cash', label: 'Efectivo' },
@@ -35,7 +36,7 @@ export default function ExpensesScreen() {
   const accounts = usePicklist('/finance/accounts', (r) => r.name || r.code || String(r._id));
   const suppliers = usePicklist('/suppliers', (r) => r.name || r.code || String(r._id));
 
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useUrlState('status', '', ['', 'POSTED', 'VOID']);
   const query = useMemo(() => (statusFilter ? { status: statusFilter } : {}), [statusFilter]);
   const list = useList('/finance/expenses', query);
 

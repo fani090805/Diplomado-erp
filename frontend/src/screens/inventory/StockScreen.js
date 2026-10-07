@@ -9,6 +9,7 @@ import MovementFormModal from '../../components/inventory/MovementFormModal';
 import ProductFormModal from '../../components/inventory/ProductFormModal';
 import { fetchAll, usePicklist } from '../../hooks/useResource';
 import { money } from '../../lib/format';
+import { useUrlState } from '../../nav/urlState';
 
 const PAGE_SIZE = 20;
 
@@ -28,9 +29,9 @@ export default function StockScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
-  const [productId, setProductId] = useState('');
-  const [warehouseId, setWarehouseId] = useState('');
-  const [page, setPage] = useState(1);
+  const [productId, setProductId] = useUrlState('product', '');
+  const [warehouseId, setWarehouseId] = useUrlState('warehouse', '');
+  const [page, setPage] = useUrlState('page', 1);
 
   const [newProduct, setNewProduct] = useState(null);
   const [askInitialStock, setAskInitialStock] = useState(null); // producto recién creado

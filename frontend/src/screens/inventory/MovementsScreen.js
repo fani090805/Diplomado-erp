@@ -7,6 +7,7 @@ import DataTable from '../../components/DataTable';
 import Dropdown from '../../components/Dropdown';
 import MovementFormModal from '../../components/inventory/MovementFormModal';
 import { useList, usePicklist } from '../../hooks/useResource';
+import { useUrlState } from '../../nav/urlState';
 
 const TYPE_OPTIONS = [
   { value: 'ENTRY', label: 'Entrada' },
@@ -27,7 +28,7 @@ export default function MovementsScreen() {
   const warehouses = usePicklist('/warehouses', (r) => r.name || r.code || String(r._id));
 
   const [kind, setKind] = useState(null); // null | ENTRY | EXIT | ADJUSTMENT | TRANSFER
-  const [typeFilter, setTypeFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useUrlState('type', '', ['', 'ENTRY', 'EXIT', 'ADJUSTMENT', 'TRANSFER']);
 
   const query = useMemo(() => (typeFilter ? { type: typeFilter } : {}), [typeFilter]);
   const list = useList('/inventory/movements', query);

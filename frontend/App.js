@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from './src/auth/AuthContext';
-import { RouterProvider, useNav } from './src/nav/RouterContext';
+import { isKnownLocation, RouterProvider, useNav } from './src/nav/RouterContext';
 import Layout from './src/components/Layout';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -11,17 +11,32 @@ import ResetPasswordScreen from './src/screens/ResetPasswordScreen';
 import LandingScreen from './src/screens/public/LandingScreen';
 import { PLATFORM_ROUTES, SCREENS } from './src/screens';
 import { COLORS } from './src/design-system/tokens';
+import { TTButton } from './src/design-system/components';
 import { warmUp } from './src/api/client';
 
 /**
  * Shell Tec[ode ERP: cabecera + menú lateral responsive + 22 pantallas.
  */
 function Shell() {
-  const { route, homeRoute } = useNav();
-  const { hasCompany } = useAuth();
+  const { route, homeRoute, go } = useNav();
+  const { hasCompany, can, isPlatformAdmin } = useAuth();
+  const routePermissions = {
+    products: 'products.read', warehouses: 'warehouses.read', stock: 'inventory.read', movements: 'inventory.read', counts: 'inventory.read',
+    suppliers: 'suppliers.read', purchaseOrders: 'purchases.read', customers: 'customers.read', salesOrders: 'sales.orders.read',
+    accounts: 'finance.accounts.read', incomes: 'finance.income.read', expenses: 'finance.expenses.read', budgets: 'finance.budgets.read', reports: 'reports.read',
+    leads: 'crm.read', employees: 'hr.read', boms: 'production.read', productionOrders: 'production.read', users: 'users.read', roles: 'roles.read', branches: 'branches.read', audit: 'audit.read',
+  };
   // Sin empresa (Super Admin de plataforma) sólo existen las pantallas de plataforma.
-  const allowed = hasCompany || PLATFORM_ROUTES.includes(route.name);
-  const Screen = (allowed && SCREENS[route.name]) || SCREENS[homeRoute] || SCREENS.home;
+  const allowed = PLATFORM_ROUTES.includes(route.name) ? isPlatformAdmin : hasCompany;
+  const permission = routePermissions[route.name];
+  const permitted = !permission || can(permission);
+  useEffect(() => {
+    if ((allowed && permitted && SCREENS[route.name]) || route.name === '__notFound') return;
+    go(homeRoute);
+  }, [allowed, permitted, route.name, go, homeRoute]);
+  if (route.name === '__notFound') return <NotFoundScreen onHome={() => go(homeRoute)} />;
+  if (!allowed || !permitted || !SCREENS[route.name]) return null;
+  const Screen = SCREENS[route.name];
   return (
     <Layout>
       <Screen />
@@ -29,9 +44,15 @@ function Shell() {
   );
 }
 
+function NotFoundScreen({ onHome }) {
+  return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}><Text>No encontramos esta página</Text><TTButton title="Ir al inicio" onPress={onHome} /></View>;
+}
+
 function Root() {
-  const { session, initializing, isPlatformAdmin } = useAuth();
-  const [viewState, setViewState] = useState('landing'); // 'landing' | 'login'
+  const { session, initializing, isPlatformAdmin, sessionExpired } = useAuth();
+  const [viewState, setViewState] = useState(() =>
+    Platform.OS === 'web' && typeof window !== 'undefined' && window.location.pathname !== '/' ? 'login' : 'landing'
+  ); // 'landing' | 'login'
   const [resetToken, setResetToken] = useState(() => {
     if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
     const url = new URL(window.location.href);
@@ -42,6 +63,10 @@ function Root() {
     }
     return token;
   });
+
+  useEffect(() => {
+    if (sessionExpired) setViewState('login');
+  }, [sessionExpired]);
 
   if (initializing) {
     return (
@@ -65,6 +90,13 @@ function Root() {
         }}
       />
     );
+  }
+
+  if (!session && Platform.OS === 'web' && !isKnownLocation()) {
+    return <NotFoundScreen onHome={() => {
+      window.history.replaceState({}, '', '/');
+      setViewState('landing');
+    }} />;
   }
 
   if (!session) {

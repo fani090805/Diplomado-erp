@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api, setTokens, setOnSessionExpired } from '../api/client';
+import { api, setTokens, setOnSessionExpired, restoreTokens } from '../api/client';
 
 /**
  * Sesión de la aplicación.
@@ -7,13 +7,14 @@ import { api, setTokens, setOnSessionExpired } from '../api/client';
  * - logout() → /auth/logout (invalidación global en servidor) y limpia.
  * - session: salida de /auth/me ({ user, role, company, branch }).
  * - isPlatformAdmin: Super Admin de plataforma (user.isPlatformAdmin de /auth/me).
- * TODO FASE 3: persistir tokens con AsyncStorage (hoy: memoria, se pierde al recargar).
+ * En web conserva los tokens en localStorage y valida la sesión con /auth/me al iniciar.
  */
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [initializing, setInitializing] = useState(true);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const logout = useCallback(async ({ callServer = true } = {}) => {
     try {
@@ -23,6 +24,7 @@ export function AuthProvider({ children }) {
     }
     setTokens({ access: null, refresh: null });
     setSession(null);
+    setSessionExpired(false);
   }, []);
 
   useEffect(() => {
@@ -30,9 +32,26 @@ export function AuthProvider({ children }) {
       // Refresh inválido/expirado: la sesión ya no es válida.
       setTokens({ access: null, refresh: null });
       setSession(null);
+      setSessionExpired(true);
     });
-    setInitializing(false);
-    // TODO: si hay tokens guardados → /auth/me para restaurar la sesión.
+    let active = true;
+    const restore = async () => {
+      if (!restoreTokens()) {
+        if (active) setInitializing(false);
+        return;
+      }
+      try {
+        const me = await api('/auth/me');
+        if (active) setSession(me);
+      } catch {
+        setTokens({ access: null, refresh: null });
+        if (active) setSession(null);
+      } finally {
+        if (active) setInitializing(false);
+      }
+    };
+    restore();
+    return () => { active = false; };
   }, []);
 
   const establishSession = useCallback(async (path, body, signal) => {
@@ -51,6 +70,7 @@ export function AuthProvider({ children }) {
       throw error;
     }
     setSession(me);
+    setSessionExpired(false);
     return me;
   }, []);
 
@@ -117,6 +137,7 @@ export function AuthProvider({ children }) {
     () => ({
       session,
       initializing,
+      sessionExpired,
       isPlatformAdmin,
       hasCompany,
       login,
@@ -130,6 +151,7 @@ export function AuthProvider({ children }) {
     [
       session,
       initializing,
+      sessionExpired,
       isPlatformAdmin,
       hasCompany,
       login,

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
+import { readUrlParam, writeParams } from '../nav/urlState';
 
 /**
  * Hooks de datos para las pantallas FASE 7.
@@ -12,8 +13,11 @@ const LIMIT = 20;
 export function useList(path, query = {}) {
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
+  const [page, setPageState] = useState(() => {
+    const parsed = Number(readUrlParam('page', 1));
+    return Number.isInteger(parsed) && parsed > 0 && parsed <= 100000 ? parsed : 1;
+  });
+  const [search, setSearchState] = useState(() => readUrlParam('search', ''));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -51,6 +55,19 @@ export function useList(path, query = {}) {
 
   const reload = useCallback(() => setReloadKey((k) => k + 1), []);
 
+  const setSearch = useCallback((value) => {
+    setSearchState(value);
+    setPageState(1);
+    writeParams({ search: value, page: 1 });
+  }, []);
+  const setPage = useCallback((value) => {
+    const next = typeof value === 'function' ? value(page) : value;
+    const numeric = Number(next);
+    const safe = Number.isInteger(numeric) && numeric > 0 && numeric <= 100000 ? numeric : 1;
+    setPageState(safe);
+    writeParams({ page: safe });
+  }, [page]);
+
   return {
     items,
     total,
@@ -59,10 +76,7 @@ export function useList(path, query = {}) {
     loading,
     error,
     search,
-    setSearch: (s) => {
-      setSearch(s);
-      setPage(1);
-    },
+    setSearch,
     setPage,
     reload,
   };

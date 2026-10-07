@@ -12,6 +12,7 @@ import { invert } from '../../lib/format';
 import { useList, usePicklist } from '../../hooks/useResource';
 import CompanyJoinCodeCard from './CompanyJoinCodeCard';
 import PendingUserApprovalModal from './PendingUserApprovalModal';
+import { useUrlState } from '../../nav/urlState';
 
 const STATUS_CREATE = [
   { value: 'active', label: 'Activo' },
@@ -38,7 +39,7 @@ export default function UsersScreen() {
   const inactiveList = useList('/users', { status: 'inactive' });
   const [confirmUI, confirm] = useConfirm();
   const [editing, setEditing] = useState(null);
-  const [activeTab, setActiveTab] = useState('active');
+  const [activeTab, setActiveTab] = useUrlState('tab', 'active', ['active', 'pending', 'inactive']);
   const [approvalUser, setApprovalUser] = useState(null);
   // Confirmaciones de ciclo de vida (título, botón y tono propios) y avisos del servidor.
   const [dialog, setDialog] = useState(null);

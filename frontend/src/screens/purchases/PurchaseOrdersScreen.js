@@ -11,6 +11,8 @@ import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { dateOf, invert, labelFor, money } from '../../lib/format';
 import { useList, usePicklist } from '../../hooks/useResource';
+import { useUrlState } from '../../nav/urlState';
+import { useNav } from '../../nav/RouterContext';
 
 const STATUS_OPTIONS = [
   { value: 'DRAFT', label: 'Borrador' },
@@ -28,13 +30,20 @@ export default function PurchaseOrdersScreen() {
   const warehouses = usePicklist('/warehouses', (r) => r.name || r.code || String(r._id));
   const products = usePicklist('/products', (r) => r.name || r.sku || String(r._id));
 
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useUrlState('status', '', ['', 'DRAFT', 'APPROVED', 'REJECTED']);
+  const { route, navigate } = useNav();
   const query = useMemo(() => (statusFilter ? { status: statusFilter } : {}), [statusFilter]);
   const list = useList('/purchase-orders', query);
 
   const [confirmUI, confirm] = useConfirm();
   const [modal, setModal] = useState(null); // { mode: 'create'|'edit'|'reject', row? }
   const [detail, setDetail] = useState(null);
+  React.useEffect(() => {
+    if (!route.params?.id) { setDetail(null); return; }
+    let active = true;
+    api("/purchase-orders/" + encodeURIComponent(route.params.id)).then((row) => { if (active) setDetail(row); }).catch(() => { if (active) setDetail(null); });
+    return () => { active = false; };
+  }, [route.params?.id]);
   const [actionError, setActionError] = useState('');
 
   const supplierLabels = invert(suppliers.options);
@@ -95,7 +104,7 @@ export default function PurchaseOrdersScreen() {
   ];
 
   const rowActions = (row) => {
-    const actions = [{ label: 'Ver detalle', onPress: () => setDetail(row) }];
+    const actions = [{ label: 'Ver detalle', onPress: () => { setDetail(row); navigate('purchaseOrders', { id: row._id }); } }];
     if (row.status === 'DRAFT') {
       if (can('purchases.update')) actions.push({ label: 'Editar', onPress: () => setModal({ mode: 'edit', row }) });
       if (can('purchases.approve')) {
@@ -193,7 +202,7 @@ export default function PurchaseOrdersScreen() {
           },
         ]}
         rows={detailRow && Array.isArray(detailRow.lines) ? detailRow.lines : []}
-        onClose={() => setDetail(null)}
+        onClose={() => { setDetail(null); if (route.params?.id) navigate('purchaseOrders'); }}
       />
 
       {confirmUI}

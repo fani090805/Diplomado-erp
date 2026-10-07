@@ -21,6 +21,7 @@ import {
 import { TTButton, TTInput, TTStatCard } from '../../design-system/components';
 import { money } from '../../lib/format';
 import { endOfDayISO, startOfDayISO } from '../../lib/dateRange';
+import { useUrlState } from '../../nav/urlState';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const currentYear = new Date().getFullYear();
@@ -97,7 +98,7 @@ function Table({ columns, rows, empty }) {
 /** Reportes (FASE 5): KPI, ventas, compras, finanzas, presupuestos e inventario. */
 export default function ReportsScreen() {
   const { can } = useAuth();
-  const [tab, setTab] = useState('kpis');
+  const [tab, setTab] = useUrlState('tab', 'kpis', ['kpis', 'sales', 'purchases', 'finance', 'budgets', 'inventory']);
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [year, setYear] = useState(String(currentYear));
