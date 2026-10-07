@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
 import { TTIcon } from '../design-system/components';
 import { useNav } from '../nav/RouterContext';
+import LiveIndicator from '../components/LiveIndicator';
+import { useLiveUpdates } from '../hooks/useLiveUpdates';
 import SalesPerformanceChart, { abbreviateMoney, CHART_COLORS } from '../components/dashboard/SalesPerformanceChart';
 import { isoWeekKey, monthKey, monthToDateRanges, percentChange, startOfDaysAgoISO, startOfMonthISO } from '../lib/dateRange';
 
@@ -205,12 +207,22 @@ export default function HomeScreen() {
 
   const canReports = can('reports.read');
 
+  // Cambios en vivo: recarga en silencio (sin "Cargando…") indicadores y gráfica.
+  const [liveTick, setLiveTick] = useState(0);
+  const silentRef = useRef({ overview: false, chart: false });
+  useLiveUpdates(['sales-order', 'purchase-order', 'income', 'expense', 'inventory', 'product'], () => {
+    silentRef.current = { overview: true, chart: true };
+    setLiveTick((t) => t + 1);
+  });
+
   // Indicadores del mes en curso y comparativo JUSTO: del día 1 a hoy contra
   // del día 1 al mismo día del mes anterior (hora de México).
   useEffect(() => {
     let mounted = true;
+    const silent = silentRef.current.overview;
+    silentRef.current.overview = false;
     const load = async () => {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const { current: thisMonth, previous: lastMonthToDate } = monthToDateRanges();
       const sixMonths = { from: startOfMonthISO(5), to: thisMonth.to, groupBy: 'month' };
       const [kpis, previousKpis, sales, inventory, finance] = await Promise.all([
@@ -234,13 +246,15 @@ export default function HomeScreen() {
     return () => {
       mounted = false;
     };
-  }, [can, canReports]);
+  }, [can, canReports, liveTick]);
 
   // Serie de la gráfica según el modo (semanas ISO o meses).
   useEffect(() => {
     let mounted = true;
     const cfg = RANGE_OPTIONS[rangeMode];
-    setChartLoading(true);
+    const silent = silentRef.current.chart;
+    silentRef.current.chart = false;
+    if (!silent) setChartLoading(true);
     optionalReport(canReports && can('sales.orders.read'), '/reports/sales', {
       from: cfg.from(),
       to: new Date().toISOString(),
@@ -253,7 +267,7 @@ export default function HomeScreen() {
     return () => {
       mounted = false;
     };
-  }, [can, canReports, rangeMode]);
+  }, [can, canReports, rangeMode, liveTick]);
 
   const quickActions = useMemo(() => {
     const actions = [];
@@ -300,7 +314,10 @@ export default function HomeScreen() {
       <View style={styles.headerRow}>
         <View style={styles.titleWrap}>
           <Text style={styles.sectionEyebrow}>Resumen ejecutivo</Text>
-          <Text style={styles.pageTitle}>Dashboard</Text>
+          <View style={styles.pageTitleRow}>
+            <Text style={styles.pageTitle}>Dashboard</Text>
+            <LiveIndicator />
+          </View>
         </View>
 
         <View style={styles.quickActionsWrap}>
@@ -447,6 +464,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     fontFamily: TYPOGRAPHY.fontFamily.display,
+  },
+  pageTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flexWrap: 'wrap',
   },
   pageTitle: {
     color: COLORS.textPrimary,

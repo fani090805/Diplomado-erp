@@ -50,6 +50,11 @@ export function getAccessToken() {
   return accessToken;
 }
 
+/** URL base de la API (la usa el canal en vivo para abrir el EventSource). */
+export function getApiBaseUrl() {
+  return BASE_URL;
+}
+
 export function setOnSessionExpired(fn) {
   onSessionExpired = fn;
 }

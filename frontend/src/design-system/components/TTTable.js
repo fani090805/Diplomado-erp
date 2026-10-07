@@ -24,7 +24,8 @@ import { TTIcon } from './TTIcon';
  * controles: los filtros usan <TTSelect size="toolbar" /> y los botones
  * <TTButton size="toolbar" />. `filters` y `extraActions` aceptan un
  * elemento, un fragmento o un arreglo. `headerExtra` es el nombre anterior
- * de `extraActions` (se mantiene por compatibilidad).
+ * de `extraActions` (se mantiene por compatibilidad). `titleAccessory` va junto al
+ * título (p. ej. el indicador "En vivo").
  * En pantallas < BREAKPOINTS.tablet el título va arriba y los controles debajo,
  * a todo el ancho, con el botón de crear al final.
  */
@@ -80,6 +81,7 @@ export function TTTable({
   headerExtra = null,
   filters = null,
   extraActions = null,
+  titleAccessory = null,
   emptyIcon = 'carpetaVacia',
 }) {
   const [searchDraft, setSearchDraft] = useState(search);
@@ -100,7 +102,10 @@ export function TTTable({
       {/* Header: título + barra de herramientas */}
       <View style={[styles.headerRow, isMobile && styles.headerRowMobile]}>
         <View style={styles.headerTitleGroup}>
-          <Text style={styles.title}>{title}</Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{title}</Text>
+            {titleAccessory}
+          </View>
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
 
@@ -316,6 +321,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'stretch',
   },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm, flexWrap: 'wrap' },
   headerTitleGroup: {
     gap: SPACING.xs / 2,
     flexShrink: 0,

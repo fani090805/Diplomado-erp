@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
 import { readUrlParam, writeParams } from '../nav/urlState';
+import { entityForPath } from '../lib/live';
+import { useLiveUpdates } from './useLiveUpdates';
 
 /**
  * Hooks de datos para las pantallas FASE 7.
  *  - useList(path, query): listado paginado del backend (data + meta.total).
+ *    Se refresca solo (en silencio) cuando llega un evento en vivo de su entidad.
  *  - usePicklist(path): opciones para los <select> (hasta 100 registros).
  */
 
@@ -21,12 +24,16 @@ export function useList(path, query = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
+  // Recarga silenciosa (eventos en vivo): sin "Cargando…" ni vaciar la tabla.
+  const silentRef = useRef(false);
 
   const queryKey = JSON.stringify(query);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    const silent = silentRef.current;
+    silentRef.current = false;
+    if (!silent) setLoading(true);
     api(path, {
       query: { page, limit: LIMIT, search: search || undefined, ...query },
       withMeta: true,
@@ -38,7 +45,7 @@ export function useList(path, query = {}) {
         setError(null);
       })
       .catch((e) => {
-        if (cancelled) return;
+        if (cancelled || silent) return; // un fallo en segundo plano no borra lo que se ve
         setItems([]);
         setTotal(0);
         setError(e.message);
@@ -54,6 +61,11 @@ export function useList(path, query = {}) {
   }, [path, page, search, queryKey, reloadKey]);
 
   const reload = useCallback(() => setReloadKey((k) => k + 1), []);
+  const silentReload = useCallback(() => {
+    silentRef.current = true;
+    setReloadKey((k) => k + 1);
+  }, []);
+  useLiveUpdates(entityForPath(path), silentReload);
 
   const setSearch = useCallback((value) => {
     setSearchState(value);

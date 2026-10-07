@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Modal,
@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useAuth } from '../auth/AuthContext';
+import { useMeta } from '../lib/meta';
 import {
   COLORS,
   RADIUS,
@@ -80,7 +81,58 @@ export const PLATFORM_CATEGORY = {
   items: [{ route: 'companies', label: 'Empresas', icon: 'empresa', permission: null }],
 };
 
-const ALL_CATEGORIES = [PLATFORM_CATEGORY, ...MENU_CATEGORIES];
+/** Módulo de /meta (id neutral, igual en Android) → ruta de la web. */
+const WEB_ROUTES = {
+  companies: 'companies',
+  dashboard: 'home',
+  accounts: 'accounts',
+  stock: 'stock',
+  'sales-orders': 'salesOrders',
+  employees: 'employees',
+  reports: 'reports',
+  users: 'users',
+  products: 'products',
+  warehouses: 'warehouses',
+  movements: 'movements',
+  counts: 'counts',
+  suppliers: 'suppliers',
+  'purchase-orders': 'purchaseOrders',
+  customers: 'customers',
+  incomes: 'incomes',
+  expenses: 'expenses',
+  budgets: 'budgets',
+  leads: 'leads',
+  boms: 'boms',
+  'production-orders': 'productionOrders',
+  branches: 'branches',
+  roles: 'roles',
+  audit: 'audit',
+};
+
+/**
+ * Menú desde /meta (orden, nombres, íconos y permisos compartidos con Android).
+ * Sólo módulos con pantalla en la web; null si /meta no cargó (se usa el fijo).
+ */
+function menuFromMeta(meta) {
+  if (!meta || !Array.isArray(meta.modules) || !meta.modules.length) return null;
+  const platformItems = [];
+  const sections = new Map();
+  for (const mod of meta.modules) {
+    const route = WEB_ROUTES[mod.id];
+    if (!route) continue;
+    const item = { route, label: mod.name, icon: mod.icon, permission: mod.permission };
+    if (mod.platformOnly) {
+      platformItems.push({ ...item, permission: null });
+      continue;
+    }
+    if (!sections.has(mod.section)) sections.set(mod.section, []);
+    sections.get(mod.section).push(item);
+  }
+  return {
+    platformCategory: { category: PLATFORM_CATEGORY.category, items: platformItems.length ? platformItems : PLATFORM_CATEGORY.items },
+    menuCategories: [...sections].map(([category, items]) => ({ category, items })),
+  };
+}
 
 const COLLAPSED_STORAGE_KEY = 'fai.menu.collapsed';
 
@@ -131,18 +183,26 @@ export default function Layout({ children }) {
   const roleName = role?.label || role?.code || 'Usuario';
   const isSidebarCollapsed = isTablet || collapsed;
 
+  // Menú compartido con Android (GET /meta); el fijo si /meta no está disponible.
+  const meta = useMeta();
+  const { platformCategory, menuCategories } = useMemo(
+    () => menuFromMeta(meta) || { platformCategory: PLATFORM_CATEGORY, menuCategories: MENU_CATEGORIES },
+    [meta]
+  );
+  const allCategories = [platformCategory, ...menuCategories];
+
   // Super Admin sin empresa: sólo la sección Plataforma.
   const visibleCategories = [
-    ...(isPlatformAdmin ? [PLATFORM_CATEGORY] : []),
-    ...(hasCompany ? MENU_CATEGORIES : []),
+    ...(isPlatformAdmin ? [platformCategory] : []),
+    ...(hasCompany ? menuCategories : []),
   ];
   const filteredCategories = visibleCategories.map((category) => ({
     ...category,
     items: category.items.filter((item) => !item.permission || can(item.permission)),
   })).filter((category) => category.items.length > 0);
 
-  const currentItem = ALL_CATEGORIES.flatMap((category) => category.items).find((item) => item.route === route.name);
-  const currentCategory = ALL_CATEGORIES.find((category) => category.items.some((item) => item.route === route.name));
+  const currentItem = allCategories.flatMap((category) => category.items).find((item) => item.route === route.name);
+  const currentCategory = allCategories.find((category) => category.items.some((item) => item.route === route.name));
   const breadcrumbs = ['FAI Solution ERP', ...(currentCategory ? [currentCategory.category] : [])];
 
   useEffect(() => {

@@ -1,5 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api, setTokens, setOnSessionExpired, restoreTokens } from '../api/client';
+import { startLive, stopLive } from '../lib/live';
+import { clearMeta, loadMeta } from '../lib/meta';
 
 /**
  * Sesión de la aplicación.
@@ -53,6 +55,18 @@ export function AuthProvider({ children }) {
     restore();
     return () => { active = false; };
   }, []);
+
+  // Con sesión: configuración compartida (/meta) y canal de cambios en vivo.
+  // Al cerrarla (no durante el arranque) se desconecta y se borra /meta.
+  useEffect(() => {
+    if (session) {
+      loadMeta();
+      startLive();
+    } else if (!initializing) {
+      stopLive();
+      clearMeta();
+    }
+  }, [session, initializing]);
 
   const establishSession = useCallback(async (path, body, signal) => {
     const data = await api(path, {

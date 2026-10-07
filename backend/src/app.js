@@ -10,6 +10,9 @@ const env = require('./config/env');
 const logger = require('./config/logger');
 const { apiLimiter } = require('./middlewares/rateLimit');
 const auditMiddleware = require('./middlewares/audit.middleware');
+const eventsMiddleware = require('./modules/events/events.middleware');
+const eventRoutes = require('./modules/events/events.routes');
+const metaRoutes = require('./modules/meta/meta.routes');
 const { notFound, errorHandler } = require('./middlewares/error.middleware');
 
 const authRoutes = require('./modules/auth/auth.routes');
@@ -110,6 +113,13 @@ router.use('/auth', authRoutes);
 // 2) Auditoría de mutaciones: envuelve res.json y lee req.user ya resuelto
 //    por authenticate dentro de cada ruta (ver ADR-005).
 router.use(auditMiddleware);
+
+// 2b) Cambios en vivo: emite un evento tras cada escritura exitosa (SSE).
+router.use(eventsMiddleware);
+router.use('/events', eventRoutes);
+
+// 2c) Configuración compartida web/Android (estados, menú, moneda).
+router.use('/meta', metaRoutes);
 
 // 3) Módulos FASE 2 (core).
 router.use('/companies', companyRoutes);

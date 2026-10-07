@@ -59,6 +59,8 @@ const env = {
     adminPassword: process.env.SEED_ADMIN_PASSWORD || '',
   },
   logLevel: process.env.LOG_LEVEL || 'info',
+  // Versión mínima de la app Android (versionCode); /meta avisa si la app es más vieja.
+  minAndroidVersionCode: Number(process.env.MIN_ANDROID_VERSION_CODE || 1),
   isTest: process.env.NODE_ENV === 'test',
   isProduction: process.env.NODE_ENV === 'production',
 };

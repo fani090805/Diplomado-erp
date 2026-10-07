@@ -13,6 +13,7 @@ const roleRepository = require('../roles/role.repository');
 const companyRepository = require('../companies/company.repository');
 const branchRepository = require('../branches/branch.repository');
 const companyRequestRepository = require('../company-requests/company_request.repository');
+const { publish: publishEvent } = require('../events/event.bus');
 const auditService = require('../audit/audit.service');
 const {
   sendLoginNotification,
@@ -121,6 +122,9 @@ const authService = {
         status: 'pending',
         isPlatformAdmin: false,
       });
+
+      // Usuario pendiente: la lista de Usuarios del administrador se refresca en vivo.
+      publishEvent({ companyId: user.companyId, entity: 'user', id: user._id, action: 'created' });
 
       await auditService.log({
         module: 'auth',
@@ -520,7 +524,7 @@ const authService = {
       () =>
         sendPasswordChangedEmail({
           email: user.email,
-          name: (user.name || '') + ' ' + (user.lastName || ''),
+          name: `${user.name || ''} ${user.lastName || ''}`.trim(),
         }),
       { action: 'password_changed', userId: String(user._id) }
     );

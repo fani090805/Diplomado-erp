@@ -9,6 +9,7 @@ const companyRequestRepository = require('./company_request.repository');
 const companyService = require('../companies/company.service');
 const companyRepository = require('../companies/company.repository');
 const userRepository = require('../users/user.repository');
+const { publish: publishEvent } = require('../events/event.bus');
 const auditService = require('../audit/audit.service');
 const {
   sendCompanyRequestReceived,
@@ -208,6 +209,9 @@ const companyRequestService = {
         applicantEmail: applicant.email,
       });
     }, { action: 'company_request_platform_notification', requestId: String(request._id) });
+
+    // Nueva solicitud: el panel de plataforma se refresca en vivo.
+    publishEvent({ entity: 'company', id: request._id, action: 'created' });
 
     return { message: REQUEST_RECEIVED };
   },

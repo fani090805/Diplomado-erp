@@ -90,13 +90,24 @@ const VARIANT_TONES = {
 };
 
 /**
+ * Catálogo de estados que manda el backend (GET /api/v1/meta → statuses), el
+ * mismo que usa la app Android. STATUS_MAP queda como respaldo si /meta falla.
+ */
+let statusCatalog = null;
+
+/** catalog: { CODE: { label, tone } } (lo llama lib/meta.js al cargar /meta). */
+export function setStatusCatalog(catalog) {
+  statusCatalog = catalog || null;
+}
+
+/**
  * TTBadge - Indicador de estado de FAI Solution ERP
  */
 export function TTBadge({ value, label, variant, style, textStyle }) {
   if (value === null || value === undefined || value === '') return null;
 
   const key = String(value);
-  const info = STATUS_MAP[key] || { tone: 'neutral', label: key };
+  const info = statusCatalog?.[key] || STATUS_MAP[key] || { tone: 'neutral', label: key };
   const tone = TONES[VARIANT_TONES[variant] || info.tone];
 
   return (
