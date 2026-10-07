@@ -5,7 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
 import { TTIcon } from '../design-system/components';
 import { useNav } from '../nav/RouterContext';
-import SalesPerformanceChart from '../components/dashboard/SalesPerformanceChart';
+import SalesPerformanceChart, { abbreviateMoney, CHART_COLORS } from '../components/dashboard/SalesPerformanceChart';
 import { isoWeekKey, monthKey, monthToDateRanges, percentChange, startOfDaysAgoISO, startOfMonthISO } from '../lib/dateRange';
 
 const currency = new Intl.NumberFormat('es-MX', {
@@ -13,6 +13,9 @@ const currency = new Intl.NumberFormat('es-MX', {
   currency: 'MXN',
   maximumFractionDigits: 0,
 });
+
+/** Alto (px) del área de barras de la minigráfica "Trimestral". */
+const MINI_PLOT_HEIGHT = 64;
 
 const monthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -147,23 +150,29 @@ function KPIStat({ label, value, trend, showTrend = false, detail, icon }) {
 }
 
 /** Barras proporcionales con datos reales (sin valores de relleno). */
+/**
+ * Minigráfica "Trimestral" con el estilo de "Desempeño de ventas": barras
+ * olivo al 55 %, el mes en curso (el último) sólido y el monto abreviado encima.
+ */
 function MiniBars({ items }) {
   if (!items.length) return null;
   const max = Math.max(...items.map((item) => item.value), 1);
+  const currentIndex = items.length - 1;
   return (
     <View style={styles.miniChart}>
-      {items.map((item, index) => (
-        <View key={item.key} style={styles.miniBarWrap}>
-          <View
-            style={[
-              styles.miniBar,
-              index === items.length - 1 && styles.miniBarActive,
-              { height: `${Math.max((item.value / max) * 70, 4)}%` },
-            ]}
-          />
-          <Text style={styles.miniBarLabel}>{item.label}</Text>
-        </View>
-      ))}
+      {items.map((item, index) => {
+        const isCurrent = index === currentIndex;
+        const height = item.value > 0 ? Math.max((item.value / max) * MINI_PLOT_HEIGHT, 3) : 0;
+        return (
+          <View key={item.key} style={styles.miniBarWrap}>
+            {item.value > 0 ? (
+              <Text style={[styles.miniBarValue, isCurrent && styles.miniBarValueCurrent]}>{abbreviateMoney(item.value)}</Text>
+            ) : null}
+            <View style={[styles.miniBar, { height, backgroundColor: isCurrent ? CHART_COLORS.barStrong : CHART_COLORS.bar }]} />
+            <Text style={[styles.miniBarLabel, isCurrent && styles.miniBarLabelCurrent]}>{item.label}</Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -738,27 +747,47 @@ const styles = StyleSheet.create({
   },
   miniChart: {
     marginTop: 14,
-    height: 64,
+    height: MINI_PLOT_HEIGHT + 36,
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 5,
+    paddingBottom: 18,
   },
   miniBarWrap: {
     flex: 1,
     height: '100%',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    gap: 4,
+    position: 'relative',
+    // Línea base justo bajo las barras (continua: las columnas no llevan separación).
+    borderBottomWidth: 1,
+    borderBottomColor: CHART_COLORS.grid,
   },
   miniBar: {
-    width: '100%',
-    borderRadius: 999,
-    backgroundColor: COLORS.primaryGlow,
+    width: '58%',
+    maxWidth: 44,
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
+  },
+  miniBarValue: {
+    color: COLORS.textSecondary,
+    fontSize: 10,
+    marginBottom: 4,
+    fontFamily: TYPOGRAPHY.fontFamily.ui,
+  },
+  miniBarValueCurrent: {
+    color: COLORS.textPrimary,
+    fontWeight: '700',
   },
   miniBarLabel: {
+    position: 'absolute',
+    bottom: -16,
     color: COLORS.textMuted,
     fontSize: 9,
     fontFamily: TYPOGRAPHY.fontFamily.ui,
+  },
+  miniBarLabelCurrent: {
+    color: COLORS.textPrimary,
+    fontWeight: '700',
   },
   secondaryEmpty: {
     color: COLORS.textMuted,
@@ -772,9 +801,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 6,
     fontFamily: TYPOGRAPHY.fontFamily.ui,
-  },
-  miniBarActive: {
-    backgroundColor: COLORS.primary,
   },
   emptyState: {
     minHeight: 80,

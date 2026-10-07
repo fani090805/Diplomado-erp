@@ -32,6 +32,9 @@ const BAR = withAlpha(COLORS.chartBar, 0.55);
 const BAR_STRONG = COLORS.chartBar;
 const GRID = withAlpha(COLORS.chartBar, 0.08);
 
+/** Colores de barra compartidos con otras gráficas del dashboard (p. ej. "Trimestral"). */
+export const CHART_COLORS = { bar: BAR, barStrong: BAR_STRONG, grid: GRID };
+
 /** $17.4M, $350k, $900 (sin ".0" sobrante). */
 export function abbreviateMoney(value) {
   const v = Number(value) || 0;
