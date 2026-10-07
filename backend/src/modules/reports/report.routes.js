@@ -30,6 +30,16 @@ router.get(
   controller.sales
 );
 
+// Exportación de ventas (PDF / Excel). La query se valida en el controlador
+// para responder 400 (no 422) con filtros inválidos.
+router.get(
+  '/sales/export',
+  authenticate,
+  requireTenant,
+  authorize('reports.read'),
+  controller.exportSales
+);
+
 router.get(
   '/purchases',
   authenticate,

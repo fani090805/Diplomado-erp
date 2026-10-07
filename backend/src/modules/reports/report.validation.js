@@ -1,6 +1,7 @@
 'use strict';
 
 const { z } = require('zod');
+const { objectId } = require('../../utils/validators');
 
 /**
  * Consultas de reportes (FASE 5). Sólo lectura: sin body, sin id.
@@ -51,4 +52,27 @@ const budgetsQuery = z
   })
   .strict();
 
-module.exports = { rangeQuery, seriesQuery, financeQuery, budgetsQuery };
+/** "" o ausente ⇒ undefined (los formularios mandan el filtro vacío). */
+const optionalId = z.preprocess((v) => (v === '' ? undefined : v), objectId.optional());
+const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use el formato AAAA-MM-DD.');
+
+/**
+ * Exportación de ventas (PDF / Excel). from/to son DÍAS de calendario en
+ * hora de México; el rango (≤ 24 meses, días completos) lo valida el servicio.
+ */
+const salesExportQuery = z
+  .object({
+    format: z.enum(['pdf', 'xlsx'], { errorMap: () => ({ message: 'format debe ser pdf o xlsx.' }) }),
+    from: ymd,
+    to: ymd,
+    status: z
+      .enum(['APPROVED', 'DRAFT', 'REJECTED', 'all'], {
+        errorMap: () => ({ message: 'status debe ser APPROVED, DRAFT, REJECTED o all.' }),
+      })
+      .default('APPROVED'),
+    customerId: optionalId,
+    productId: optionalId,
+  })
+  .strict();
+
+module.exports = { rangeQuery, seriesQuery, financeQuery, budgetsQuery, salesExportQuery };

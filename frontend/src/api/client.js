@@ -136,6 +136,62 @@ export async function apiText(path, { auth = true } = {}) {
   return res.text();
 }
 
+/** Nombre del archivo desde Content-Disposition (prefiere filename* UTF-8). */
+function filenameFrom(disposition, fallback) {
+  const header = String(disposition || '');
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header);
+  if (encoded) {
+    try {
+      return decodeURIComponent(encoded[1].trim());
+    } catch {
+      /* cae al filename simple */
+    }
+  }
+  const plain = /filename="?([^";]+)"?/i.exec(header);
+  return plain ? plain[1].trim() : fallback;
+}
+
+/**
+ * GET binario (reportes PDF / Excel): devuelve { blob, filename } con el
+ * nombre que manda el servidor. Misma renovación de token que api().
+ * Si el servidor responde error JSON, lanza su mensaje.
+ */
+export async function apiBlob(path, { query, fallbackName = 'reporte' } = {}) {
+  const params = query
+    ? Object.entries(query)
+        .filter(([, v]) => v !== undefined && v !== null && v !== '')
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+        .join('&')
+    : '';
+  const url = `${BASE_URL}${path}${params ? `?${params}` : ''}`;
+  const doFetch = () => {
+    const headers = {};
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+    return fetch(url, { headers });
+  };
+
+  let res = await doFetch();
+  if (res.status === 401 && (await safeRefresh())) {
+    res = await doFetch();
+  }
+  if (!res.ok) {
+    if (res.status === 401 && onSessionExpired) onSessionExpired();
+    let payload = null;
+    try {
+      payload = await res.json();
+    } catch {
+      /* respuesta sin JSON */
+    }
+    const error = new Error(payload?.error?.message || 'No se pudo generar el reporte.');
+    error.status = res.status;
+    error.code = payload?.error?.code;
+    error.details = payload?.error?.details;
+    throw error;
+  }
+  const blob = await res.blob();
+  return { blob, filename: filenameFrom(res.headers.get('Content-Disposition'), fallbackName) };
+}
+
 async function safeRefresh() {
   try {
     return await tryRefresh();

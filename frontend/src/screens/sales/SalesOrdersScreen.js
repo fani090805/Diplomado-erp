@@ -9,6 +9,7 @@ import DetailModal from '../../components/DetailModal';
 import Dropdown from '../../components/Dropdown';
 import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
+import SalesExportButton from '../../components/reports/SalesExportButton';
 import { dateOf, invert, labelFor, money } from '../../lib/format';
 import { useList, usePicklist } from '../../hooks/useResource';
 
@@ -111,14 +112,17 @@ export default function SalesOrdersScreen() {
 
   return (
     <View style={{ gap: 12 }}>
-      <View style={{ minWidth: 220, maxWidth: 300, gap: 4 }}>
-        <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.textSecondary }}>Estado</Text>
-        <Dropdown
-          value={statusFilter || null}
-          onChange={(v) => setStatusFilter(v || '')}
-          options={STATUS_OPTIONS}
-          placeholder="(todas)"
-        />
+      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', zIndex: 20 }}>
+        <View style={{ minWidth: 220, maxWidth: 300, gap: 4 }}>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.textSecondary }}>Estado</Text>
+          <Dropdown
+            value={statusFilter || null}
+            onChange={(v) => setStatusFilter(v || '')}
+            options={STATUS_OPTIONS}
+            placeholder="(todas)"
+          />
+        </View>
+        {can('reports.read') ? <SalesExportButton initialStatus={statusFilter || 'all'} /> : null}
       </View>
 
       <DataTable

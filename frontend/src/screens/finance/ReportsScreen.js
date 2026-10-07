@@ -11,6 +11,7 @@ import {
 import { api, apiText } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import StatusBadge from '../../components/StatusBadge';
+import SalesExportButton from '../../components/reports/SalesExportButton';
 import {
   COLORS,
   RADIUS,
@@ -346,6 +347,13 @@ export default function ReportsScreen() {
             Exportar CSV
           </TTButton>
         ) : null}
+        {tab === 'sales' && can('reports.read') ? (
+          <SalesExportButton
+            initialFrom={DATE_RE.test(from) ? from : undefined}
+            initialTo={DATE_RE.test(to) ? to : undefined}
+            initialStatus="APPROVED"
+          />
+        ) : null}
       </View>
 
       {exportError ? <Text style={styles.error}>{exportError}</Text> : null}
@@ -362,7 +370,7 @@ const styles = StyleSheet.create({
   tabOn: { backgroundColor: COLORS.primaryGlow, borderColor: COLORS.primary },
   tabText: { fontSize: TYPOGRAPHY.fontSize.xs + 1, fontWeight: TYPOGRAPHY.fontWeight.medium, color: COLORS.textMuted },
   tabTextOn: { color: COLORS.primary, fontWeight: TYPOGRAPHY.fontWeight.bold },
-  toolbar: { flexDirection: 'row', gap: SPACING.md, alignItems: 'flex-end', flexWrap: 'wrap' },
+  toolbar: { flexDirection: 'row', gap: SPACING.md, alignItems: 'flex-end', flexWrap: 'wrap', zIndex: 20 },
   dateBox: { gap: SPACING.xs, width: 150 },
   label: { fontSize: TYPOGRAPHY.fontSize.xs, fontWeight: TYPOGRAPHY.fontWeight.semibold, color: COLORS.textSecondary },
   cards: { flexDirection: 'row', gap: SPACING.md, flexWrap: 'wrap' },

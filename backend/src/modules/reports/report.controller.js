@@ -2,7 +2,11 @@
 
 const { ok } = require('../../utils/response');
 const asyncHandler = require('../../utils/asyncHandler');
+const ApiError = require('../../utils/ApiError');
+const logger = require('../../config/logger');
 const reportService = require('./report.service');
+const salesExportService = require('./report.sales-export.service');
+const { salesExportQuery } = require('./report.validation');
 
 /** Rango {from,to} ya validado/coercido por zod (query). */
 const range = (req) => ({ from: req.query.from, to: req.query.to });
@@ -52,4 +56,37 @@ const exportCsv = asyncHandler(async (req, res) => {
   return res.send(csv);
 });
 
-module.exports = { kpis, sales, purchases, inventory, finance, budgets, exportCsv };
+/**
+ * Ventas a PDF / Excel en streaming. Filtros inválidos ⇒ 400 (no 422): se
+ * valida aquí para responder JSON antes de enviar las cabeceras del archivo.
+ */
+const exportSales = asyncHandler(async (req, res) => {
+  const parsed = salesExportQuery.safeParse(req.query);
+  if (!parsed.success) {
+    throw ApiError.badRequest(
+      'Los filtros del reporte no son válidos.',
+      parsed.error.issues.map((i) => ({ field: i.path.join('.') || 'query', message: i.message }))
+    );
+  }
+  const ctx = await salesExportService.prepare(req.user.companyId, parsed.data);
+
+  res.status(200);
+  res.setHeader('Content-Type', ctx.contentType);
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${ctx.filename}"; filename*=UTF-8''${encodeURIComponent(ctx.filename)}`
+  );
+  // El navegador sólo deja leer Content-Disposition (nombre del archivo) si se expone.
+  res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
+  res.setHeader('Cache-Control', 'no-store');
+
+  try {
+    await salesExportService.write(ctx, res);
+  } catch (err) {
+    // Las cabeceras ya salieron: sólo queda cortar la descarga.
+    logger.error({ err }, 'Falló la exportación de ventas');
+    res.destroy(err);
+  }
+});
+
+module.exports = { kpis, sales, purchases, inventory, finance, budgets, exportCsv, exportSales };
