@@ -1,8 +1,9 @@
 'use strict';
 
 /**
- * BORRA LOS DATOS DEMO generados por seed-sales.js (marca "seed:demo-sales")
- * de UNA empresa: ventas, movimientos de inventario, clientes y productos demo.
+ * BORRA LOS DATOS DEMO generados por seed-sales.js y seed-finance.js (marca
+ * "seed:demo-sales") de UNA empresa: ventas, compras, movimientos de
+ * inventario, ingresos, gastos, clientes, proveedores y productos demo.
  *
  * Uso (desde backend/):
  *   node src/scripts/remove-demo-sales.js --company=FAI-XXXXXX [--dry-run]
@@ -13,9 +14,10 @@
  *  - Revierte en stock_levels el efecto neto de los movimientos demo. Si eso
  *    dejara alguna existencia negativa (hubo salidas reales que consumieron
  *    stock demo), se detiene SIN borrar nada.
- *  - Clientes/productos demo usados por documentos reales se conservan.
- *  - El contador de folios no retrocede (los códigos SO-… no se reutilizan).
- *  - La generación no crea ingresos, así que no hay ingresos que borrar.
+ *  - Clientes/proveedores/productos demo usados por documentos reales se conservan.
+ *  - Ingresos y gastos demo se borran y su efecto se descuenta del saldo de
+ *    cada cuenta (la cuenta VENTAS se conserva).
+ *  - Los contadores de folios no retroceden (SO-, PO-, INC-, EXP- no se reutilizan).
  */
 
 const mongoose = require('mongoose');
@@ -31,6 +33,10 @@ function models() {
     Customer: require('../modules/customers/customer.model'),
     SalesOrder: require('../modules/sales-orders/sales_order.model'),
     PurchaseOrder: require('../modules/purchase-orders/purchase_order.model'),
+    Supplier: require('../modules/suppliers/supplier.model'),
+    Income: require('../modules/incomes/income.model'),
+    Expense: require('../modules/expenses/expense.model'),
+    FinanceAccount: require('../modules/accounts/account.model'),
     InventoryMovement: require('../modules/inventory/inventory_movement.model'),
     StockLevel: require('../modules/inventory/stock_level.model'),
   };
@@ -45,8 +51,23 @@ async function planRemoval(joinCode) {
   if (!company) throw new Error(`No existe ninguna empresa con el código ${code}.`);
   const companyId = company._id;
 
-  const [orderCount, movementGroups, demoCustomers, demoProducts] = await Promise.all([
+  const byAccount = (Model) =>
+    Model.aggregate([
+      { $match: { companyId, description: MARK_RE } },
+      {
+        $group: {
+          _id: '$accountId',
+          count: { $sum: 1 },
+          posted: { $sum: { $cond: [{ $eq: ['$status', 'POSTED'] }, '$amount', 0] } },
+        },
+      },
+    ]);
+  const [orderCount, purchaseCount, incomeGroups, expenseGroups, demoSuppliers, movementGroups, demoCustomers, demoProducts] = await Promise.all([
     m.SalesOrder.countDocuments({ companyId, notes: DEMO_MARK }),
+    m.PurchaseOrder.countDocuments({ companyId, notes: DEMO_MARK }),
+    byAccount(m.Income),
+    byAccount(m.Expense),
+    m.Supplier.find({ companyId, notes: MARK_RE }).select('_id').lean(),
     m.InventoryMovement.aggregate([
       { $match: { companyId, reason: MARK_RE } },
       { $group: { _id: { warehouseId: '$warehouseId', productId: '$productId' }, net: { $sum: '$delta' }, count: { $sum: 1 } } },
@@ -76,8 +97,19 @@ async function planRemoval(joinCode) {
   const [realMovements, realSales, realPurchases] = await Promise.all([
     m.InventoryMovement.distinct('productId', { companyId, productId: { $in: productIds }, reason: { $not: MARK_RE } }),
     m.SalesOrder.distinct('lines.productId', { companyId, 'lines.productId': { $in: productIds }, notes: { $ne: DEMO_MARK } }),
-    m.PurchaseOrder.distinct('lines.productId', { companyId, 'lines.productId': { $in: productIds } }),
+    m.PurchaseOrder.distinct('lines.productId', { companyId, 'lines.productId': { $in: productIds }, notes: { $ne: DEMO_MARK } }),
   ]);
+  const supplierIds = demoSuppliers.map((s) => s._id);
+  const [realPoSuppliers, realExpenseSuppliers] = await Promise.all([
+    m.PurchaseOrder.distinct('supplierId', { companyId, supplierId: { $in: supplierIds }, notes: { $ne: DEMO_MARK } }),
+    m.Expense.distinct('supplierId', { companyId, supplierId: { $in: supplierIds }, description: { $not: MARK_RE } }),
+  ]);
+  const keptSuppliers = new Set([...realPoSuppliers, ...realExpenseSuppliers].map(String));
+
+  // Saldo a descontar por cuenta: lo que sumaron los ingresos demo menos lo que restaron los gastos demo.
+  const balanceFixes = new Map();
+  for (const g of incomeGroups) balanceFixes.set(String(g._id), (balanceFixes.get(String(g._id)) || 0) + g.posted);
+  for (const g of expenseGroups) balanceFixes.set(String(g._id), (balanceFixes.get(String(g._id)) || 0) - g.posted);
   const usedProducts = new Set([...realMovements, ...realSales, ...realPurchases].map(String));
   const keptCustomers = new Set(usedCustomers.map(String));
 
@@ -85,6 +117,14 @@ async function planRemoval(joinCode) {
     company,
     companyId,
     orderCount,
+    purchaseCount,
+    incomeCount: incomeGroups.reduce((sum, g) => sum + g.count, 0),
+    expenseCount: expenseGroups.reduce((sum, g) => sum + g.count, 0),
+    balanceFixes: [...balanceFixes.entries()]
+      .map(([accountId, net]) => ({ accountId, net: Math.round(net * 100) / 100 }))
+      .filter((f) => f.net !== 0),
+    suppliersToDelete: supplierIds.filter((id) => !keptSuppliers.has(String(id))),
+    suppliersKept: keptSuppliers.size,
     movementCount: movementGroups.reduce((sum, g) => sum + g.count, 0),
     stockFixes,
     conflicts,
@@ -99,6 +139,9 @@ function describeRemoval(plan) {
   return [
     `Empresa:      ${plan.company.name} (${plan.company.joinCode})`,
     `Ventas demo:  ${cli.formatInt(plan.orderCount)}`,
+    `Compras demo: ${cli.formatInt(plan.purchaseCount)}`,
+    `Finanzas:     ${cli.formatInt(plan.incomeCount)} ingresos y ${cli.formatInt(plan.expenseCount)} gastos (se ajusta el saldo de ${cli.formatInt(plan.balanceFixes.length)} cuenta(s))`,
+    `Proveedores:  ${cli.formatInt(plan.suppliersToDelete.length)} se borran · ${cli.formatInt(plan.suppliersKept)} se conservan (usados en documentos reales)`,
     `Movimientos:  ${cli.formatInt(plan.movementCount)} (se revierten ${cli.formatInt(plan.stockFixes.length)} existencias)`,
     `Clientes:     ${cli.formatInt(plan.customersToDelete.length)} se borran · ${cli.formatInt(plan.customersKept)} se conservan (usados en ventas reales)`,
     `Productos:    ${cli.formatInt(plan.productsToDelete.length)} se borran · ${cli.formatInt(plan.productsKept.length)} se conservan (usados en documentos reales)`,
@@ -122,6 +165,15 @@ async function executeRemoval(plan) {
   }
   await m.InventoryMovement.deleteMany({ companyId, reason: MARK_RE });
   await m.SalesOrder.deleteMany({ companyId, notes: DEMO_MARK });
+  await m.PurchaseOrder.deleteMany({ companyId, notes: DEMO_MARK });
+  for (const fix of plan.balanceFixes) {
+    await m.FinanceAccount.updateOne({ _id: fix.accountId, companyId }, { $inc: { balance: -fix.net } });
+  }
+  await m.Income.deleteMany({ companyId, description: MARK_RE });
+  await m.Expense.deleteMany({ companyId, description: MARK_RE });
+  if (plan.suppliersToDelete.length) {
+    await m.Supplier.deleteMany({ companyId, _id: { $in: plan.suppliersToDelete }, notes: MARK_RE });
+  }
   if (plan.customersToDelete.length) {
     await m.Customer.deleteMany({ companyId, _id: { $in: plan.customersToDelete }, notes: MARK_RE });
   }
@@ -141,7 +193,9 @@ async function removeDemoSales({ joinCode, dryRun = false, confirmFn = async () 
         'que consumieron inventario demo. No se borró nada.'
     );
   }
-  const nothing = !plan.orderCount && !plan.movementCount && !plan.customersToDelete.length && !plan.productsToDelete.length;
+  const nothing =
+    !plan.orderCount && !plan.purchaseCount && !plan.incomeCount && !plan.expenseCount && !plan.movementCount &&
+    !plan.customersToDelete.length && !plan.suppliersToDelete.length && !plan.productsToDelete.length;
   if (dryRun || nothing) return { plan, executed: false };
   if (!(await confirmFn())) return { plan, executed: false };
   await executeRemoval(plan);

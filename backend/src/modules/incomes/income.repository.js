@@ -15,6 +15,12 @@ class IncomeRepository extends BaseRepository {
     return this.model.findOne({ companyId, code }).lean();
   }
 
+  /** Ingreso vigente (POSTED) ligado a una venta, si existe. */
+  async findPostedBySalesOrder(companyId, salesOrderId) {
+    this._guard({ companyId });
+    return this.model.findOne({ companyId, salesOrderId, status: 'POSTED' }).lean();
+  }
+
   /** Anulación condicional: sólo si sigue POSTED (la carrera la pierde el segundo). */
   async markVoided(id, { companyId }, fields) {
     this._guard({ companyId });

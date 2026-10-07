@@ -22,6 +22,28 @@ const customerRepository = require('../customers/customer.repository');
 const CODE_KEY = 'incomes';
 const CODE_PREFIX = 'INC';
 
+/** Categoría de los ingresos que genera una venta aprobada. */
+const SALES_CATEGORY = 'Ventas';
+
+/**
+ * Datos del ingreso de una venta aprobada: total, fecha de la venta, cliente
+ * y folio. También los usa el generador demo (seed-finance) para que el
+ * ingreso demo sea idéntico al real.
+ */
+function saleIncomeFields(order, accountId) {
+  return {
+    amount: order.total,
+    date: order.createdAt,
+    category: SALES_CATEGORY,
+    method: 'transfer',
+    accountId,
+    customerId: order.customerId,
+    salesOrderId: order._id,
+    reference: order.code,
+    description: `Venta ${order.code}`,
+  };
+}
+
 const incomeService = {
   async list(filter, options) {
     return incomeRepository.find(filter, options);
@@ -48,6 +70,8 @@ const incomeService = {
       method: data.method || 'transfer',
       accountId: account._id,
       customerId: data.customerId || null,
+      // Sólo lo envían recordSale (servidor); el body HTTP es .strict() y no lo admite.
+      salesOrderId: data.salesOrderId || null,
       reference: data.reference || null,
       description: data.description || null,
       status: 'POSTED',
@@ -101,6 +125,29 @@ const incomeService = {
 
     return incomeRepository.getByIdSafe(id, companyId);
   },
+
+  /**
+   * Ingreso de una venta APROBADA (cuenta VENTAS, categoría "Ventas").
+   * Idempotente: si la venta ya tiene un ingreso vigente lo devuelve sin crear
+   * otro; el índice único cubre además dos aprobaciones simultáneas.
+   * Una venta con total 0 no genera ingreso (null).
+   */
+  async recordSale(order, companyId, userId) {
+    if (!(order.total > 0)) return null;
+    const existing = await incomeRepository.findPostedBySalesOrder(companyId, order._id);
+    if (existing) return existing;
+    const account = await accountService.ensureSalesAccount(companyId);
+    return this.create(saleIncomeFields(order, account._id), companyId, userId);
+  },
+
+  /** Anula (y revierte en la cuenta) el ingreso vigente de una venta; null si no tiene. */
+  async voidSale(salesOrderId, reason, companyId, userId) {
+    const income = await incomeRepository.findPostedBySalesOrder(companyId, salesOrderId);
+    if (!income) return null;
+    return this.void(income._id, { reason }, companyId, userId);
+  },
 };
 
 module.exports = incomeService;
+module.exports.saleIncomeFields = saleIncomeFields;
+module.exports.SALES_CATEGORY = SALES_CATEGORY;

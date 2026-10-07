@@ -27,6 +27,15 @@ async function resolveCurrency(data, companyId) {
  */
 const round2 = (n) => Math.round(n * 100) / 100;
 
+/** Cuenta destino de los ingresos por ventas aprobadas (se crea si falta). */
+const SALES_ACCOUNT = Object.freeze({
+  code: 'VENTAS',
+  name: 'Cobranza de ventas',
+  type: 'bank',
+  currency: 'MXN',
+  notes: 'Creada automáticamente para registrar los ingresos de las ventas aprobadas.',
+});
+
 const accountService = {
   async list(filter, options) {
     return accountRepository.find(filter, options);
@@ -44,6 +53,30 @@ const accountService = {
       throw ApiError.conflict('La cuenta está inactiva; no admite movimientos financieros.');
     }
     return account;
+  },
+
+  /**
+   * Cuenta que recibe los ingresos de ventas aprobadas: la de código
+   * SALES_ACCOUNT.code. Si la empresa no la tiene se crea (MXN, banco); si
+   * existe pero está inactiva ⇒ 409 (la venta no se aprueba sin dónde cobrar).
+   */
+  async ensureSalesAccount(companyId) {
+    const existing = await accountRepository.findByCode(companyId, SALES_ACCOUNT.code);
+    if (existing) {
+      if (existing.status !== 'active') {
+        throw ApiError.conflict(
+          `La cuenta ${SALES_ACCOUNT.code} está inactiva; actívela para registrar el ingreso de la venta.`
+        );
+      }
+      return existing;
+    }
+    try {
+      return await accountRepository.create({ ...SALES_ACCOUNT, companyId, balance: 0, status: 'active' });
+    } catch (err) {
+      // Dos aprobaciones simultáneas: la otra ya la creó (índice único companyId+code).
+      if (err && err.code === 11000) return accountRepository.findByCode(companyId, SALES_ACCOUNT.code);
+      throw err;
+    }
   },
 
   async create(data, companyId) {
@@ -137,3 +170,4 @@ const accountService = {
 };
 
 module.exports = accountService;
+module.exports.SALES_ACCOUNT = SALES_ACCOUNT;

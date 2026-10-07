@@ -6,6 +6,10 @@
  * Uso (desde backend/):
  *   node src/scripts/seed-sales.js --company=FAI-XXXXXX --count=10000 [--dry-run] [--seed=123]
  *   npm run seed:sales -- --company=FAI-XXXXXX --count=10000
+ *   npm run seed:sales -- --company=FAI-XXXXXX --count=10000 --with-finance
+ *
+ * --with-finance: al terminar las ventas ejecuta seed-finance.js (proveedores,
+ * compras con sus entradas, ingresos de las ventas aprobadas y gastos).
  *
  * Reglas:
  *  - Sólo opera sobre la empresa del joinCode indicado (todas las consultas
@@ -13,7 +17,8 @@
  *  - Lee MONGO_URI de backend/.env; si falta, se detiene.
  *  - Muestra un resumen y pide escribir "si" (--dry-run sólo muestra el resumen).
  *  - Replica lo que hace el servicio real al APROBAR una venta: una SALIDA de
- *    inventario por línea desde el almacén (aprobar NO genera ingresos).
+ *    inventario por línea desde el almacén. El INGRESO de cada venta aprobada
+ *    lo crea seed-finance.js (--with-finance), igual que incomeService.recordSale.
  *    Las existencias iniciales se registran con inventoryService.entry.
  *  - Todo lo generado lleva la marca "seed:demo-sales" (ver remove-demo-sales.js).
  */
@@ -273,7 +278,7 @@ function describePlan(ctx, plan) {
     `Periodo:            ${day(s.from)} a ${day(s.to)}`,
     `Total aprobado:     ${cli.formatMoney(s.approvedTotal)} MXN`,
     `Inventario:         ${cli.formatInt(plan.entries.length)} entradas iniciales (${cli.formatInt(s.entryUnits)} unidades) · ${cli.formatInt(s.exitMovements)} salidas`,
-    'Ingresos:           ninguno (aprobar una venta no genera ingresos en el sistema)',
+    'Ingresos:           los crea --with-finance (o seed-finance.js) para cada venta aprobada',
     `Marca:              todo quedará marcado con "${DEMO_MARK}"`,
   ].join('\n');
 }
@@ -383,7 +388,7 @@ async function executePlan(ctx, plan, log = () => {}) {
  * API para pruebas y CLI. `confirmFn` decide si se escribe (CLI: pide "si").
  * Devuelve { plan, executed, codes }.
  */
-async function seedDemoSales({ joinCode, count, seed = Date.now(), dryRun = false, confirmFn = async () => true, log = () => {}, now }) {
+async function seedDemoSales({ joinCode, count, seed = Date.now(), dryRun = false, withFinance = false, confirmFn = async () => true, log = () => {}, now }) {
   const total = Number(count);
   if (!Number.isInteger(total) || total < 1 || total > 100000) {
     throw new Error('--count debe ser un entero entre 1 y 100000.');
@@ -391,10 +396,18 @@ async function seedDemoSales({ joinCode, count, seed = Date.now(), dryRun = fals
   const ctx = await loadContext(joinCode);
   const plan = buildPlan(ctx, { count: total, seed: Number(seed), now });
   log(describePlan(ctx, plan));
-  if (dryRun) return { plan, executed: false };
+  if (dryRun) {
+    if (withFinance) log('\n--with-finance: compras e ingresos se calculan con las ventas ya creadas (no en --dry-run).');
+    return { plan, executed: false };
+  }
   if (!(await confirmFn())) return { plan, executed: false };
   const codes = await executePlan(ctx, plan, log);
-  return { plan, executed: true, codes };
+  if (!withFinance) return { plan, executed: true, codes };
+
+  log('\nCompras y finanzas demo:');
+  const { seedDemoFinance } = require('./seed-finance');
+  const finance = await seedDemoFinance({ joinCode, seed: Number(seed) + 1, log, now });
+  return { plan, executed: true, codes, finance };
 }
 
 async function main() {
@@ -409,6 +422,7 @@ async function main() {
       count: args.count || 10000,
       seed: args.seed || Date.now(),
       dryRun: Boolean(args['dry-run']),
+      withFinance: Boolean(args['with-finance']),
       confirmFn: () => cli.confirm('\n¿Generar estos datos? Escribe "si" para continuar: '),
       log: (line) => console.log(line),
     });

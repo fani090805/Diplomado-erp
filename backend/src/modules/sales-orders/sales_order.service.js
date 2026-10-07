@@ -8,6 +8,7 @@ const customerRepository = require('../customers/customer.repository');
 const warehouseRepository = require('../warehouses/warehouse.repository');
 const productRepository = require('../products/product.repository');
 const inventoryService = require('../inventory/inventory.service');
+const incomeService = require('../incomes/income.service');
 
 /**
  * Servicio de PEDIDOS DE VENTA (FASE 4) — multiempresa estricto.
@@ -19,6 +20,11 @@ const inventoryService = require('../inventory/inventory.service');
  *    CONDICIONAL (409 "Stock insuficiente en el almacén indicado." si no
  *    alcanza); si una línea posterior falla, se reponen las ya descontadas
  *    (entradas de compensación) y el estado NO cambia.
+ *  - APROBAR también registra el INGRESO por el total (incomeService.recordSale:
+ *    cuenta VENTAS, categoría "Ventas", folio y cliente). Un ingreso por venta;
+ *    si la aprobación falla después, el ingreso se anula.
+ *  - Una venta aprobada no se rechaza ni se cancela (no hay ese flujo); si se
+ *    agrega, debe llamar a incomeService.voidSale para anular su ingreso.
  *  - `total` lo calcula el servidor; `code` sale del contador atómico (ADR-009).
  */
 
@@ -184,6 +190,15 @@ const salesOrderService = {
       throw err;
     }
 
+    // Ingreso por el total (cuenta VENTAS). Si falla, la venta no se aprueba.
+    let income = null;
+    try {
+      income = await incomeService.recordSale(order, companyId, userId);
+    } catch (err) {
+      await compensateExits(order.lines, warehouse._id, actor, order.code);
+      throw err;
+    }
+
     try {
       return await salesOrderRepository.updateById(
         id,
@@ -191,6 +206,11 @@ const salesOrderService = {
         { companyId }
       );
     } catch (err) {
+      if (income) {
+        await incomeService
+          .voidSale(order._id, `Aprobación fallida de ${order.code}`, companyId, userId)
+          .catch((voidErr) => logger.error({ err: voidErr.message }, 'Anulación del ingreso de venta falló'));
+      }
       await compensateExits(order.lines, warehouse._id, actor, order.code);
       throw err;
     }

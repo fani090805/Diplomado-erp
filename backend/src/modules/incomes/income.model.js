@@ -23,6 +23,8 @@ const incomeSchema = new mongoose.Schema(
     method: { type: String, enum: ['cash', 'transfer', 'card', 'check', 'other'], default: 'transfer' },
     accountId: { type: mongoose.Schema.Types.ObjectId, ref: 'FinanceAccount', required: true, index: true },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', default: null },
+    // Venta que originó el ingreso (lo asigna el servidor al aprobarla; nunca el cliente).
+    salesOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'SalesOrder', default: null },
     reference: { type: String, trim: true, maxlength: 40, default: null },
     description: { type: String, trim: true, maxlength: 200, default: null },
     status: { type: String, enum: ['POSTED', 'VOID'], default: 'POSTED', index: true },
@@ -38,5 +40,15 @@ incomeSchema.index({ companyId: 1, code: 1 }, { unique: true });
 incomeSchema.index({ companyId: 1, date: -1 });
 incomeSchema.index({ companyId: 1, accountId: 1, date: -1 });
 incomeSchema.index({ companyId: 1, category: 1, date: -1 });
+// Un solo ingreso VIGENTE por venta (aunque dos aprobaciones corran a la vez);
+// si se anula, la venta puede volver a generar uno.
+incomeSchema.index(
+  { companyId: 1, salesOrderId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { salesOrderId: { $type: 'objectId' }, status: 'POSTED' },
+    name: 'uniq_posted_income_per_sales_order',
+  }
+);
 
 module.exports = mongoose.model('Income', incomeSchema);

@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { api } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../design-system/tokens';
 import { TTIcon } from '../design-system/components';
 import { useNav } from '../nav/RouterContext';
-import { isoWeekKey, monthKey, startOfDaysAgoISO, startOfMonthISO } from '../lib/dateRange';
+import SalesPerformanceChart from '../components/dashboard/SalesPerformanceChart';
+import { isoWeekKey, monthKey, monthToDateRanges, percentChange, startOfDaysAgoISO, startOfMonthISO } from '../lib/dateRange';
 
 const currency = new Intl.NumberFormat('es-MX', {
   style: 'currency',
@@ -57,6 +58,15 @@ function formatPeriodLabel(item) {
   return `${monthLabels[Number(month) - 1] || month} ${year.slice(-2)}`;
 }
 
+/** Etiqueta corta para columnas angostas: "Oct" o "S41". */
+function formatPeriodShort(item) {
+  const period = String(item?.period || '');
+  const week = /-W(\d{2})$/.exec(period);
+  if (week) return `S${Number(week[1])}`;
+  const month = Number(period.split('-')[1]);
+  return monthLabels[month - 1] || period;
+}
+
 /** Detalle del tooltip: en semanas, la fecha del lunes con que inicia. */
 function formatPeriodDetail(item) {
   if (/W\d{2}$/.test(String(item?.period || '')) && item?.start) {
@@ -69,18 +79,6 @@ function formatPeriodDetail(item) {
 function safeNumber(value) {
   const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : 0;
-}
-
-/**
- * % de cambio del mes en curso contra el mes anterior, buscando cada mes por
- * su clave (sin suponer que la serie trae todos los meses). null si no hay base.
- */
-function monthOverMonth(series) {
-  const totals = new Map((series || []).map((item) => [item.period || item.month, safeNumber(item.total)]));
-  const current = totals.get(monthKey(0)) ?? 0;
-  const previous = totals.get(monthKey(1));
-  if (!previous) return null;
-  return Number((((current - previous) / previous) * 100).toFixed(1));
 }
 
 function EmptyState({ label = 'Sin datos aún' }) {
@@ -103,6 +101,7 @@ function TrendPill({ value, compact = false }) {
 
   const delta = Math.abs(Number(value));
   const direction = Number(value) >= 0;
+  const sign = direction ? '+' : '−';
 
   return (
     <View style={[styles.trendPill, direction ? styles.trendPillPositive : styles.trendPillNegative, compact && styles.trendPillCompact]}>
@@ -113,7 +112,7 @@ function TrendPill({ value, compact = false }) {
           color={direction ? COLORS.success : COLORS.error}
         />
         <Text style={[styles.trendPillText, direction ? styles.trendPillTextPositive : styles.trendPillTextNegative]}>
-          {delta.toFixed(1)}% vs mes anterior
+          {sign}{delta.toFixed(1)}% vs mismo periodo del mes anterior
         </Text>
       </View>
     </View>
@@ -193,31 +192,30 @@ export default function HomeScreen() {
   const [overview, setOverview] = useState({});
   const [chartSeries, setChartSeries] = useState([]);
   const [chartLoading, setChartLoading] = useState(true);
-  const [activeBar, setActiveBar] = useState(null);
   const [rangeMode, setRangeMode] = useState('mensual');
 
   const canReports = can('reports.read');
 
-  // Indicadores del mes en curso (hasta este momento, para incluir hoy) y su comparativo.
+  // Indicadores del mes en curso y comparativo JUSTO: del día 1 a hoy contra
+  // del día 1 al mismo día del mes anterior (hora de México).
   useEffect(() => {
     let mounted = true;
     const load = async () => {
       setLoading(true);
-      const now = new Date().toISOString();
-      const thisMonth = { from: startOfMonthISO(0), to: now };
-      const sixMonths = { from: startOfMonthISO(5), to: now, groupBy: 'month' };
-      const [kpis, sales, purchases, inventory, finance] = await Promise.all([
+      const { current: thisMonth, previous: lastMonthToDate } = monthToDateRanges();
+      const sixMonths = { from: startOfMonthISO(5), to: thisMonth.to, groupBy: 'month' };
+      const [kpis, previousKpis, sales, inventory, finance] = await Promise.all([
         optionalReport(canReports, '/reports/kpis', thisMonth),
+        optionalReport(canReports, '/reports/kpis', lastMonthToDate),
         optionalReport(canReports && can('sales.orders.read'), '/reports/sales', sixMonths),
-        optionalReport(canReports && can('purchases.read'), '/reports/purchases', sixMonths),
         optionalReport(canReports && can('inventory.read'), '/reports/inventory'),
         optionalReport(canReports && can('finance.accounts.read'), '/reports/finance', thisMonth),
       ]);
       if (!mounted) return;
       setOverview({
         kpis,
+        previousKpis,
         salesMonthly: sales?.series || [],
-        purchasesMonthly: purchases?.series || [],
         inventory,
         finance,
       });
@@ -234,7 +232,6 @@ export default function HomeScreen() {
     let mounted = true;
     const cfg = RANGE_OPTIONS[rangeMode];
     setChartLoading(true);
-    setActiveBar(null);
     optionalReport(canReports && can('sales.orders.read'), '/reports/sales', {
       from: cfg.from(),
       to: new Date().toISOString(),
@@ -258,19 +255,22 @@ export default function HomeScreen() {
     return actions.slice(0, 4);
   }, [can]);
 
-  const { kpis, salesMonthly = [], purchasesMonthly = [], inventory, finance } = overview;
-  const salesTrend = monthOverMonth(salesMonthly);
-  const purchasesTrend = monthOverMonth(purchasesMonthly);
+  const { kpis, previousKpis, salesMonthly = [], inventory, finance } = overview;
+  const salesTrend = kpis && previousKpis ? percentChange(kpis.sales?.total, previousKpis.sales?.total) : null;
+  const purchasesTrend = kpis && previousKpis ? percentChange(kpis.purchases?.total, previousKpis.purchases?.total) : null;
 
-  const barValues = useMemo(() => {
-    const max = Math.max(...chartSeries.map((item) => safeNumber(item.total)), 1);
-    return chartSeries.map((item) => ({
-      label: formatPeriodLabel(item),
-      detail: formatPeriodDetail(item),
-      value: safeNumber(item.total),
-      height: Math.max((safeNumber(item.total) / max) * 100, 4),
-    }));
-  }, [chartSeries]);
+  const chartBars = useMemo(
+    () =>
+      chartSeries.map((item) => ({
+        period: item.period,
+        label: formatPeriodLabel(item),
+        shortLabel: formatPeriodShort(item),
+        detail: formatPeriodDetail(item),
+        total: safeNumber(item.total),
+        count: safeNumber(item.count),
+      })),
+    [chartSeries]
+  );
   const chartTotal = chartSeries.reduce((sum, item) => sum + safeNumber(item.total), 0);
 
   // Últimos 3 meses calendario (incluido el actual) a partir de la serie mensual real.
@@ -287,7 +287,7 @@ export default function HomeScreen() {
   const rangeCfg = RANGE_OPTIONS[rangeMode];
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
       <View style={styles.headerRow}>
         <View style={styles.titleWrap}>
           <Text style={styles.sectionEyebrow}>Resumen ejecutivo</Text>
@@ -372,39 +372,10 @@ export default function HomeScreen() {
             <View style={styles.chartWrap}>
               {chartLoading ? (
                 <EmptyState label="Cargando serie…" />
-              ) : !barValues.length ? (
+              ) : !chartBars.length ? (
                 <EmptyState label="Sin datos aún" />
               ) : (
-                <View style={styles.chartBars}>
-                  {barValues.map((bar, index) => (
-                    <View key={`${bar.label}-${index}`} style={styles.barColumnWrap}>
-                      <Pressable
-                        onPress={() => setActiveBar(index === activeBar ? null : index)}
-                        onHoverIn={() => setActiveBar(index)}
-                        onHoverOut={() => setActiveBar(null)}
-                        style={styles.barButton}
-                        accessibilityLabel={`${bar.detail}: ${formatMoney(bar.value)}`}
-                      >
-                        <View
-                          style={[
-                            styles.barFill,
-                            (activeBar === index || (activeBar === null && index === barValues.length - 1)) && styles.barFillLast,
-                            { height: `${bar.height}%` },
-                          ]}
-                        />
-                      </Pressable>
-
-                      {activeBar === index ? (
-                        <View style={styles.tooltip}>
-                          <Text style={styles.tooltipText}>{bar.detail}</Text>
-                          <Text style={styles.tooltipValue}>{formatMoney(bar.value)}</Text>
-                        </View>
-                      ) : null}
-
-                      <Text style={styles.barLabel}>{bar.label}</Text>
-                    </View>
-                  ))}
-                </View>
+                <SalesPerformanceChart series={chartBars} />
               )}
             </View>
           </View>
@@ -440,19 +411,14 @@ export default function HomeScreen() {
           </View>
         </>
       )}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+  // Un solo contenedor: el panel blanco del Layout ya da fondo y márgenes.
   container: {
     gap: 18,
-    padding: 18,
-    paddingBottom: 32,
   },
   headerRow: {
     alignItems: 'flex-end',
@@ -484,6 +450,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
+    flexShrink: 1,
+    maxWidth: '100%',
     gap: 8,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
@@ -728,84 +696,6 @@ const styles = StyleSheet.create({
     marginTop: 18,
     minHeight: 220,
     justifyContent: 'center',
-  },
-  chartBars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: 190,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    backgroundColor: COLORS.background,
-    borderRadius: 14,
-    paddingHorizontal: 6,
-  },
-  barColumnWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    height: '100%',
-    position: 'relative',
-    paddingHorizontal: 4,
-  },
-  barButton: {
-    width: '70%',
-    height: 150,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  barFill: {
-    width: '100%',
-    borderRadius: 12,
-    backgroundColor: COLORS.primary,
-    opacity: 0.2,
-    minHeight: 10,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  barFillLast: {
-    backgroundColor: COLORS.primary,
-    opacity: 1,
-  },
-  tooltip: {
-    position: 'absolute',
-    top: 4,
-    left: '20%',
-    right: '20%',
-    backgroundColor: COLORS.surface,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    alignItems: 'center',
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  tooltipText: {
-    color: COLORS.textMuted,
-    fontSize: 10,
-    fontFamily: TYPOGRAPHY.fontFamily.ui,
-  },
-  tooltipValue: {
-    color: COLORS.textPrimary,
-    fontSize: 11,
-    fontWeight: '700',
-    fontFamily: TYPOGRAPHY.fontFamily.ui,
-  },
-  barLabel: {
-    color: COLORS.textMuted,
-    fontSize: 9,
-    marginTop: 6,
-    fontFamily: TYPOGRAPHY.fontFamily.ui,
   },
   secondaryGrid: {
     flexDirection: 'row',
