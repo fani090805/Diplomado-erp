@@ -6,19 +6,21 @@ import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
 import DetailModal from '../../components/DetailModal';
-import Dropdown from '../../components/Dropdown';
 import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import SalesExportButton from '../../components/reports/SalesExportButton';
 import { dateOf, invert, labelFor, money } from '../../lib/format';
 import { useList, usePicklist } from '../../hooks/useResource';
+import { formatCount, TTSelect } from '../../design-system/components';
 import { useUrlState } from '../../nav/urlState';
 import { useNav } from '../../nav/RouterContext';
 
+/** Filtro de la barra de la tabla: "Estado: todas" / "Estado: Aprobadas"… */
 const STATUS_OPTIONS = [
-  { value: 'DRAFT', label: 'Borrador' },
-  { value: 'APPROVED', label: 'Aprobada' },
-  { value: 'REJECTED', label: 'Rechazada' },
+  { value: '', label: 'Todas' },
+  { value: 'DRAFT', label: 'En borrador' },
+  { value: 'APPROVED', label: 'Aprobadas' },
+  { value: 'REJECTED', label: 'Rechazadas' },
 ];
 
 /**
@@ -43,7 +45,7 @@ export default function SalesOrdersScreen() {
   React.useEffect(() => {
     if (!route.params?.id) { setDetail(null); return; }
     let active = true;
-    api("/sales-orders/" + encodeURIComponent(route.params.id)).then((row) => { if (active) setDetail(row); }).catch(() => { if (active) setDetail(null); });
+    api(`/sales-orders/${encodeURIComponent(route.params.id)}`).then((row) => { if (active) setDetail(row); }).catch(() => { if (active) setDetail(null); });
     return () => { active = false; };
   }, [route.params?.id]);
   const [actionError, setActionError] = useState('');
@@ -121,22 +123,22 @@ export default function SalesOrdersScreen() {
 
   return (
     <View style={{ gap: 12 }}>
-      <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap', zIndex: 20 }}>
-        <View style={{ minWidth: 220, maxWidth: 300, gap: 4 }}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.textSecondary }}>Estado</Text>
-          <Dropdown
+      <DataTable
+        title="Pedidos de venta"
+        subtitle={`${formatCount(list.total)} registros`}
+        filters={
+          <TTSelect
+            size="toolbar"
+            valuePrefix="Estado"
             value={statusFilter || null}
             onChange={(v) => setStatusFilter(v || '')}
             options={STATUS_OPTIONS}
-            placeholder="(todas)"
+            placeholder="Estado: todas"
           />
-        </View>
-        {can('reports.export') ? <SalesExportButton initialStatus={statusFilter || 'all'} /> : null}
-      </View>
-
-      <DataTable
-        title="Pedidos de venta"
-        subtitle={`${list.total} registros`}
+        }
+        extraActions={
+          can('reports.export') ? <SalesExportButton size="toolbar" initialStatus={statusFilter || 'all'} /> : null
+        }
         columns={columns}
         rows={list.items}
         loading={list.loading}

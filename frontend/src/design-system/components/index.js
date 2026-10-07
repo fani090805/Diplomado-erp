@@ -12,5 +12,5 @@ export { TTEmptyState } from './TTEmptyState';
 export { TTSelect } from './TTSelect';
 export { TTModal } from './TTModal';
 export { TTConfirmModal, useTTConfirm } from './TTConfirmModal';
-export { TTTable } from './TTTable';
+export { TTTable, formatCount } from './TTTable';
 export { TTDetailModal } from './TTDetailModal';

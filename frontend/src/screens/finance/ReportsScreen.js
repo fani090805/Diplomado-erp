@@ -15,10 +15,11 @@ import SalesExportButton from '../../components/reports/SalesExportButton';
 import {
   COLORS,
   RADIUS,
+  SIZES,
   SPACING,
   TYPOGRAPHY,
 } from '../../design-system/tokens';
-import { TTButton, TTInput, TTStatCard } from '../../design-system/components';
+import { formatCount, TTButton, TTIcon, TTInput, TTStatCard } from '../../design-system/components';
 import { money } from '../../lib/format';
 import { endOfDayISO, startOfDayISO } from '../../lib/dateRange';
 import { useUrlState } from '../../nav/urlState';
@@ -71,6 +72,12 @@ function useReport(path, query, enabled) {
   return { data, loading, error, reload: useCallback(() => setTick((t) => t + 1), []) };
 }
 
+/** Conteos enteros con separador de miles (10,000); el resto tal cual. */
+function cellText(value) {
+  if (Number.isInteger(value)) return formatCount(value);
+  return String(value ?? '—');
+}
+
 function Table({ columns, rows, empty }) {
   if (!rows || rows.length === 0) return <Text style={styles.empty}>{empty || 'Sin datos.'}</Text>;
   return (
@@ -86,7 +93,7 @@ function Table({ columns, rows, empty }) {
         <View key={i} style={styles.tr}>
           {columns.map((c) => (
             <View key={c.key} style={{ minWidth: c.width || 100, paddingVertical: 8, paddingRight: 6 }}>
-              {c.render ? c.render(r) : <Text style={styles.td}>{String(r[c.key] ?? '—')}</Text>}
+              {c.render ? c.render(r) : <Text style={styles.td}>{cellText(r[c.key])}</Text>}
             </View>
           ))}
         </View>
@@ -304,16 +311,40 @@ export default function ReportsScreen() {
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.tabs}>
-        {TABS.map((t) => (
-          <Pressable
-            key={t.key}
-            style={[styles.tab, tab === t.key && styles.tabOn]}
-            onPress={() => setTab(t.key)}
-          >
-            <Text style={[styles.tabText, tab === t.key && styles.tabTextOn]}>{t.label}</Text>
-          </Pressable>
-        ))}
+      {/* Pestañas a la izquierda; exportaciones a la derecha, en la misma fila. */}
+      <View style={styles.tabsRow}>
+        <View style={styles.tabs}>
+          {TABS.map((t) => (
+            <Pressable
+              key={t.key}
+              style={[styles.tab, tab === t.key && styles.tabOn]}
+              onPress={() => setTab(t.key)}
+            >
+              <Text style={[styles.tabText, tab === t.key && styles.tabTextOn]}>{t.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {can('reports.export') ? (
+          <View style={styles.exportActions}>
+            {tab === 'sales' ? (
+              <SalesExportButton
+                size="toolbar"
+                initialFrom={DATE_RE.test(from) ? from : undefined}
+                initialTo={DATE_RE.test(to) ? to : undefined}
+                initialStatus="APPROVED"
+              />
+            ) : null}
+            <TTButton
+              variant="primary"
+              size="toolbar"
+              onPress={exportCsv}
+              iconLeft={<TTIcon name="documento" size={16} color={COLORS.textInverted} />}
+            >
+              Exportar CSV
+            </TTButton>
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.toolbar}>
@@ -343,18 +374,6 @@ export default function ReportsScreen() {
         <TTButton variant="secondary" size="md" onPress={report.reload}>
           Actualizar
         </TTButton>
-        {can('reports.export') ? (
-          <TTButton variant="primary" size="md" onPress={exportCsv}>
-            Exportar CSV
-          </TTButton>
-        ) : null}
-        {tab === 'sales' && can('reports.export') ? (
-          <SalesExportButton
-            initialFrom={DATE_RE.test(from) ? from : undefined}
-            initialTo={DATE_RE.test(to) ? to : undefined}
-            initialStatus="APPROVED"
-          />
-        ) : null}
       </View>
 
       {exportError ? <Text style={styles.error}>{exportError}</Text> : null}
@@ -366,7 +385,16 @@ export default function ReportsScreen() {
 
 const styles = StyleSheet.create({
   wrap: { gap: SPACING.md },
-  tabs: { flexDirection: 'row', gap: SPACING.xs, flexWrap: 'wrap' },
+  tabsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: SIZES.toolbarGap,
+    zIndex: 20, // el menú de "Exportar" por encima del contenido
+  },
+  tabs: { flexDirection: 'row', gap: SPACING.xs, flexWrap: 'wrap', flexShrink: 1 },
+  exportActions: { flexDirection: 'row', alignItems: 'center', gap: SIZES.toolbarGap, flexWrap: 'wrap', marginLeft: 'auto' },
   tab: { paddingHorizontal: SPACING.md, paddingVertical: SPACING.xs + 2, borderRadius: RADIUS.pill, backgroundColor: COLORS.surface, borderWidth: 1, borderColor: COLORS.border },
   tabOn: { backgroundColor: COLORS.primaryGlow, borderColor: COLORS.primary },
   tabText: { fontSize: TYPOGRAPHY.fontSize.xs + 1, fontWeight: TYPOGRAPHY.fontWeight.medium, color: COLORS.textMuted },

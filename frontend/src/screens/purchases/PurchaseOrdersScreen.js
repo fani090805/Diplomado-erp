@@ -6,7 +6,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
 import DetailModal from '../../components/DetailModal';
-import Dropdown from '../../components/Dropdown';
+import { formatCount, TTSelect } from '../../design-system/components';
 import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { dateOf, invert, labelFor, money } from '../../lib/format';
@@ -19,6 +19,8 @@ const STATUS_OPTIONS = [
   { value: 'APPROVED', label: 'Aprobada' },
   { value: 'REJECTED', label: 'Rechazada' },
 ];
+
+const STATUS_FILTER_OPTIONS = [{ value: '', label: 'Todas' }, ...STATUS_OPTIONS];
 
 /**
  * Órdenes de compra (ADR-010): sólo lectura/creación/edición en DRAFT y
@@ -41,7 +43,7 @@ export default function PurchaseOrdersScreen() {
   React.useEffect(() => {
     if (!route.params?.id) { setDetail(null); return; }
     let active = true;
-    api("/purchase-orders/" + encodeURIComponent(route.params.id)).then((row) => { if (active) setDetail(row); }).catch(() => { if (active) setDetail(null); });
+    api(`/purchase-orders/${encodeURIComponent(route.params.id)}`).then((row) => { if (active) setDetail(row); }).catch(() => { if (active) setDetail(null); });
     return () => { active = false; };
   }, [route.params?.id]);
   const [actionError, setActionError] = useState('');
@@ -119,19 +121,19 @@ export default function PurchaseOrdersScreen() {
 
   return (
     <View style={{ gap: 12 }}>
-      <View style={{ minWidth: 220, maxWidth: 300, gap: 4 }}>
-        <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.textSecondary }}>Estado</Text>
-        <Dropdown
-          value={statusFilter || null}
-          onChange={(v) => setStatusFilter(v || '')}
-          options={STATUS_OPTIONS}
-          placeholder="(todas)"
-        />
-      </View>
-
       <DataTable
         title="Órdenes de compra"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
+        filters={
+          <TTSelect
+            size="toolbar"
+            valuePrefix="Estado"
+            value={statusFilter || null}
+            onChange={(v) => setStatusFilter(v || '')}
+            options={STATUS_FILTER_OPTIONS}
+            placeholder="Estado: todas"
+          />
+        }
         columns={columns}
         rows={list.items}
         loading={list.loading}

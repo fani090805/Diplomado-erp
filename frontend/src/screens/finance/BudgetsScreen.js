@@ -5,6 +5,7 @@ import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
+import { formatCount } from '../../design-system/components';
 import FormModal from '../../components/FormModal';
 import { money } from '../../lib/format';
 import { useList } from '../../hooks/useResource';
@@ -42,7 +43,7 @@ export default function BudgetsScreen() {
     <>
       <DataTable
         title="Presupuestos"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
         columns={[
           { key: 'year', label: 'Año', width: 80 },
           { key: 'month', label: 'Mes', width: 70 },

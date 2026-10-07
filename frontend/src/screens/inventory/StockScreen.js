@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../design-system/tokens';
-import { TTBadge, TTButton, TTConfirmModal, TTIcon, TTStatCard } from '../../design-system/components';
+import { formatCount, TTBadge, TTButton, TTConfirmModal, TTIcon, TTSelect, TTStatCard } from '../../design-system/components';
 import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/DataTable';
-import Dropdown from '../../components/Dropdown';
 import MovementFormModal from '../../components/inventory/MovementFormModal';
 import ProductFormModal from '../../components/inventory/ProductFormModal';
 import { fetchAll, usePicklist } from '../../hooks/useResource';
@@ -123,11 +122,11 @@ export default function StockScreen() {
 
   const openMovement = (kind, initial = null) => setMovement({ kind, initial });
 
-  const headerExtra = canMove ? (
+  const extraActions = canMove ? (
     <>
       <TTButton
         variant="secondary"
-        size="md"
+        size="toolbar"
         onPress={() => openMovement('ENTRY')}
         iconLeft={<TTIcon name="entrada" size={16} color={COLORS.textPrimary} />}
       >
@@ -135,7 +134,7 @@ export default function StockScreen() {
       </TTButton>
       <TTButton
         variant="secondary"
-        size="md"
+        size="toolbar"
         onPress={() => openMovement('EXIT')}
         iconLeft={<TTIcon name="salida" size={16} color={COLORS.textPrimary} />}
       >
@@ -171,30 +170,30 @@ export default function StockScreen() {
         />
       </View>
 
-      <View style={styles.filters}>
-        <View style={styles.filter}>
-          <Text style={styles.label}>Producto</Text>
-          <Dropdown
-            value={productId || null}
-            onChange={(v) => setProductId(v || '')}
-            options={productOptions}
-            placeholder="(todos)"
-          />
-        </View>
-        <View style={styles.filter}>
-          <Text style={styles.label}>Almacén</Text>
-          <Dropdown
-            value={warehouseId || null}
-            onChange={(v) => setWarehouseId(v || '')}
-            options={warehouses.options}
-            placeholder="(todos)"
-          />
-        </View>
-      </View>
-
       <DataTable
         title="Existencias"
-        subtitle={`${filtered.length} registros`}
+        subtitle={`${formatCount(filtered.length)} registros`}
+        filters={[
+          <TTSelect
+            key="product"
+            size="toolbar"
+            valuePrefix="Producto"
+            title="Producto"
+            value={productId || null}
+            onChange={(v) => setProductId(v || '')}
+            options={[{ value: '', label: 'Todos' }, ...productOptions]}
+            placeholder="Producto: todos"
+          />,
+          <TTSelect
+            key="warehouse"
+            size="toolbar"
+            valuePrefix="Almacén"
+            value={warehouseId || null}
+            onChange={(v) => setWarehouseId(v || '')}
+            options={[{ value: '', label: 'Todos' }, ...warehouses.options]}
+            placeholder="Almacén: todos"
+          />,
+        ]}
         columns={[
           {
             key: 'product',
@@ -238,7 +237,7 @@ export default function StockScreen() {
         total={filtered.length}
         limit={PAGE_SIZE}
         onPageChange={setPage}
-        headerExtra={headerExtra}
+        extraActions={extraActions}
         onCreate={canCreateProduct ? () => setNewProduct({}) : undefined}
         createLabel="Nuevo producto"
         emptyTitle="Aún no hay existencias"
@@ -284,9 +283,6 @@ const styles = StyleSheet.create({
   wrap: { gap: SPACING.md },
   summary: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.md },
   stat: { flex: 1, minWidth: 200 },
-  filters: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
-  filter: { minWidth: 220, flex: 1, gap: 4 },
-  label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
   productCell: { gap: 4, alignItems: 'flex-start' },
   td: { fontSize: 14, color: COLORS.textPrimary },
   sku: { fontSize: 12, color: COLORS.textMuted, fontFamily: TYPOGRAPHY.fontFamily.ui },

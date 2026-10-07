@@ -5,6 +5,7 @@ import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
+import { formatCount } from '../../design-system/components';
 import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { useList, usePicklist } from '../../hooks/useResource';
@@ -48,7 +49,7 @@ export default function WarehousesScreen() {
     <>
       <DataTable
         title="Almacenes"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
         columns={[
           { key: 'code', label: 'Código', width: 100 },
           { key: 'name', label: 'Nombre', width: 180 },

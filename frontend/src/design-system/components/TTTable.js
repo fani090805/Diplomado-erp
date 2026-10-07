@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import {
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
-import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
+import { BREAKPOINTS, COLORS, RADIUS, SIZES, SPACING, TYPOGRAPHY } from '../tokens';
 import { TTButton } from './TTButton';
 import { TTEmptyState } from './TTEmptyState';
 import { TTLoading } from './TTLoading';
@@ -16,7 +17,35 @@ import { TTIcon } from './TTIcon';
 
 /**
  * TTTable - Tabla de datos empresarial de FAI Solution ERP
+ *
+ * Barra de herramientas (a la derecha del título), en este orden:
+ *   [filters…] [Buscar] [Refrescar] [extraActions…] [+ Crear]
+ * Todo mide SIZES.toolbar (44 px) con SIZES.toolbarGap (12 px) entre
+ * controles: los filtros usan <TTSelect size="toolbar" /> y los botones
+ * <TTButton size="toolbar" />. `filters` y `extraActions` aceptan un
+ * elemento, un fragmento o un arreglo. `headerExtra` es el nombre anterior
+ * de `extraActions` (se mantiene por compatibilidad).
+ * En pantallas < BREAKPOINTS.tablet el título va arriba y los controles debajo,
+ * a todo el ancho, con el botón de crear al final.
  */
+
+const countFormatter = new Intl.NumberFormat('es-MX');
+
+/** 10000 → "10,000" (conteos de registros con separador de miles). */
+export function formatCount(value) {
+  return countFormatter.format(Number(value) || 0);
+}
+
+/** Aplana fragmentos/arreglos en una lista de elementos (ignora null/false). */
+function toItems(node) {
+  const out = [];
+  React.Children.forEach(node, (child) => {
+    if (!child) return;
+    if (child.type === Fragment) out.push(...toItems(child.props.children));
+    else out.push(child);
+  });
+  return out;
+}
 /** Cabecera y celdas comparten base y crecimiento para quedar alineadas. */
 function columnSize(col) {
   const width = col.width || 130;
@@ -49,9 +78,13 @@ export function TTTable({
   emptyText = 'No hay datos registrados en este módulo.',
   emptyTitle = 'Sin datos disponibles',
   headerExtra = null,
+  filters = null,
+  extraActions = null,
   emptyIcon = 'carpetaVacia',
 }) {
   const [searchDraft, setSearchDraft] = useState(search);
+  const { width } = useWindowDimensions();
+  const isMobile = width < BREAKPOINTS.tablet;
 
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
@@ -64,43 +97,61 @@ export function TTTable({
 
   return (
     <View style={styles.container}>
-      {/* Header Superior */}
-      <View style={styles.headerRow}>
+      {/* Header: título + barra de herramientas */}
+      <View style={[styles.headerRow, isMobile && styles.headerRowMobile]}>
         <View style={styles.headerTitleGroup}>
           <Text style={styles.title}>{title}</Text>
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
 
-        <View style={styles.headerActions}>
+        <View style={[styles.toolbar, isMobile && styles.toolbarMobile]}>
+          {toItems(filters).map((item, index) => (
+            <View key={`f${index}`} style={isMobile ? styles.mobileFull : styles.filterItem}>
+              {item}
+            </View>
+          ))}
+
           {onSearchChange ? (
-            <TTSearch
-              value={searchDraft}
-              onChangeText={handleSearchSubmit}
-              placeholder="Buscar registros…"
-            />
+            <View style={isMobile ? styles.mobileFull : styles.searchItem}>
+              <TTSearch
+                value={searchDraft}
+                onChangeText={handleSearchSubmit}
+                placeholder="Buscar registros…"
+                style={styles.searchControl}
+              />
+            </View>
           ) : null}
 
           {onRefresh ? (
-            <TTButton
-              variant="secondary"
-              size="md"
-              onPress={onRefresh}
-              iconLeft={<TTIcon name="refrescar" size={18} color={COLORS.textPrimary} />}
-              accessibilityLabel="Actualizar"
-            />
+            <View style={isMobile ? styles.mobileIcon : null}>
+              <TTButton
+                variant="secondary"
+                size="toolbar"
+                onPress={onRefresh}
+                style={styles.iconButton}
+                iconLeft={<TTIcon name="refrescar" size={18} color={COLORS.textPrimary} />}
+                accessibilityLabel="Actualizar"
+              />
+            </View>
           ) : null}
 
-          {headerExtra}
+          {toItems(extraActions || headerExtra).map((item, index) => (
+            <View key={`a${index}`} style={isMobile ? styles.mobileAction : null}>
+              {item}
+            </View>
+          ))}
 
           {onCreate ? (
-            <TTButton
-              variant="primary"
-              size="md"
-              onPress={onCreate}
-              iconLeft={<TTIcon name="agregar" size={16} color={COLORS.textInverted} />}
-            >
-              {createLabel}
-            </TTButton>
+            <View style={isMobile ? styles.mobileFull : null}>
+              <TTButton
+                variant="primary"
+                size="toolbar"
+                onPress={onCreate}
+                iconLeft={<TTIcon name="agregar" size={16} color={COLORS.textInverted} />}
+              >
+                {createLabel}
+              </TTButton>
+            </View>
           ) : null}
         </View>
       </View>
@@ -199,9 +250,9 @@ export function TTTable({
       {/* Paginación en Footer */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>
-          Mostrando <Text style={styles.footerHighlight}>{from}–{to}</Text> de{' '}
-          <Text style={styles.footerHighlight}>{total}</Text> registros · Página{' '}
-          <Text style={styles.footerHighlight}>{page}</Text> de {totalPages}
+          Mostrando <Text style={styles.footerHighlight}>{formatCount(from)}–{formatCount(to)}</Text> de{' '}
+          <Text style={styles.footerHighlight}>{formatCount(total)}</Text> registros · Página{' '}
+          <Text style={styles.footerHighlight}>{formatCount(page)}</Text> de {formatCount(totalPages)}
         </Text>
 
         {onPageChange ? (
@@ -257,12 +308,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: SPACING.md,
+    gap: SIZES.toolbarGap,
     flexWrap: 'wrap',
+    zIndex: 20, // menús desplegables de la barra por encima de la tabla
+  },
+  headerRowMobile: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
   },
   headerTitleGroup: {
     gap: SPACING.xs / 2,
+    flexShrink: 0,
   },
+  // Barra: a la derecha; si no cabe, baja a otra línea alineada a la derecha.
+  toolbar: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+    flexWrap: 'wrap',
+    gap: SIZES.toolbarGap,
+  },
+  toolbarMobile: {
+    justifyContent: 'flex-start',
+  },
+  filterItem: { width: 200 },
+  searchItem: { width: 240 },
+  searchControl: { height: SIZES.toolbar, minWidth: 0 },
+  iconButton: { width: SIZES.toolbar, paddingHorizontal: 0 },
+  // Móvil: filtros, búsqueda y crear a todo el ancho; acciones comparten fila.
+  mobileFull: { flexBasis: '100%', flexGrow: 1 },
+  mobileAction: { flexGrow: 1, flexBasis: 120 },
+  mobileIcon: { flexGrow: 0 },
   title: {
     fontSize: TYPOGRAPHY.fontSize['2xl'],
     fontWeight: TYPOGRAPHY.fontWeight.extrabold,
@@ -273,12 +351,6 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: COLORS.textMuted,
     fontFamily: TYPOGRAPHY.fontFamily.ui,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.sm,
-    flexWrap: 'wrap',
   },
   errorBox: {
     flexDirection: 'row',

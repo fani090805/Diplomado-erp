@@ -6,7 +6,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
 import DetailModal from '../../components/DetailModal';
-import Dropdown from '../../components/Dropdown';
+import { formatCount, TTSelect } from '../../design-system/components';
 import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { dateOf, invert, labelFor } from '../../lib/format';
@@ -19,6 +19,8 @@ const STATUS_OPTIONS = [
   { value: 'DONE', label: 'Finalizada' },
   { value: 'CANCELLED', label: 'Cancelada' },
 ];
+
+const STATUS_FILTER_OPTIONS = [{ value: '', label: 'Todas' }, ...STATUS_OPTIONS];
 
 /**
  * Órdenes de producción (ADR-013): sin DELETE.
@@ -104,19 +106,19 @@ export default function ProductionOrdersScreen() {
 
   return (
     <View style={{ gap: 12 }}>
-      <View style={{ minWidth: 220, maxWidth: 300, gap: 4 }}>
-        <Text style={{ fontSize: 13, fontWeight: '600', color: COLORS.textSecondary }}>Estado</Text>
-        <Dropdown
-          value={statusFilter || null}
-          onChange={(v) => setStatusFilter(v || '')}
-          options={STATUS_OPTIONS}
-          placeholder="(todas)"
-        />
-      </View>
-
       <DataTable
         title="Órdenes de producción"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
+        filters={
+          <TTSelect
+            size="toolbar"
+            valuePrefix="Estado"
+            value={statusFilter || null}
+            onChange={(v) => setStatusFilter(v || '')}
+            options={STATUS_FILTER_OPTIONS}
+            placeholder="Estado: todas"
+          />
+        }
         columns={[
           { key: 'code', label: 'Código', width: 120 },
           { key: 'bomId', label: 'BOM', width: 130, render: (r) => <Text style={styles.td}>{labelFor(r.bomId, invert(boms.options))}</Text> },

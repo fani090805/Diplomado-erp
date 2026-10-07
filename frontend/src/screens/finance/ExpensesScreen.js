@@ -4,7 +4,7 @@ import { Text, View } from 'react-native';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/DataTable';
-import Dropdown from '../../components/Dropdown';
+import { formatCount, TTSelect } from '../../design-system/components';
 import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { dateOf, invert, labelFor, money } from '../../lib/format';
@@ -25,6 +25,7 @@ const STATUS_OPTIONS = [
   { value: 'POSTED', label: 'Registrado' },
   { value: 'VOID', label: 'Anulado' },
 ];
+const STATUS_FILTER_OPTIONS = [{ value: '', label: 'Todos' }, ...STATUS_OPTIONS];
 
 /**
  * Gastos APPEND-ONLY (ADR-011): crear, leer y anular con motivo;
@@ -77,18 +78,19 @@ export default function ExpensesScreen() {
 
   return (
     <>
-      <View>
-        <Dropdown
-          value={statusFilter || null}
-          onChange={(v) => setStatusFilter(v || '')}
-          options={STATUS_OPTIONS}
-          placeholder="(todos los estados)"
-        />
-      </View>
-
       <DataTable
         title="Gastos"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
+        filters={
+          <TTSelect
+            size="toolbar"
+            valuePrefix="Estado"
+            value={statusFilter || null}
+            onChange={(v) => setStatusFilter(v || '')}
+            options={STATUS_FILTER_OPTIONS}
+            placeholder="Estado: todos"
+          />
+        }
         columns={[
           { key: 'date', label: 'Fecha', width: 110, render: (r) => <Text style={styles.td}>{dateOf(r.date || r.createdAt)}</Text> },
           { key: 'category', label: 'Categoría', width: 140 },

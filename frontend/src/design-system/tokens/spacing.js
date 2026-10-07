@@ -11,3 +11,9 @@ export const SPACING = {
   '3xl': 32,
   '4xl': 48,
 };
+
+/** Alturas de control compartidas: la barra de herramientas de las tablas usa 44 px en todo. */
+export const SIZES = {
+  toolbar: 44,
+  toolbarGap: 12,
+};

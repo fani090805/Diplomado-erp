@@ -1,11 +1,11 @@
 import React from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text } from 'react-native';
-import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
+import { COLORS, RADIUS, SIZES, SPACING, TYPOGRAPHY } from '../tokens';
 
 /**
  * TTButton - Botón de FAI Solution ERP
- * Variantes: primary (Lime #B6FF00), brand (Morado #7C3AED), secondary (#151B28), ghost, danger (#EF4444)
- * Tamaños: sm, md, lg
+ * Variantes: primary, brand, secondary, ghost, danger (colores de COLORS).
+ * Tamaños: sm, md, lg y toolbar (alto fijo de la barra de herramientas de las tablas).
  */
 export function TTButton({
   children,
@@ -91,6 +91,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.sm + 2,
     minHeight: 40,
+  },
+  size_toolbar: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 0,
+    height: SIZES.toolbar,
+    minHeight: SIZES.toolbar,
   },
   size_lg: {
     paddingHorizontal: SPACING.xl,

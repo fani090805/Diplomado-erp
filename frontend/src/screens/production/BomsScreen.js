@@ -4,6 +4,7 @@ import { Text } from 'react-native';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/DataTable';
+import { formatCount } from '../../design-system/components';
 import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { invert, labelFor } from '../../lib/format';
@@ -55,7 +56,7 @@ export default function BomsScreen() {
     <>
       <DataTable
         title="Listas de materiales"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
         columns={[
           { key: 'code', label: 'Código', width: 120 },
           { key: 'productId', label: 'Producto terminado', width: 200, render: (r) => <Text style={styles.td}>{labelFor(r.productId, productLabels)}</Text> },

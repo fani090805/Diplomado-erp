@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../../design-system/tokens';
-import { TTConfirmModal, TTIcon, TTTabs } from '../../design-system/components';
+import { formatCount, TTConfirmModal, TTIcon, TTTabs } from '../../design-system/components';
 import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
@@ -245,7 +245,7 @@ export default function UsersScreen() {
       {activeTab === 'active' ? (
         <DataTable
           title="Usuarios"
-          subtitle={`${activeList.total} registros`}
+          subtitle={`${formatCount(activeList.total)} registros`}
           columns={userColumns}
           {...listProps(activeList)}
           onCreate={can('users.create') ? () => setEditing({}) : undefined}
@@ -276,7 +276,7 @@ export default function UsersScreen() {
       {activeTab === 'inactive' ? (
         <DataTable
           title="Usuarios inactivos"
-          subtitle={`${inactiveList.total} registros`}
+          subtitle={`${formatCount(inactiveList.total)} registros`}
           columns={userColumns}
           {...listProps(inactiveList)}
           rowActions={can('users.update') || can('users.delete') ? inactiveActions : undefined}

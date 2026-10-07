@@ -173,7 +173,8 @@ function ExportModal({ format, initialFrom, initialTo, initialStatus, onClose })
   );
 }
 
-export default function SalesExportButton({ initialFrom, initialTo, initialStatus }) {
+/** `size`: tamaño de TTButton ("toolbar" dentro de la barra de una tabla). */
+export default function SalesExportButton({ initialFrom, initialTo, initialStatus, size = 'md' }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [format, setFormat] = useState(null);
 
@@ -186,7 +187,7 @@ export default function SalesExportButton({ initialFrom, initialTo, initialStatu
     <View style={styles.anchor}>
       <TTButton
         variant="secondary"
-        size="md"
+        size={size}
         onPress={() => setMenuOpen((o) => !o)}
         iconLeft={<TTIcon name="bajar" size={16} color={COLORS.textPrimary} />}
         iconRight={<TTIcon name={menuOpen ? 'chevronArriba' : 'chevronAbajo'} size={14} color={COLORS.textMuted} />}
@@ -221,7 +222,8 @@ export default function SalesExportButton({ initialFrom, initialTo, initialStatu
 }
 
 const styles = StyleSheet.create({
-  anchor: { position: 'relative', zIndex: 30, alignSelf: 'flex-start' },
+  // Sin alineación propia: en la barra de una tabla se estira en móvil.
+  anchor: { position: 'relative', zIndex: 30 },
   menu: {
     position: 'absolute',
     top: '100%',

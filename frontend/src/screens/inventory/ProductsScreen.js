@@ -5,6 +5,7 @@ import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
+import { formatCount } from '../../design-system/components';
 import StatusBadge from '../../components/StatusBadge';
 import ProductFormModal from '../../components/inventory/ProductFormModal';
 import { useList } from '../../hooks/useResource';
@@ -22,7 +23,7 @@ export default function ProductsScreen() {
     <>
       <DataTable
         title="Productos"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
         columns={[
           { key: 'sku', label: 'SKU', width: 110 },
           { key: 'name', label: 'Nombre', width: 210 },

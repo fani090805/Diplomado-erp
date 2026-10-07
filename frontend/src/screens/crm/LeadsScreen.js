@@ -5,7 +5,7 @@ import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
-import Dropdown from '../../components/Dropdown';
+import { formatCount, TTSelect } from '../../design-system/components';
 import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { money } from '../../lib/format';
@@ -27,6 +27,7 @@ const SOURCE_OPTIONS = [
 ];
 
 const STATUS_OPTIONS = Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label }));
+const STATUS_FILTER_OPTIONS = [{ value: '', label: 'Todos' }, ...STATUS_OPTIONS];
 
 /** Leads CRM: sin DELETE; baja = estado terminal WON/LOST (409 si edita). */
 export default function LeadsScreen() {
@@ -82,18 +83,19 @@ export default function LeadsScreen() {
 
   return (
     <>
-      <View>
-        <Dropdown
-          value={statusFilter || null}
-          onChange={(v) => setStatusFilter(v || '')}
-          options={STATUS_OPTIONS}
-          placeholder="(todos los estados)"
-        />
-      </View>
-
       <DataTable
         title="Leads"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
+        filters={
+          <TTSelect
+            size="toolbar"
+            valuePrefix="Estado"
+            value={statusFilter || null}
+            onChange={(v) => setStatusFilter(v || '')}
+            options={STATUS_FILTER_OPTIONS}
+            placeholder="Estado: todos"
+          />
+        }
         columns={[
           { key: 'name', label: 'Nombre', width: 170 },
           { key: 'company', label: 'Empresa', width: 150 },

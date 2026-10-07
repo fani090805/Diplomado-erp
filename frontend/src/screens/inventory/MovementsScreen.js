@@ -1,10 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { COLORS, RADIUS } from '../../design-system/tokens';
-import { TTIcon } from '../../design-system/components';
+import { StyleSheet, Text, View } from 'react-native';
+import { COLORS } from '../../design-system/tokens';
+import { formatCount, TTButton, TTIcon, TTSelect } from '../../design-system/components';
 import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/DataTable';
-import Dropdown from '../../components/Dropdown';
 import MovementFormModal from '../../components/inventory/MovementFormModal';
 import { useList, usePicklist } from '../../hooks/useResource';
 import { useUrlState } from '../../nav/urlState';
@@ -15,6 +14,16 @@ const TYPE_OPTIONS = [
   { value: 'ADJUSTMENT', label: 'Ajuste' },
   { value: 'TRANSFER', label: 'Transferencia' },
 ];
+
+/** Botones de la barra de la tabla (cada uno con su permiso). */
+const MOVEMENT_ACTIONS = [
+  { kind: 'ENTRY', label: 'Entrada', icon: 'entrada', permission: 'inventory.movements.create' },
+  { kind: 'EXIT', label: 'Salida', icon: 'salida', permission: 'inventory.movements.create' },
+  { kind: 'ADJUSTMENT', label: 'Ajuste', icon: 'ajuste', permission: 'inventory.adjustments.create' },
+  { kind: 'TRANSFER', label: 'Transferencia', icon: 'intercambio', permission: 'inventory.transfers.create' },
+];
+
+const TYPE_FILTER_OPTIONS = [{ value: '', label: 'Todos' }, ...TYPE_OPTIONS];
 
 const TYPE_LABEL = { ENTRY: 'Entrada', EXIT: 'Salida', ADJUSTMENT: 'Ajuste', TRANSFER: 'Transferencia' };
 
@@ -61,46 +70,30 @@ export default function MovementsScreen() {
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.actions}>
-        {can('inventory.movements.create') ? (
-          <>
-            <Pressable style={styles.btn} onPress={() => setKind('ENTRY')}>
-              <TTIcon name="entrada" size={16} color={COLORS.textInverted} />
-              <Text style={styles.btnText}>Entrada</Text>
-            </Pressable>
-            <Pressable style={styles.btn} onPress={() => setKind('EXIT')}>
-              <TTIcon name="salida" size={16} color={COLORS.textInverted} />
-              <Text style={styles.btnText}>Salida</Text>
-            </Pressable>
-          </>
-        ) : null}
-        {can('inventory.adjustments.create') ? (
-          <Pressable style={styles.btn} onPress={() => setKind('ADJUSTMENT')}>
-            <TTIcon name="ajuste" size={16} color={COLORS.textInverted} />
-            <Text style={styles.btnText}>Ajuste</Text>
-          </Pressable>
-        ) : null}
-        {can('inventory.transfers.create') ? (
-          <Pressable style={styles.btn} onPress={() => setKind('TRANSFER')}>
-            <TTIcon name="intercambio" size={16} color={COLORS.textInverted} />
-            <Text style={styles.btnText}>Transferencia</Text>
-          </Pressable>
-        ) : null}
-      </View>
-
-      <View style={styles.filter}>
-        <Text style={styles.label}>Tipo</Text>
-        <Dropdown
-          value={typeFilter || null}
-          onChange={(v) => setTypeFilter(v || '')}
-          options={TYPE_OPTIONS}
-          placeholder="(todos)"
-        />
-      </View>
-
       <DataTable
         title="Movimientos de inventario"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
+        filters={
+          <TTSelect
+            size="toolbar"
+            valuePrefix="Tipo"
+            value={typeFilter || null}
+            onChange={(v) => setTypeFilter(v || '')}
+            options={TYPE_FILTER_OPTIONS}
+            placeholder="Tipo: todos"
+          />
+        }
+        extraActions={MOVEMENT_ACTIONS.filter((a) => can(a.permission)).map((a) => (
+          <TTButton
+            key={a.kind}
+            variant="secondary"
+            size="toolbar"
+            onPress={() => setKind(a.kind)}
+            iconLeft={<TTIcon name={a.icon} size={16} color={COLORS.textPrimary} />}
+          >
+            {a.label}
+          </TTButton>
+        ))}
         columns={[
           { key: 'createdAt', label: 'Fecha', width: 150, render: (r) => <Text style={styles.td}>{dateOf(r.createdAt)}</Text> },
           { key: 'type', label: 'Tipo', width: 110, render: (r) => <Text style={styles.type}>{TYPE_LABEL[r.type] || r.type}</Text> },
@@ -149,11 +142,6 @@ export default function MovementsScreen() {
 
 const styles = StyleSheet.create({
   wrap: { gap: 12 },
-  actions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  btn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: COLORS.primary, borderRadius: RADIUS.sm, paddingHorizontal: 14, paddingVertical: 9 },
-  btnText: { color: COLORS.textInverted, fontWeight: '600', fontSize: 14 },
-  filter: { minWidth: 220, maxWidth: 320, gap: 4 },
-  label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
   td: { fontSize: 14, color: COLORS.textPrimary },
   type: { fontSize: 13, fontWeight: '700', color: COLORS.successText },
   qty: { fontSize: 14, fontWeight: '700', color: COLORS.textPrimary },

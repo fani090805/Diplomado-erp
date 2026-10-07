@@ -1,11 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { COLORS } from '../../design-system/tokens';
-import { TTInput } from '../../design-system/components';
+import { COLORS, SIZES } from '../../design-system/tokens';
+import { formatCount, TTSearch, TTSelect } from '../../design-system/components';
 import { api } from '../../api/client';
 import DataTable from '../../components/DataTable';
 import DetailModal from '../../components/DetailModal';
-import Dropdown from '../../components/Dropdown';
 import StatusBadge from '../../components/StatusBadge';
 import { dateOf } from '../../lib/format';
 import { useList } from '../../hooks/useResource';
@@ -15,6 +14,8 @@ const RESULT_OPTIONS = [
   { value: 'SUCCESS', label: 'Éxito' },
   { value: 'FAILURE', label: 'Fallo' },
 ];
+
+const RESULT_FILTER_OPTIONS = [{ value: '', label: 'Todos' }, ...RESULT_OPTIONS];
 
 /**
  * Auditoría inmutable (ADR-005): sólo lectura, sin POST/PUT/DELETE.
@@ -49,30 +50,27 @@ export default function AuditScreen() {
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.filters}>
-        <View style={styles.filter}>
-          <Text style={styles.label}>Módulo</Text>
-          <TTInput
-            value={moduleF}
-            onChangeText={setModuleF}
-            placeholder="products, users…"
-            autoCapitalize="none"
-          />
-        </View>
-        <View style={styles.filter}>
-          <Text style={styles.label}>Resultado</Text>
-          <Dropdown
-            value={resultF || null}
-            onChange={(v) => setResultF(v || '')}
-            options={RESULT_OPTIONS}
-            placeholder="(todos)"
-          />
-        </View>
-      </View>
-
       <DataTable
         title="Auditoría"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
+        filters={[
+          <TTSearch
+            key="module"
+            value={moduleF}
+            onChangeText={setModuleF}
+            placeholder="Módulo: products, users…"
+            style={styles.moduleFilter}
+          />,
+          <TTSelect
+            key="result"
+            size="toolbar"
+            valuePrefix="Resultado"
+            value={resultF || null}
+            onChange={(v) => setResultF(v || '')}
+            options={RESULT_FILTER_OPTIONS}
+            placeholder="Resultado: todos"
+          />,
+        ]}
         columns={[
           { key: 'createdAt', label: 'Fecha', width: 160, render: (r) => <Text style={styles.td}>{dateOf(r.createdAt, true)}</Text> },
           { key: 'userEmail', label: 'Usuario', width: 170, render: (r) => <Text style={styles.td}>{r.userEmail || '—'}</Text> },
@@ -130,8 +128,6 @@ export default function AuditScreen() {
 
 const styles = StyleSheet.create({
   wrap: { gap: 12 },
-  filters: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
-  filter: { minWidth: 200, gap: 4 },
-  label: { fontSize: 13, fontWeight: '600', color: COLORS.textSecondary },
+  moduleFilter: { height: SIZES.toolbarControl, minWidth: 0 },
   td: { fontSize: 14, color: COLORS.textPrimary },
 });

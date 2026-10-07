@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { FlatList, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { COLORS, RADIUS, SPACING, TYPOGRAPHY } from '../tokens';
+import { COLORS, RADIUS, SIZES, SPACING, TYPOGRAPHY } from '../tokens';
 import { TTIcon } from './TTIcon';
 
 /**
  * TTSelect - Desplegable selector de FAI Solution ERP
+ *
+ * - `size="toolbar"`: alto fijo de la barra de herramientas de las tablas.
+ * - `valuePrefix`: antepone un texto al valor elegido ("Estado: Aprobada").
+ * - `title`: título del panel cuando el control no lleva `label`.
  */
 export function TTSelect({
   value,
@@ -12,6 +16,9 @@ export function TTSelect({
   options = [],
   placeholder = 'Seleccione una opción…',
   label,
+  title,
+  valuePrefix,
+  size = 'md',
   error,
   disabled = false,
   style,
@@ -42,6 +49,7 @@ export function TTSelect({
         onPress={() => setOpen((o) => !o)}
         style={({ hovered, focused }) => [
           styles.control,
+          size === 'toolbar' && styles.controlToolbar,
           open && styles.controlOpen,
           focused && styles.controlFocused,
           error && styles.controlError,
@@ -49,8 +57,11 @@ export function TTSelect({
           hovered && !disabled && styles.controlHovered,
         ]}
       >
-        <Text style={[styles.valueText, !selectedOption && styles.placeholderText]} numberOfLines={1}>
-          {selectedOption ? selectedOption.label : placeholder}
+        <Text
+          style={[styles.valueText, size === 'toolbar' && styles.valueTextToolbar, !selectedOption && styles.placeholderText]}
+          numberOfLines={1}
+        >
+          {selectedOption ? (valuePrefix ? `${valuePrefix}: ${selectedOption.label}` : selectedOption.label) : placeholder}
         </Text>
         <TTIcon
           name={open ? 'chevronArriba' : 'chevronAbajo'}
@@ -68,7 +79,7 @@ export function TTSelect({
           <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
             <View style={styles.panel} onStartShouldSetResponder={() => true}>
               <View style={styles.panelHeader}>
-                <Text style={styles.panelTitle}>{label || 'Seleccionar'}</Text>
+                <Text style={styles.panelTitle}>{label || title || valuePrefix || 'Seleccionar'}</Text>
                 <Pressable onPress={() => setOpen(false)}>
                   <TTIcon name="cerrar" size={18} color={COLORS.textMuted} />
                 </Pressable>
@@ -142,6 +153,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md,
     minHeight: 46,
   },
+  controlToolbar: {
+    minHeight: SIZES.toolbar,
+    height: SIZES.toolbar,
+    backgroundColor: COLORS.surface,
+  },
   controlOpen: {
     borderColor: COLORS.primary,
     backgroundColor: COLORS.surface,
@@ -171,6 +187,10 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.md,
     color: COLORS.textPrimary,
     fontFamily: TYPOGRAPHY.fontFamily.ui,
+  },
+  valueTextToolbar: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontWeight: TYPOGRAPHY.fontWeight.semibold,
   },
   placeholderText: {
     color: COLORS.textMuted,

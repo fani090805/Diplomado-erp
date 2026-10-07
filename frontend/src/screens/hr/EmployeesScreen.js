@@ -5,6 +5,7 @@ import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import { useConfirm } from '../../components/Confirm';
 import DataTable from '../../components/DataTable';
+import { formatCount } from '../../design-system/components';
 import FormModal from '../../components/FormModal';
 import StatusBadge from '../../components/StatusBadge';
 import { dateOf, money } from '../../lib/format';
@@ -59,7 +60,7 @@ export default function EmployeesScreen() {
     <>
       <DataTable
         title="Empleados"
-        subtitle={`${list.total} registros`}
+        subtitle={`${formatCount(list.total)} registros`}
         columns={[
           { key: 'documentId', label: 'Documento', width: 110 },
           {
