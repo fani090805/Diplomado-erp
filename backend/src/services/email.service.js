@@ -104,6 +104,30 @@ function getProviderConfig() {
   return { provider, apiKey, fromEmail, fromName };
 }
 
+function hideApiKey(value, apiKey) {
+  return apiKey ? String(value).split(apiKey).join('[API key ocultada]') : String(value);
+}
+
+function redirectedContent(recipients, subject, html) {
+  const redirectTo = (process.env.EMAIL_REDIRECT_TO || '').trim();
+  if (!redirectTo) return { recipients, subject, html };
+
+  const originalEmails = [...new Set(recipients.map((recipient) => recipient.email.trim()).filter(Boolean))];
+  if (originalEmails.length === 0) return { recipients: [], subject, html };
+
+  const originals = originalEmails.join(', ');
+  const notice = `<p style="margin:0 0 12px;color:#696B61;font-size:11px;line-height:1.4;">Destinatario original: ${escapeHtml(originals)}</p>`;
+  const bodyTag = /<body\b[^>]*>/i;
+  const redirectedHtml = bodyTag.test(html)
+    ? html.replace(bodyTag, (tag) => `${tag}\n  ${notice}`)
+    : `${notice}${html}`;
+  return {
+    recipients: [{ email: redirectTo }],
+    subject: `[Para: ${originals}] ${subject}`,
+    html: redirectedHtml,
+  };
+}
+
 function sendEmail({ to, subject, html }) {
   const { provider, apiKey, fromEmail, fromName } = getProviderConfig();
   if (!apiKey || !fromEmail) {
@@ -122,23 +146,25 @@ function sendEmail({ to, subject, html }) {
     return Promise.resolve({ success: true, simulated: true });
   }
 
+  const message = redirectedContent(recipients, subject, html);
+
   const isBrevo = provider === 'brevo';
   const payload = JSON.stringify(
     isBrevo
       ? {
           sender: { name: fromName, email: fromEmail },
-          to: recipients.map((recipient) => ({
+          to: message.recipients.map((recipient) => ({
             email: recipient.email,
             ...(recipient.name ? { name: recipient.name } : {}),
           })),
-          subject,
-          htmlContent: html,
+          subject: message.subject,
+          htmlContent: message.html,
         }
       : {
           from: `${fromName} <${fromEmail}>`,
-          to: recipients.map((recipient) => recipient.email),
-          subject,
-          html,
+          to: message.recipients.map((recipient) => recipient.email),
+          subject: message.subject,
+          html: message.html,
         }
   );
   const options = {
@@ -165,10 +191,10 @@ function sendEmail({ to, subject, html }) {
           return;
         }
         logger.error(
-          { provider, statusCode: response.statusCode, response: responseBody },
+          { provider, statusCode: response.statusCode, response: hideApiKey(responseBody, apiKey) },
           '[email.service] Falló el envío de correo.'
         );
-        resolve({ success: false, statusCode: response.statusCode });
+        resolve({ success: false, statusCode: response.statusCode, error: hideApiKey(responseBody, apiKey) });
       });
     });
 
@@ -178,6 +204,23 @@ function sendEmail({ to, subject, html }) {
     });
     request.write(payload);
     request.end();
+  });
+}
+
+function sendTestEmail() {
+  const redirectTo = (process.env.EMAIL_REDIRECT_TO || '').trim();
+  if (!redirectTo) {
+    return Promise.resolve({ success: false, error: 'Configura EMAIL_REDIRECT_TO para enviar el correo de prueba.' });
+  }
+  return sendEmail({
+    to: { email: redirectTo },
+    subject: 'Prueba de correo FAI Solution ERP',
+    html: renderEmail({
+      title: 'Prueba de correo',
+      greeting: 'Hola,',
+      paragraphs: ['Este es un correo de prueba de FAI Solution ERP.'],
+      details: [['Estado', 'Configuración de correo activa']],
+    }),
   });
 }
 
@@ -370,6 +413,7 @@ function sendCompanyRejected({ email, name, companyName, reason }) {
 
 module.exports = {
   sendEmail,
+  sendTestEmail,
   sendCompanyRequestReceived,
   sendNewCompanyRequestToPlatform,
   sendCompanyApproved,

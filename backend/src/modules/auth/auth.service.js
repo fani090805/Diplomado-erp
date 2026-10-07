@@ -516,6 +516,15 @@ const authService = {
       ...meta,
     });
 
+    dispatchEmail(
+      () =>
+        sendPasswordChangedEmail({
+          email: user.email,
+          name: (user.name || '') + ' ' + (user.lastName || ''),
+        }),
+      { action: 'password_changed', userId: String(user._id) }
+    );
+
     return { changed: true, mustRelogin: true };
   },
 };

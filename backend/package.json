@@ -14,6 +14,7 @@
     "seed:sales": "node src/scripts/seed-sales.js",
     "seed:sales:remove": "node src/scripts/remove-demo-sales.js",
     "indexes": "node ../database/indexes/apply-indexes.js",
+    "email:test": "node src/scripts/email-test.js",
     "test": "jest --runInBand",
     "test:unit": "jest tests/unit --runInBand",
     "test:integration": "jest tests/integration --runInBand"

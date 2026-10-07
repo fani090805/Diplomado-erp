@@ -13,6 +13,7 @@ const ENV_KEYS = [
   'BREVO_API_KEY',
   'EMAIL_FROM',
   'EMAIL_FROM_NAME',
+  'EMAIL_REDIRECT_TO',
   'APP_URL',
   'LOGIN_NOTIFICATIONS',
 ];
@@ -101,18 +102,67 @@ describe('email.service', () => {
       EMAIL_FROM: 'no-reply@test.local',
       EMAIL_FROM_NAME: 'FAI Solution ERP',
     });
-    const sent = mockProviderResponse(422, '{"message":"invalid"}');
+    const sent = mockProviderResponse(422, '{"message":"invalid clave-ficticia"}');
 
     const result = await emailService.sendPasswordChangedEmail({ email: 'a@test.local', name: 'Ana' });
 
     expect(result.success).toBe(false);
+    expect(result.error).toBe('{"message":"invalid [API key ocultada]"}');
     expect(sent.options.hostname).toBe('api.resend.com');
     expect(sent.options.headers.Authorization).toBe('Bearer clave-ficticia');
     expect(JSON.parse(sent.payload).from).toBe('FAI Solution ERP <no-reply@test.local>');
     expect(logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ statusCode: 422, response: '{"message":"invalid"}' }),
+      expect.objectContaining({ statusCode: 422, response: '{"message":"invalid [API key ocultada]"}' }),
       expect.any(String)
     );
+  });
+
+  test('redirige todos los destinatarios a una sola dirección y conserva los originales en el mensaje', async () => {
+    Object.assign(process.env, {
+      EMAIL_PROVIDER: 'resend',
+      RESEND_API_KEY: 'clave-ficticia',
+      EMAIL_FROM: 'no-reply@test.local',
+      EMAIL_REDIRECT_TO: 'qa@test.local',
+    });
+    const sent = mockProviderResponse(200);
+
+    const result = await emailService.sendNewCompanyRequestToPlatform({
+      recipients: [
+        { email: 'admin-a@test.local' },
+        { email: 'admin-b@test.local' },
+        { email: 'admin-a@test.local' },
+      ],
+      companyName: 'Acme',
+      industry: 'comercio',
+      applicantEmail: 'solicitante@test.local',
+    });
+
+    expect(result.success).toBe(true);
+    const payload = JSON.parse(sent.payload);
+    expect(payload.to).toEqual(['qa@test.local']);
+    expect(payload.subject).toBe('[Para: admin-a@test.local, admin-b@test.local] Nueva solicitud de empresa: Acme');
+    const notice = 'Destinatario original: admin-a@test.local, admin-b@test.local';
+    expect(payload.html).toContain(notice);
+    expect(payload.html.indexOf(notice)).toBeGreaterThan(payload.html.indexOf('<body'));
+    expect(payload.html.indexOf(notice)).toBeLessThan(payload.html.indexOf('<h1'));
+  });
+
+  test('sin EMAIL_REDIRECT_TO conserva destinatario y asunto sin agregar aviso', async () => {
+    Object.assign(process.env, {
+      EMAIL_PROVIDER: 'resend',
+      RESEND_API_KEY: 'clave-ficticia',
+      EMAIL_FROM: 'no-reply@test.local',
+    });
+    delete process.env.EMAIL_REDIRECT_TO;
+    const sent = mockProviderResponse(200);
+
+    const result = await emailService.sendPasswordChangedEmail({ email: 'a@test.local', name: 'Ana' });
+
+    expect(result.success).toBe(true);
+    const payload = JSON.parse(sent.payload);
+    expect(payload.to).toEqual(['a@test.local']);
+    expect(payload.subject).toBe('Tu contraseña fue cambiada');
+    expect(payload.html).not.toContain('Destinatario original:');
   });
 
   test('la notificación de inicio de sesión solo se envía con LOGIN_NOTIFICATIONS=true', async () => {

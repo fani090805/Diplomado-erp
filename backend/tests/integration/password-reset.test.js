@@ -184,6 +184,30 @@ describeIfDb('API /auth recuperación de contraseña (integración)', () => {
     expect(refresh.status).toBe(401);
   });
 
+  test('cambiar la contraseña desde la sesión también envía el correo de confirmación', async () => {
+    const user = await createUser({
+      company: tenant.company,
+      role: tenant.roles.ventas,
+      email: 'change-password@test.local',
+      name: 'Cambio',
+      password: 'Clave1234',
+    });
+    const accessToken = await login(user.email, 'Clave1234');
+    emailService.sendPasswordChangedEmail.mockClear();
+
+    const response = await request(app)
+      .post('/api/v1/auth/change-password')
+      .set(auth(accessToken))
+      .send({ currentPassword: 'Clave1234', newPassword: 'NuevaClave99' });
+
+    expect(response.status).toBe(200);
+    await flush();
+    expect(emailService.sendPasswordChangedEmail).toHaveBeenCalledWith({
+      email: 'change-password@test.local',
+      name: 'Cambio Test',
+    });
+  });
+
   test('el token no se puede usar dos veces', async () => {
     const token = await requestResetToken('reset@test.local');
     const first = await request(app)
