@@ -103,6 +103,10 @@ const withCustomerNames = (items) =>
   attachNames(items, { repository: customerRepository, idField: 'customerId', nameField: 'customerName' });
 
 const salesOrderService = {
+  async hasProductHistory(productId, companyId) {
+    return Boolean(await salesOrderRepository.exists({ companyId, 'lines.productId': productId }));
+  },
+
   /** Lista con `customerName` (una consulta por página) y orden estable por folio. */
   async list(filter, options = {}) {
     const result = await salesOrderRepository.find(filter, { ...options, sort: withCodeTiebreak(options.sort) });

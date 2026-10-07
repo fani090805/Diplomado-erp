@@ -6,6 +6,29 @@ const stockLevelRepository = require('../inventory/stock_level.repository');
 const inventoryMovementRepository = require('../inventory/inventory_movement.repository');
 const masterDataRepository = require('../master-data/master_data.repository');
 const inventoryTraceRepository = require('../inventory/inventory_trace.repository');
+const salesOrderService = require('../sales-orders/sales_order.service');
+const purchaseOrderService = require('../purchase-orders/purchase_order.service');
+
+const PRODUCT_HISTORY_MESSAGE =
+  'Este producto tiene historial (existencias, movimientos o ventas). Desactívalo para que ya no se use; su historial se conserva.';
+
+async function getHistoryFlags(productId, companyId) {
+  const [hasStock, hasMovements, hasTraces, hasSales, hasPurchases] = await Promise.all([
+    stockLevelRepository.hasStockForProduct(companyId, productId),
+    inventoryMovementRepository.exists({ companyId, productId }),
+    inventoryTraceRepository.hasRecords(companyId, productId),
+    salesOrderService.hasProductHistory(productId, companyId),
+    purchaseOrderService.hasProductHistory(productId, companyId),
+  ]);
+  return { hasStock: Boolean(hasStock), hasMovements: Boolean(hasMovements), hasTraces, hasSales, hasPurchases };
+}
+
+async function withHistory(items, companyId) {
+  return Promise.all(items.map(async (item) => {
+    const history = await getHistoryFlags(String(item._id), companyId);
+    return { ...item, hasHistory: Object.values(history).some(Boolean) };
+  }));
+}
 
 const MASTER_REFERENCES = [
   ['categoryId', 'category', 'category', 'name'],
@@ -34,7 +57,8 @@ async function resolveMasterReferences(data, companyId) {
  */
 const productService = {
   async list(filter, options) {
-    return productRepository.find(filter, options);
+    const result = await productRepository.find(filter, options);
+    return { ...result, items: await withHistory(result.items, filter.companyId) };
   },
 
   async getById(id, companyId) {
@@ -86,6 +110,18 @@ const productService = {
     return productRepository.updateById(id, patch, { companyId });
   },
 
+  async deactivate(id, companyId) {
+    const product = await productRepository.findById(id, { companyId });
+    if (!product) throw ApiError.notFound('Recurso no encontrado.');
+    return productRepository.updateById(id, { status: 'inactive' }, { companyId });
+  },
+
+  async reactivate(id, companyId) {
+    const product = await productRepository.findById(id, { companyId });
+    if (!product) throw ApiError.notFound('Recurso no encontrado.');
+    return productRepository.updateById(id, { status: 'active' }, { companyId });
+  },
+
   /**
    * Borrado físico sólo si el producto nunca tuvo existencias ni movimientos.
    * Si no: 409 con mensaje de acción (desactivar en su lugar).
@@ -94,22 +130,13 @@ const productService = {
     const product = await productRepository.findById(id, { companyId });
     if (!product) throw ApiError.notFound('Recurso no encontrado.');
 
-    const withStock = await stockLevelRepository.hasStockForProduct(companyId, id);
-    if (withStock) {
-      throw ApiError.conflict(
-        'El producto tiene existencias en almacenes: no se puede eliminar. Desactívelo (status inactive) en su lugar.'
-      );
-    }
-
-    const movements = await inventoryMovementRepository.exists({ companyId, productId: id });
-    if (movements) {
-      throw ApiError.conflict(
-        'El producto tiene movimientos de inventario: no se puede eliminar. Desactívelo (status inactive) en su lugar.'
-      );
-    }
+    const history = await getHistoryFlags(id, companyId);
+    if (Object.values(history).some(Boolean)) throw ApiError.conflict(PRODUCT_HISTORY_MESSAGE);
 
     return productRepository.deleteById(id, { companyId });
   },
+
+  PRODUCT_HISTORY_MESSAGE,
 };
 
 module.exports = productService;

@@ -2,11 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { COLORS, SPACING, TYPOGRAPHY } from '../../design-system/tokens';
 import { formatCount, TTBadge, TTButton, TTConfirmModal, TTIcon, TTSelect, TTStatCard } from '../../design-system/components';
+import { api } from '../../api/client';
 import { useAuth } from '../../auth/AuthContext';
 import DataTable from '../../components/DataTable';
 import MovementFormModal from '../../components/inventory/MovementFormModal';
 import ProductFormModal from '../../components/inventory/ProductFormModal';
 import { fetchAll, usePicklist } from '../../hooks/useResource';
+import { useLiveUpdates } from '../../hooks/useLiveUpdates';
 import { money } from '../../lib/format';
 import { useUrlState } from '../../nav/urlState';
 
@@ -35,20 +37,27 @@ export default function StockScreen() {
   const [newProduct, setNewProduct] = useState(null);
   const [askInitialStock, setAskInitialStock] = useState(null); // producto recién creado
   const [movement, setMovement] = useState(null); // { kind, initial }
+  const [productConfirmation, setProductConfirmation] = useState(null);
 
   const canCreateProduct = can('products.create');
   const canMove = can('inventory.movements.create');
 
   const reload = useCallback(() => setReloadKey((k) => k + 1), []);
+  // Existencias y catálogo cambian con entradas, salidas, ventas y compras aprobadas.
+  useLiveUpdates(['inventory', 'product'], reload);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([fetchAll('/inventory/stock'), can('products.read') ? fetchAll('/products') : Promise.resolve([])])
-      .then(([stockRows, productRows]) => {
+    Promise.all([
+      fetchAll('/inventory/stock'),
+      can('products.read') ? fetchAll('/products') : Promise.resolve([]),
+      can('products.read') ? fetchAll('/products', { status: 'inactive' }) : Promise.resolve([]),
+    ])
+      .then(([stockRows, productRows, inactiveProductRows]) => {
         if (cancelled) return;
         setStock(stockRows);
-        setProducts(productRows);
+        setProducts([...productRows, ...inactiveProductRows]);
         setError(null);
       })
       .catch((e) => {
@@ -64,7 +73,7 @@ export default function StockScreen() {
 
   const productById = useMemo(() => new Map(products.map((p) => [String(p._id), p])), [products]);
   const productOptions = useMemo(
-    () => products.map((p) => ({ value: String(p._id), label: p.sku ? `${p.name} (${p.sku})` : p.name })),
+    () => products.filter((p) => p.status === 'active').map((p) => ({ value: String(p._id), label: p.sku ? `${p.name} (${p.sku})` : p.name })),
     [products]
   );
 
@@ -118,6 +127,22 @@ export default function StockScreen() {
     setNewProduct(null);
     reload();
     if (created && canMove && product?._id) setAskInitialStock(product);
+  };
+
+  const confirmProductAction = async () => {
+    const action = productConfirmation?.action;
+    setProductConfirmation(null);
+    if (!action) return;
+    try {
+      await action();
+      reload();
+    } catch (actionError) {
+      setProductConfirmation({
+        title: actionError.status === 409 ? 'Producto con historial' : 'No se pudo desactivar',
+        message: actionError.message,
+        informational: true,
+      });
+    }
   };
 
   const openMovement = (kind, initial = null) => setMovement({ kind, initial });
@@ -230,6 +255,20 @@ export default function StockScreen() {
           },
         ]}
         rows={pageRows}
+        rowActions={can('products.update') ? (row) => [
+          {
+            label: 'Editar producto',
+            onPress: () => setNewProduct(productById.get(row.productKey) || null),
+          },
+          ...(productById.get(row.productKey)?.status === 'active' ? [{
+            label: 'Desactivar producto',
+            onPress: () => setProductConfirmation({
+              title: 'Desactivar producto',
+              message: `¿Desactivar ${row.name}? Ya no se podrá vender ni comprar. Su historial se conserva y podrás reactivarlo.`,
+              action: () => api(`/products/${row.productKey}/deactivate`, { method: 'PATCH' }),
+            }),
+          }] : []),
+        ] : undefined}
         loading={loading}
         error={error}
         onRefresh={reload}
@@ -262,6 +301,15 @@ export default function StockScreen() {
           setAskInitialStock(null);
           openMovement('ENTRY', { productId: String(product._id) });
         }}
+      />
+
+      <TTConfirmModal
+        visible={Boolean(productConfirmation)}
+        title={productConfirmation?.title}
+        message={productConfirmation?.message || ''}
+        onCancel={() => setProductConfirmation(null)}
+        onConfirm={productConfirmation?.informational ? () => setProductConfirmation(null) : confirmProductAction}
+        confirmLabel={productConfirmation?.informational ? 'Entendido' : 'Desactivar'}
       />
 
       <MovementFormModal

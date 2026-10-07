@@ -48,6 +48,24 @@ router.patch(
   controller.update
 );
 
+router.patch(
+  '/:id/deactivate',
+  authenticate,
+  requireTenant,
+  authorize('products.update'),
+  validate({ params: schemas.idParams }),
+  controller.deactivate
+);
+
+router.patch(
+  '/:id/reactivate',
+  authenticate,
+  requireTenant,
+  authorize('products.update'),
+  validate({ params: schemas.idParams }),
+  controller.reactivate
+);
+
 router.delete(
   '/:id',
   authenticate,

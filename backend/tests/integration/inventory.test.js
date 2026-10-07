@@ -120,6 +120,31 @@ describeIfDb('API /products, /warehouses e /inventory (integración FASE 3)', ()
     productId = res.body.data._id;
   });
 
+  test('desactivar/reactivar cambia el filtro del catálogo y exige products.update', async () => {
+    const created = await request(app)
+      .post('/api/v1/products')
+      .set(auth(adminAToken))
+      .send({ sku: 'SKU-STATUS', name: 'Producto de estado' });
+    const id = created.body.data._id;
+
+    const denied = await request(app).patch(`/api/v1/products/${id}/deactivate`).set(auth(consultaToken));
+    expect(denied.status).toBe(403);
+
+    const deactivated = await request(app).patch(`/api/v1/products/${id}/deactivate`).set(auth(adminAToken));
+    expect(deactivated.status).toBe(200);
+    expect(deactivated.body.data.status).toBe('inactive');
+
+    const active = await request(app).get('/api/v1/products').set(auth(adminAToken));
+    expect(active.body.data.some((product) => product._id === id)).toBe(false);
+
+    const inactive = await request(app).get('/api/v1/products?status=inactive').set(auth(adminAToken));
+    expect(inactive.body.data.find((product) => product._id === id)).toMatchObject({ status: 'inactive', hasHistory: false });
+
+    const reactivated = await request(app).patch(`/api/v1/products/${id}/reactivate`).set(auth(adminAToken));
+    expect(reactivated.status).toBe(200);
+    expect(reactivated.body.data.status).toBe('active');
+  });
+
   test('SKU duplicado en la misma empresa → 409 con mensaje canónico', async () => {
     const res = await request(app)
       .post('/api/v1/products')
@@ -145,6 +170,7 @@ describeIfDb('API /products, /warehouses e /inventory (integración FASE 3)', ()
     expect(res.status).toBe(200);
     const skus = res.body.data.map((p) => p.sku);
     expect(skus).toContain('SKU-001');
+    expect(res.body.data.find((p) => p._id === productId).hasHistory).toBe(false);
 
     const other = await request(app).get('/api/v1/products').set(auth(adminBToken));
     expect(other.status).toBe(200);
@@ -385,6 +411,11 @@ describeIfDb('API /products, /warehouses e /inventory (integración FASE 3)', ()
       .set(auth(adminBToken));
     expect(product.status).toBe(404);
 
+    const deactivated = await request(app)
+      .patch(`/api/v1/products/${productId}/deactivate`)
+      .set(auth(adminBToken));
+    expect(deactivated.status).toBe(404);
+
     const movement = await request(app)
       .get(`/api/v1/inventory/movements/${lastMovementId}`)
       .set(auth(adminBToken));
@@ -417,8 +448,11 @@ describeIfDb('API /products, /warehouses e /inventory (integración FASE 3)', ()
 
     expect(res.status).toBe(409);
     expect(res.body.error.message).toBe(
-      'El producto tiene existencias en almacenes: no se puede eliminar. Desactívelo (status inactive) en su lugar.'
+      'Este producto tiene historial (existencias, movimientos o ventas). Desactívalo para que ya no se use; su historial se conserva.'
     );
+
+    const active = await request(app).get('/api/v1/products').set(auth(adminAToken));
+    expect(active.body.data.find((product) => product._id === productId)?.hasHistory).toBe(true);
   });
 
   test('producto SIN historial se elimina → 200', async () => {
@@ -511,7 +545,7 @@ describeIfDb('API /products, /warehouses e /inventory (integración FASE 3)', ()
 
     expect(res.status).toBe(409);
     expect(res.body.error.message).toBe(
-      'El producto tiene movimientos de inventario: no se puede eliminar. Desactívelo (status inactive) en su lugar.'
+      'Este producto tiene historial (existencias, movimientos o ventas). Desactívalo para que ya no se use; su historial se conserva.'
     );
   });
 

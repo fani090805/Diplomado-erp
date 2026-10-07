@@ -559,4 +559,28 @@ describeIfDb('API /suppliers, /customers, /purchase-orders y /sales-orders (inte
     const trace = await request(app).get(`/api/v1/inventory/traceability?productId=${product.body.data._id}`).set(auth(adminAToken));
     expect(trace.body.data).toEqual(expect.arrayContaining([expect.objectContaining({ identifier: 'BUY-LOT', quantity: 1 })]));
   });
+
+  test('no elimina un producto referenciado por una línea de venta o compra aunque no tenga movimientos', async () => {
+    const product = await request(app).post('/api/v1/products').set(auth(adminAToken)).send({
+      sku: 'ORDER-HISTORY', name: 'Producto con historial comercial',
+    });
+    const purchase = await request(app).post('/api/v1/purchase-orders').set(auth(comprasToken)).send({
+      supplierId,
+      lines: [{ productId: product.body.data._id, quantity: 1, unitCost: 10 }],
+    });
+    expect(purchase.status).toBe(201);
+    const sale = await request(app).post('/api/v1/sales-orders').set(auth(ventasToken)).send({
+      customerId,
+      lines: [{ productId: product.body.data._id, quantity: 1, unitPrice: 15 }],
+    });
+    expect(sale.status).toBe(201);
+
+    const deletion = await request(app).delete(`/api/v1/products/${product.body.data._id}`).set(auth(adminAToken));
+    expect(deletion.status).toBe(409);
+    expect(deletion.body.error.message).toBe(
+      'Este producto tiene historial (existencias, movimientos o ventas). Desactívalo para que ya no se use; su historial se conserva.'
+    );
+    const listed = await request(app).get('/api/v1/products?search=ORDER-HISTORY').set(auth(adminAToken));
+    expect(listed.body.data[0].hasHistory).toBe(true);
+  });
 });

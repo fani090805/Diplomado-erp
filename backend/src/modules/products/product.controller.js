@@ -12,7 +12,7 @@ const list = asyncHandler(async (req, res) => {
   const { page, limit, skip, sort } = parsePagination(req.query);
 
   const extra = {};
-  if (req.query.status) extra.status = req.query.status;
+  extra.status = req.query.status || 'active';
   if (req.query.category) extra.category = req.query.category;
   Object.assign(extra, searchFilterMulti(['sku', 'name', 'barcode'], req.query.search));
 
@@ -51,4 +51,15 @@ const remove = asyncHandler(async (req, res) => {
   return ok(res, { _id: after._id, deleted: true });
 });
 
-module.exports = { list, getById, create, update, remove };
+const changeStatus = (method) => asyncHandler(async (req, res) => {
+  const before = await productService.getById(req.params.id, req.user.companyId);
+  if (!before) throw ApiError.notFound('Recurso no encontrado.');
+  req.auditBefore = before;
+  const product = await productService[method](req.params.id, req.user.companyId);
+  return ok(res, product);
+});
+
+const deactivate = changeStatus('deactivate');
+const reactivate = changeStatus('reactivate');
+
+module.exports = { list, getById, create, update, remove, deactivate, reactivate };

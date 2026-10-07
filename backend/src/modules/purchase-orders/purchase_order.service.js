@@ -96,6 +96,10 @@ const withSupplierNames = (items) =>
   attachNames(items, { repository: supplierRepository, idField: 'supplierId', nameField: 'supplierName' });
 
 const purchaseOrderService = {
+  async hasProductHistory(productId, companyId) {
+    return Boolean(await purchaseOrderRepository.exists({ companyId, 'lines.productId': productId }));
+  },
+
   /** Lista con `supplierName` (una consulta por página) y orden estable por folio. */
   async list(filter, options = {}) {
     const result = await purchaseOrderRepository.find(filter, { ...options, sort: withCodeTiebreak(options.sort) });

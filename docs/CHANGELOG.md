@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2026-10-07 — Cambios en vivo, configuración compartida y tokens únicos
+- **Eventos en vivo (SSE):** `POST /api/v1/events/ticket` (con JWT) entrega un boleto de un solo uso válido 60 s; `GET /api/v1/events/stream?ticket=` abre el canal. Cada escritura exitosa de las entidades del catálogo emite `{ type, entity, id, action, at }` sin datos del documento, filtrado por empresa del token y permiso de lectura; los eventos de empresas sólo llegan al Super Admin. Bus en memoria (una instancia en Render).
+- **`GET /api/v1/meta`:** estados (etiqueta y tono), menú con permisos, moneda, locale y `minAndroidVersionCode` (`MIN_ANDROID_VERSION_CODE`), compartidos por web y Android.
+- **Web:** listados, Inventario y Dashboard se refrescan solos con indicador "En vivo"; menú y badges de estado salen de `/meta`, con los valores fijos como respaldo.
+- **Productos:** `PATCH /products/:id/deactivate` y `/reactivate` (`products.update`); el listado muestra activos por defecto y marca `hasHistory`. El borrado físico se bloquea si hay existencias, movimientos o líneas de venta/compra. La web separa Activos/Inactivos y sólo ofrece "Eliminar" sin historial.
+- **Design tokens:** `design/tokens.json` es la única fuente de colores; `node design/build-tokens.js` genera `colors.generated.js` (web) y `ColorTokens.kt` (Android). `--check` verifica que estén al día.
+- QA: 42/42 suites y 616/616 pruebas del backend; export web sin errores.
+
 ## Seguimiento FASE 3 — 2026-09-24 (conteo físico trazable)
 - Conteos capturan snapshot de lotes/series y permiten declarar cantidades e identificadores encontrados; los lotes también concilian vencimientos.
 - La publicación compara stock y detalle actuales contra el snapshot, rechaza cambios concurrentes, actualiza saldo agregado y trazabilidad con compensaciones, y guarda el detalle en el movimiento idempotente.
