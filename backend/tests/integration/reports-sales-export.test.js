@@ -12,6 +12,7 @@
 
 const request = require('supertest');
 const mongoose = require('mongoose');
+const zlib = require('zlib');
 const ExcelJS = require('exceljs');
 const { describeIfDb, connectTestDb, closeTestDb, app } = require('../helpers/setup');
 const { createTenant, createUser, login, auth } = require('../helpers/fixtures');
@@ -26,6 +27,40 @@ function binary(res, callback) {
   const chunks = [];
   res.on('data', (c) => chunks.push(Buffer.from(c)));
   res.on('end', () => callback(null, Buffer.concat(chunks)));
+}
+
+/** Texto visible de un PDF de pdfkit (streams comprimidos, texto en hex WinAnsi). */
+function pdfText(buffer) {
+  const raw = buffer.toString('latin1');
+  const out = [];
+  for (const m of raw.matchAll(/stream\r?\n([\s\S]*?)endstream/g)) {
+    let content;
+    try {
+      content = zlib.inflateSync(Buffer.from(m[1], 'latin1')).toString('latin1');
+    } catch {
+      continue;
+    }
+    for (const line of content.split('\n').filter((l) => /TJ|Tj/.test(l))) {
+      let text = '';
+      for (const h of line.matchAll(/<([0-9a-fA-F]+)>/g)) {
+        for (let i = 0; i < h[1].length; i += 2) text += String.fromCharCode(parseInt(h[1].substr(i, 2), 16));
+      }
+      out.push(text);
+    }
+  }
+  return out.join(' | ');
+}
+
+/** Filas de "Resumen" como { etiqueta: valor } y lista de textos de la columna A. */
+function summaryOf(wb) {
+  const sheet = wb.getWorksheet('Resumen');
+  const byLabel = {};
+  const texts = [];
+  sheet.eachRow((row) => {
+    byLabel[row.getCell(1).value] = row.getCell(2).value;
+    texts.push(row.getCell(1).value);
+  });
+  return { byLabel, texts };
 }
 
 async function readWorkbook(buffer) {
@@ -299,5 +334,88 @@ describeIfDb('API /reports/sales/export (PDF y Excel)', () => {
       .query({ format: 'xlsx', ...MARCH, productId: String(new mongoose.Types.ObjectId()) })
       .set(auth(tokenA));
     expect(missing.status).toBe(400);
+  });
+describe('estado "Todos": totales sólo con aprobadas', () => {
+    test('Excel: KPIs, meses y por cliente sólo aprobadas; Ventas y Detalle con todos los estados', async () => {
+      const res = await exportAs(tokenA, { format: 'xlsx', ...MARCH, status: 'all' });
+      expect(res.status).toBe(200);
+      const wb = await readWorkbook(res.body);
+      const { byLabel, texts } = summaryOf(wb);
+      // Aprobadas: 1100 + 200 + 60 (la de 100 es borrador y la de 20 rechazada).
+      expect(byLabel['Total vendido']).toBe(1360);
+      expect(byLabel['Número de órdenes']).toBe(3);
+      expect(byLabel['Ticket promedio']).toBeCloseTo(453.33, 2);
+      expect(byLabel['Unidades']).toBe(20);
+      expect(texts).toContain('Aprobadas: 3 · Borrador: 1 · Rechazadas: 1');
+      expect(texts).toContain('Totales calculados solo con ventas aprobadas');
+      expect(texts).not.toContain('Sin ventas aprobadas en el periodo');
+
+      expect(dataRows(wb.getWorksheet('Ventas'))).toHaveLength(5);
+      expect(dataRows(wb.getWorksheet('Detalle'))).toHaveLength(6);
+      // Nombres también en órdenes no aprobadas (catálogo, no sólo los del top).
+      expect(dataRows(wb.getWorksheet('Ventas')).map((r) => r[2])).toEqual(expect.arrayContaining(['Cliente Chico']));
+      const porCliente = dataRows(wb.getWorksheet('Por cliente')).map((r) => [r[0], r[3]]);
+      expect(porCliente).toEqual([['Cliente Grande', 1300], ['Cliente Chico', 60]]);
+    });
+
+    test('PDF: total de aprobadas, desglose por estado y nota', async () => {
+      const res = await exportAs(tokenA, { format: 'pdf', ...MARCH, status: 'all' });
+      expect(res.status).toBe(200);
+      const text = pdfText(res.body);
+      expect(text).toContain('$1,360.00');
+      expect(text).toContain('Aprobadas: 3 · Borrador: 1 · Rechazadas: 1');
+      expect(text).toContain('Totales calculados solo con ventas aprobadas');
+      // La tabla de órdenes del PDF sí lista los 5 estados mezclados.
+      for (const status of ['Aprobada', 'Borrador', 'Rechazada']) expect(text).toContain(status);
+    });
+
+    test('un solo estado se queda como estaba (sin desglose)', async () => {
+      const wb = await readWorkbook((await exportAs(tokenA, { format: 'xlsx', ...MARCH, status: 'DRAFT' })).body);
+      const { byLabel, texts } = summaryOf(wb);
+      expect(byLabel['Total vendido']).toBe(100);
+      expect(texts.some((t) => String(t).startsWith('Aprobadas:'))).toBe(false);
+    });
+  });
+
+  describe('rango sin ventas aprobadas', () => {
+    // 20 y 21 de marzo: sólo una venta en borrador y una rechazada.
+    const ONLY_PENDING = { from: '2026-03-20', to: '2026-03-21', status: 'all' };
+
+    test('Excel: totales en $0.00 y aviso, sin error', async () => {
+      const res = await exportAs(tokenA, { format: 'xlsx', ...ONLY_PENDING });
+      expect(res.status).toBe(200);
+      const wb = await readWorkbook(res.body);
+      const { byLabel, texts } = summaryOf(wb);
+      expect(byLabel['Total vendido']).toBe(0);
+      expect(byLabel['Número de órdenes']).toBe(0);
+      expect(byLabel['Ticket promedio']).toBe(0);
+      expect(texts).toContain('Sin ventas aprobadas en el periodo');
+      expect(texts).toContain('Aprobadas: 0 · Borrador: 1 · Rechazadas: 1');
+      expect(dataRows(wb.getWorksheet('Ventas'))).toHaveLength(2);
+    });
+
+    test('PDF: $0.00 y aviso, sin error', async () => {
+      const res = await exportAs(tokenA, { format: 'pdf', ...ONLY_PENDING });
+      expect(res.status).toBe(200);
+      const text = pdfText(res.body);
+      expect(text).toContain('$0.00');
+      expect(text).toContain('Sin ventas aprobadas en el periodo');
+    });
+  });
+
+  test('logo FAI en el PDF y en la hoja Resumen del Excel; Fecha sin hora', async () => {
+    const pdf = await exportAs(tokenA, { format: 'pdf', ...MARCH });
+    expect(pdf.body.toString('latin1')).toMatch(/\/Subtype \/Image/);
+    expect(pdfText(pdf.body)).toContain('FAI · SOLUTION ERP');
+
+    const wb = await readWorkbook((await exportAs(tokenA, { format: 'xlsx', ...MARCH })).body);
+    const images = wb.getWorksheet('Resumen').getImages();
+    expect(images).toHaveLength(1);
+    expect(images[0].range.tl.nativeCol).toBe(0);
+    expect(images[0].range.tl.nativeRow).toBe(0);
+    expect(wb.getImage(images[0].imageId).extension).toBe('png');
+
+    const fechas = dataRows(wb.getWorksheet('Ventas')).map((r) => r[1]);
+    expect(fechas.every((d) => d.getUTCHours() === 0 && d.getUTCMinutes() === 0)).toBe(true);
   });
 });

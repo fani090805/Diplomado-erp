@@ -4,7 +4,7 @@ const ApiError = require('../../utils/ApiError');
 const repo = require('./report.sales-export.repository');
 const writeXlsx = require('./report.export.xlsx');
 const writePdf = require('./report.export.pdf');
-const { mexicoDayRange, exportFilename, STATUS_LABELS, ymdToDmy, nowInMexico } = require('./report.export.util');
+const { mexicoDayRange, exportFilename, STATUS_LABELS, ymdToDmy, nowInMexico, int } = require('./report.export.util');
 
 /** Máximo de órdenes en la tabla del PDF (las más recientes). */
 const PDF_MAX_ORDERS = 2000;
@@ -47,22 +47,28 @@ const salesExportService = {
     if (query.customerId && !customerName) throw ApiError.badRequest('El cliente no existe en su empresa.');
     if (query.productId && !productName) throw ApiError.badRequest('El producto no existe en su empresa.');
 
-    // byCustomer / byProduct traen TODOS los clientes y productos con ventas en
-    // el filtro: sirven para las hojas y como catálogo de nombres de los cursores.
-    const [summary, byMonth, customers, products, warehouses] = await Promise.all([
-      repo.summary(filters),
-      repo.byMonth(filters),
-      repo.byCustomer(filters),
-      repo.byProduct(filters),
+    // Con estado "Todos", los TOTALES (KPIs, meses, top, por cliente/producto)
+    // cuentan sólo ventas APROBADAS; las listas de órdenes y líneas muestran todas.
+    const approvedOnly = query.status === 'all';
+    const totalsFilters = approvedOnly ? { ...filters, status: 'APPROVED' } : filters;
+
+    const [summary, byMonth, customers, products, counts, warehouses, customerCatalog, productCatalog] = await Promise.all([
+      repo.summary(totalsFilters),
+      repo.byMonth(totalsFilters),
+      repo.byCustomer(totalsFilters),
+      repo.byProduct(totalsFilters),
+      approvedOnly ? repo.statusCounts(filters) : null,
       repo.warehouseNames(companyId),
+      repo.customerCatalog(companyId),
+      repo.productCatalog(companyId),
     ]);
-    const customerById = new Map(customers.map((c) => [String(c.customerId), c]));
-    const productById = new Map(products.map((p) => [String(p.productId), p]));
+    // Nombres desde el catálogo: también para órdenes en borrador o rechazadas.
     const names = {
-      customer: (id) => customerById.get(String(id)) || {},
-      product: (id) => productById.get(String(id)) || {},
+      customer: (id) => customerCatalog.get(String(id)) || {},
+      product: (id) => productCatalog.get(String(id)) || {},
       warehouse: (id) => warehouses.get(String(id)) || '',
     };
+    const showsApproved = query.status === 'all' || query.status === 'APPROVED';
 
     const filterLabels = [
       ['Estado', STATUS_LABELS[query.status]],
@@ -80,6 +86,13 @@ const salesExportService = {
         rangeLabel: `Del ${ymdToDmy(query.from)} al ${ymdToDmy(query.to)}`,
         generatedAt: nowInMexico(),
         filterLabels,
+        // Sólo con estado "Todos": desglose y aclaración de los totales.
+        statusBreakdown: counts
+          ? `Aprobadas: ${int(counts.APPROVED)} · Borrador: ${int(counts.DRAFT)} · Rechazadas: ${int(counts.REJECTED)}`
+          : null,
+        totalsNote: approvedOnly ? 'Totales calculados solo con ventas aprobadas' : null,
+        // Totales en $0.00 con aviso (sin error) cuando no hay aprobadas en el rango.
+        emptyNotice: showsApproved && summary.orders === 0 ? 'Sin ventas aprobadas en el periodo' : null,
       },
       summary: {
         ...summary,

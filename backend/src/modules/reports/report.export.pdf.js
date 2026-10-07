@@ -1,7 +1,9 @@
 'use strict';
 
 const PDFDocument = require('pdfkit');
-const { BRAND, STATUS_LABELS, dmy, monthLabel, money, int, moneyShort } = require('./report.export.util');
+const { BRAND, LOGO_PATH, STATUS_LABELS, dmy, monthLabel, money, int, moneyShort } = require('./report.export.util');
+
+const LOGO_SIZE = 36;
 
 /**
  * PDF de ventas (pdfkit), tamaño carta y márgenes de 40.
@@ -42,8 +44,11 @@ function sectionTitle(doc, text) {
 }
 
 function drawHeader(doc, ctx) {
-  doc.font('Helvetica-Bold').fontSize(10).fillColor(BRAND.olive).text('FAI · SOLUTION ERP', LEFT, MARGIN, { characterSpacing: 1 });
-  doc.font('Helvetica-Bold').fontSize(16).fillColor(BRAND.text).text(ctx.meta.companyName, LEFT, doc.y + 6, { width: WIDTH });
+  // Logo (36 px) a la izquierda de la marca, centrados en la misma línea.
+  doc.image(LOGO_PATH, LEFT, MARGIN, { height: LOGO_SIZE });
+  doc.font('Helvetica-Bold').fontSize(10).fillColor(BRAND.olive)
+    .text('FAI · SOLUTION ERP', LEFT + LOGO_SIZE + 10, MARGIN + LOGO_SIZE / 2 - 5, { characterSpacing: 1, lineBreak: false });
+  doc.font('Helvetica-Bold').fontSize(16).fillColor(BRAND.text).text(ctx.meta.companyName, LEFT, MARGIN + LOGO_SIZE + 8, { width: WIDTH });
   doc.font('Helvetica-Bold').fontSize(20).fillColor(BRAND.olive).text('Reporte de ventas', LEFT, doc.y + 2);
   doc.font('Helvetica').fontSize(9).fillColor(BRAND.muted);
   doc.text(ctx.meta.rangeLabel, LEFT, doc.y + 4);
@@ -59,7 +64,7 @@ function drawKpis(doc, ctx) {
   const s = ctx.summary;
   const cards = [
     ['Total vendido', money(s.total)],
-    ['Órdenes', int(s.orders)],
+    [ctx.meta.totalsNote ? 'Órdenes aprobadas' : 'Órdenes', int(s.orders)],
     ['Ticket promedio', money(s.average)],
     ['Unidades', int(s.units)],
   ];
@@ -75,12 +80,28 @@ function drawKpis(doc, ctx) {
     doc.font('Helvetica-Bold').fontSize(13).fillColor(BRAND.text).text(fit(doc, value, w - 18), x + 12, y + 26, { width: w - 18, lineBreak: false });
   });
   doc.y = y + h + 6;
+  drawTotalsNotes(doc, ctx);
 }
 
-function drawMonthChart(doc, months) {
+/** Desglose por estado, aclaración de totales y aviso de periodo sin aprobadas. */
+function drawTotalsNotes(doc, ctx) {
+  const { statusBreakdown, totalsNote, emptyNotice } = ctx.meta;
+  if (statusBreakdown) {
+    doc.font('Helvetica-Bold').fontSize(9).fillColor(BRAND.text).text(statusBreakdown, LEFT, doc.y + 2, { width: WIDTH });
+  }
+  if (totalsNote) {
+    doc.font('Helvetica-Oblique').fontSize(8.5).fillColor(BRAND.muted).text(totalsNote, LEFT, doc.y + 2, { width: WIDTH });
+  }
+  if (emptyNotice) {
+    doc.font('Helvetica-Bold').fontSize(10).fillColor(BRAND.terracotta).text(emptyNotice, LEFT, doc.y + 4, { width: WIDTH });
+  }
+  doc.y += 4;
+}
+
+function drawMonthChart(doc, months, emptyText) {
   sectionTitle(doc, 'Ventas por mes');
   if (!months.length) {
-    doc.font('Helvetica').fontSize(9).fillColor(BRAND.muted).text('Sin ventas en el rango.', LEFT);
+    doc.font('Helvetica').fontSize(9).fillColor(BRAND.muted).text(emptyText || 'Sin ventas en el rango.', LEFT);
     return;
   }
   const chartH = 150;
@@ -250,7 +271,7 @@ async function writePdf(ctx, stream, { ordersCursor }) {
 
   drawHeader(doc, ctx);
   drawKpis(doc, ctx);
-  drawMonthChart(doc, ctx.byMonth);
+  drawMonthChart(doc, ctx.byMonth, ctx.meta.emptyNotice);
   drawTops(doc, ctx);
   await drawOrders(doc, ctx, ordersCursor);
   drawFooters(doc);

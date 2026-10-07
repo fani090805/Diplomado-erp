@@ -8,6 +8,8 @@ const supplierRepository = require('../suppliers/supplier.repository');
 const warehouseRepository = require('../warehouses/warehouse.repository');
 const productRepository = require('../products/product.repository');
 const inventoryService = require('../inventory/inventory.service');
+const attachNames = require('../../common/attachNames');
+const { withCodeTiebreak } = require('../../utils/pagination');
 
 /**
  * Servicio de ÓRDENES DE COMPRA (FASE 4) — multiempresa estricto.
@@ -89,13 +91,20 @@ async function compensateEntries(lines, warehouseId, actor, code) {
   }
 }
 
+/** Nombre del proveedor de cada orden (null si no existe o es de otra empresa). */
+const withSupplierNames = (items) =>
+  attachNames(items, { repository: supplierRepository, idField: 'supplierId', nameField: 'supplierName' });
+
 const purchaseOrderService = {
-  async list(filter, options) {
-    return purchaseOrderRepository.find(filter, options);
+  /** Lista con `supplierName` (una consulta por página) y orden estable por folio. */
+  async list(filter, options = {}) {
+    const result = await purchaseOrderRepository.find(filter, { ...options, sort: withCodeTiebreak(options.sort) });
+    return { ...result, items: await withSupplierNames(result.items) };
   },
 
   async getById(id, companyId) {
-    return purchaseOrderRepository.findById(id, { companyId });
+    const order = await purchaseOrderRepository.findById(id, { companyId });
+    return order ? (await withSupplierNames([order]))[0] : null;
   },
 
   async create(data, companyId, userId) {

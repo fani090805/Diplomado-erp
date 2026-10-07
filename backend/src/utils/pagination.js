@@ -23,6 +23,17 @@ function parsePagination(query = {}) {
   return { page, limit, skip, sort };
 }
 
+/**
+ * Desempate estable para documentos con folio: si el orden es sólo por
+ * fecha, agrega `code` en la misma dirección (varias órdenes pueden tener la
+ * misma fecha exacta y saldrían "revueltas").
+ */
+function withCodeTiebreak(sort = {}) {
+  const keys = Object.keys(sort);
+  if (keys.length === 1 && keys[0] === 'createdAt') return { createdAt: sort.createdAt, code: sort.createdAt };
+  return sort;
+}
+
 function buildMeta(page, limit, total) {
   return {
     page,
@@ -32,4 +43,4 @@ function buildMeta(page, limit, total) {
   };
 }
 
-module.exports = { parsePagination, buildMeta, MAX_LIMIT };
+module.exports = { parsePagination, buildMeta, withCodeTiebreak, MAX_LIMIT };

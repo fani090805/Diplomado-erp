@@ -1,7 +1,9 @@
 'use strict';
 
 const ExcelJS = require('exceljs');
-const { BRAND, STATUS_LABELS, excelDate, monthLabel } = require('./report.export.util');
+const { PassThrough } = require('stream');
+const { BRAND, LOGO_PATH, STATUS_LABELS, excelDate, monthLabel } = require('./report.export.util');
+const { addLogoToXlsx } = require('./report.export.xlsx-logo');
 
 /**
  * Excel de ventas en STREAMING (exceljs WorkbookWriter): cada fila se
@@ -51,8 +53,11 @@ function writeSummarySheet(workbook, ctx) {
     row.getCell(1).font = { bold: true };
   };
 
+  // A1: el logo (se inserta al final, ver addLogoToXlsx) y, con sangría, la marca.
   add(['FAI · SOLUTION ERP'], (r) => {
+    r.height = 34;
     r.getCell(1).font = { bold: true, size: 14, color: { argb: argb(BRAND.olive) } };
+    r.getCell(1).alignment = { vertical: 'middle', indent: 5 };
   });
   add(['Reporte de ventas'], (r) => {
     r.getCell(1).font = { bold: true, size: 12 };
@@ -63,6 +68,20 @@ function writeSummarySheet(workbook, ctx) {
   for (const [label, value] of ctx.meta.filterLabels) add([label, value], bold);
   add(['Generado', ctx.meta.generatedAt], bold);
   add([]);
+
+  // Con estado "Todos": desglose por estado y aclaración de que los totales son de aprobadas.
+  if (ctx.meta.statusBreakdown) add([ctx.meta.statusBreakdown], bold);
+  if (ctx.meta.totalsNote) {
+    add([ctx.meta.totalsNote], (r) => {
+      r.getCell(1).font = { italic: true, color: { argb: argb(BRAND.muted) } };
+    });
+  }
+  if (ctx.meta.emptyNotice) {
+    add([ctx.meta.emptyNotice], (r) => {
+      r.getCell(1).font = { bold: true, color: { argb: argb(BRAND.terracotta) } };
+    });
+  }
+  if (ctx.meta.statusBreakdown || ctx.meta.emptyNotice) add([]);
 
   const s = ctx.summary;
   add(['Total vendido', round2(s.total)], (r) => {
@@ -89,7 +108,28 @@ function writeSummarySheet(workbook, ctx) {
   sheet.commit();
 }
 
-async function writeXlsx(ctx, stream, { ordersCursor, linesCursor }) {
+/**
+ * Genera el Excel en streaming a un búfer comprimido, le inserta el logo en
+ * la hoja Resumen y lo envía a `stream`.
+ */
+async function writeXlsx(ctx, stream, cursors) {
+  const chunks = [];
+  const sink = new PassThrough();
+  sink.on('data', (chunk) => chunks.push(chunk));
+  const drained = new Promise((resolve, reject) => {
+    sink.on('end', resolve);
+    sink.on('error', reject);
+  });
+  await writeWorkbook(ctx, sink, cursors);
+  await drained;
+  const xlsx = await addLogoToXlsx(Buffer.concat(chunks), { logoPath: LOGO_PATH, sheet: 1, sizePx: 36 });
+  await new Promise((resolve, reject) => {
+    stream.on('error', reject);
+    stream.end(xlsx, resolve);
+  });
+}
+
+async function writeWorkbook(ctx, stream, { ordersCursor, linesCursor }) {
   const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({ stream, useStyles: true, useSharedStrings: false });
   workbook.creator = 'FAI Solution ERP';
   workbook.created = new Date();

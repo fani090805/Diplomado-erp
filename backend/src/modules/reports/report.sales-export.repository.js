@@ -65,6 +65,29 @@ const salesExportRepository = {
     return new Map(rows.map((w) => [String(w._id), w.name]));
   },
 
+  /** Catálogo de clientes de la empresa: id → { name, taxId } (nombres de las hojas). */
+  async customerCatalog(companyId) {
+    const rows = await Customer.find({ companyId: oid(companyId) }).select('name taxId').lean();
+    return new Map(rows.map((c) => [String(c._id), { name: c.name, taxId: c.taxId }]));
+  },
+
+  /** Catálogo de productos de la empresa: id → { name, sku }. */
+  async productCatalog(companyId) {
+    const rows = await Product.find({ companyId: oid(companyId) }).select('name sku').lean();
+    return new Map(rows.map((p) => [String(p._id), { name: p.name, sku: p.sku }]));
+  },
+
+  /** Órdenes por estado en el filtro: { APPROVED, DRAFT, REJECTED } (0 si no hay). */
+  async statusCounts(filters) {
+    const rows = await SalesOrder.aggregate([
+      { $match: orderMatch(filters) },
+      { $group: { _id: '$status', orders: { $sum: 1 } } },
+    ]);
+    const counts = { APPROVED: 0, DRAFT: 0, REJECTED: 0 };
+    for (const r of rows) counts[r._id] = r.orders;
+    return counts;
+  },
+
   async company(companyId) {
     return Company.findById(oid(companyId)).select('name legalName joinCode').lean();
   },

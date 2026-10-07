@@ -5,7 +5,12 @@
  * México, formato de moneda, etiquetas y nombre de archivo.
  */
 
+const path = require('path');
+
 const REPORT_TIMEZONE = 'America/Mexico_City';
+
+/** Logo FAI (copia de frontend/assets/fai-icono.png) para PDF y Excel. */
+const LOGO_PATH = path.join(__dirname, 'assets', 'fai-icono.png');
 const MAX_RANGE_MONTHS = 24;
 
 /** Identidad FAI (mismos valores que frontend/src/design-system/tokens/colors.js). */
@@ -17,6 +22,7 @@ const BRAND = {
   border: '#E6E0D0',
   text: '#1E2616',
   muted: '#696B61',
+  terracotta: '#CB623B',
 };
 
 const STATUS_LABELS = { APPROVED: 'Aprobada', DRAFT: 'Borrador', REJECTED: 'Rechazada', all: 'Todos' };
@@ -92,7 +98,8 @@ const ymdToDmy = (ymd) => dmy(ymd);
  * exceljs escribe el valor en UTC, así que se desplaza para que muestre el día local.
  */
 function excelDate(localIso) {
-  return new Date(`${String(localIso).slice(0, 19)}Z`);
+  // Sólo la fecha (medianoche): la celda no lleva hora oculta.
+  return new Date(`${String(localIso).slice(0, 10)}T00:00:00Z`);
 }
 
 /** "2026-10" → "oct 26". */
@@ -140,6 +147,7 @@ function exportFilename(companyName, from, to, format) {
 
 module.exports = {
   REPORT_TIMEZONE,
+  LOGO_PATH,
   MAX_RANGE_MONTHS,
   BRAND,
   STATUS_LABELS,

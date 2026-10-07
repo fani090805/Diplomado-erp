@@ -9,6 +9,8 @@ const warehouseRepository = require('../warehouses/warehouse.repository');
 const productRepository = require('../products/product.repository');
 const inventoryService = require('../inventory/inventory.service');
 const incomeService = require('../incomes/income.service');
+const attachNames = require('../../common/attachNames');
+const { withCodeTiebreak } = require('../../utils/pagination');
 
 /**
  * Servicio de PEDIDOS DE VENTA (FASE 4) — multiempresa estricto.
@@ -96,13 +98,20 @@ async function compensateExits(lines, warehouseId, actor, code) {
   }
 }
 
+/** Nombre del cliente de cada pedido (null si no existe o es de otra empresa). */
+const withCustomerNames = (items) =>
+  attachNames(items, { repository: customerRepository, idField: 'customerId', nameField: 'customerName' });
+
 const salesOrderService = {
-  async list(filter, options) {
-    return salesOrderRepository.find(filter, options);
+  /** Lista con `customerName` (una consulta por página) y orden estable por folio. */
+  async list(filter, options = {}) {
+    const result = await salesOrderRepository.find(filter, { ...options, sort: withCodeTiebreak(options.sort) });
+    return { ...result, items: await withCustomerNames(result.items) };
   },
 
   async getById(id, companyId) {
-    return salesOrderRepository.findById(id, { companyId });
+    const order = await salesOrderRepository.findById(id, { companyId });
+    return order ? (await withCustomerNames([order]))[0] : null;
   },
 
   async create(data, companyId, userId) {

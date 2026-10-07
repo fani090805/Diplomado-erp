@@ -98,7 +98,7 @@ export default function PurchaseOrdersScreen() {
 
   const columns = [
     { key: 'code', label: 'Folio', width: 110 },
-    { key: 'supplierId', label: 'Proveedor', width: 180, render: (r) => <Text style={styles.td}>{labelFor(r.supplierId, supplierLabels)}</Text> },
+    { key: 'supplierId', label: 'Proveedor', width: 180, render: (r) => <Text style={styles.td}>{r.supplierName || labelFor(r.supplierId, supplierLabels)}</Text> },
     { key: 'total', label: 'Total', width: 100, render: (r) => <Text style={styles.td}>{money(r.total)}</Text> },
     { key: 'lines', label: 'Líneas', width: 70, render: (r) => <Text style={styles.td}>{Array.isArray(r.lines) ? r.lines.length : 0}</Text> },
     { key: 'createdAt', label: 'Creada', width: 110, render: (r) => <Text style={styles.td}>{dateOf(r.createdAt)}</Text> },
@@ -180,7 +180,7 @@ export default function PurchaseOrdersScreen() {
           detailRow
             ? [
                 { label: 'Folio', value: <Text style={styles.td}>{detailRow.code || '—'}</Text> },
-                { label: 'Proveedor', value: <Text style={styles.td}>{labelFor(detailRow.supplierId, supplierLabels)}</Text> },
+                { label: 'Proveedor', value: <Text style={styles.td}>{detailRow.supplierName || labelFor(detailRow.supplierId, supplierLabels)}</Text> },
                 { label: 'Almacén', value: <Text style={styles.td}>{labelFor(detailRow.warehouseId, warehouseLabels)}</Text> },
                 { label: 'Total', value: <Text style={styles.td}>{money(detailRow.total)}</Text> },
                 { label: 'Estado', value: <StatusBadge value={detailRow.status} /> },
