@@ -347,7 +347,7 @@ export default function ReportsScreen() {
             Exportar CSV
           </TTButton>
         ) : null}
-        {tab === 'sales' && can('reports.read') ? (
+        {tab === 'sales' && can('reports.export') ? (
           <SalesExportButton
             initialFrom={DATE_RE.test(from) ? from : undefined}
             initialTo={DATE_RE.test(to) ? to : undefined}

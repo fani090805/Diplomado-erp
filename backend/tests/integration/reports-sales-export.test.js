@@ -47,7 +47,7 @@ describeIfDb('API /reports/sales/export (PDF y Excel)', () => {
   let tenantA;
   let tenantB;
   let tokenA;
-  let tokenAlmacen;
+  let tokenVentas;
   let tokenB;
   let custA1;
   let custA2;
@@ -78,10 +78,10 @@ describeIfDb('API /reports/sales/export (PDF y Excel)', () => {
     tenantA = await createTenant({ name: 'Exportes Ñandú' });
     tenantB = await createTenant({ name: 'Exportes B' });
     await createUser({ company: tenantA.company, branch: tenantA.branch, role: tenantA.roles.administrador, email: 'admin-export-a@test.local' });
-    await createUser({ company: tenantA.company, branch: tenantA.branch, role: tenantA.roles.almacen, email: 'almacen-export-a@test.local' });
+    await createUser({ company: tenantA.company, branch: tenantA.branch, role: tenantA.roles.ventas, email: 'ventas-export-a@test.local' });
     await createUser({ company: tenantB.company, branch: tenantB.branch, role: tenantB.roles.administrador, email: 'admin-export-b@test.local' });
     tokenA = await login('admin-export-a@test.local', 'Clave1234');
-    tokenAlmacen = await login('almacen-export-a@test.local', 'Clave1234');
+    tokenVentas = await login('ventas-export-a@test.local', 'Clave1234');
     tokenB = await login('admin-export-b@test.local', 'Clave1234');
 
     const a = tenantA.company._id;
@@ -243,15 +243,38 @@ describeIfDb('API /reports/sales/export (PDF y Excel)', () => {
     expect(res.status).toBe(200);
   });
 
-  test('sin reports.read ⇒ 403; sin token ⇒ 401', async () => {
+  test('con reports.read pero sin reports.export (rol ventas) ⇒ 403 canónico; sin token ⇒ 401', async () => {
+    // El rol ventas sí lee los reportes en pantalla…
+    const read = await request(app).get('/api/v1/reports/sales').set(auth(tokenVentas));
+    expect(read.status).toBe(200);
+
+    // …pero no descarga: misma regla que el CSV de finanzas.
     const forbidden = await request(app)
       .get('/api/v1/reports/sales/export')
       .query({ format: 'pdf', ...MARCH })
-      .set(auth(tokenAlmacen));
+      .set(auth(tokenVentas));
     expect(forbidden.status).toBe(403);
+    expect(forbidden.body.error.message).toBe('No tiene permisos para esta operación. Se requiere: reports.export.');
 
     const anonymous = await request(app).get('/api/v1/reports/sales/export').query({ format: 'pdf', ...MARCH });
     expect(anonymous.status).toBe(401);
+  });
+
+  // Mismos roles que exportan el CSV de finanzas (DEFAULT_ROLES con reports.export).
+  test.each([
+    ['gerente', 200],
+    ['finanzas', 200],
+    ['auditor', 200],
+    ['compras', 403],
+    ['consulta', 403],
+    ['supervisor', 403],
+    ['almacen', 403],
+  ])('rol %s ⇒ %i', async (roleCode, expected) => {
+    const email = `${roleCode}-export-a@test.local`;
+    await createUser({ company: tenantA.company, branch: tenantA.branch, role: tenantA.roles[roleCode], email });
+    const token = await login(email, 'Clave1234');
+    const res = await exportAs(token, { format: 'xlsx', ...MARCH });
+    expect(res.status).toBe(expected);
   });
 
   test('aislamiento: cada empresa sólo exporta sus ventas y no usa clientes ajenos', async () => {

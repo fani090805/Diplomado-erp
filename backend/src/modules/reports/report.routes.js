@@ -10,7 +10,7 @@ const schemas = require('./report.validation');
 const router = Router();
 
 // Sólo lectura: todos exigen authenticate + tenant + reports.read.
-// El export CSV exige además reports.export.
+// Las descargas (CSV de finanzas, PDF/Excel de ventas) exigen reports.export.
 
 router.get(
   '/kpis',
@@ -30,13 +30,13 @@ router.get(
   controller.sales
 );
 
-// Exportación de ventas (PDF / Excel). La query se valida en el controlador
-// para responder 400 (no 422) con filtros inválidos.
+// Exportación de ventas (PDF / Excel), mismo permiso que el CSV de finanzas.
+// La query se valida en el controlador para responder 400 (no 422).
 router.get(
   '/sales/export',
   authenticate,
   requireTenant,
-  authorize('reports.read'),
+  authorize('reports.export'),
   controller.exportSales
 );
 

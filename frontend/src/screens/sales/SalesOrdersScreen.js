@@ -122,7 +122,7 @@ export default function SalesOrdersScreen() {
             placeholder="(todas)"
           />
         </View>
-        {can('reports.read') ? <SalesExportButton initialStatus={statusFilter || 'all'} /> : null}
+        {can('reports.export') ? <SalesExportButton initialStatus={statusFilter || 'all'} /> : null}
       </View>
 
       <DataTable
