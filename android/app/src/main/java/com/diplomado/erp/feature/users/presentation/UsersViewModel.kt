@@ -1,6 +1,7 @@
 package com.diplomado.erp.feature.users.presentation
 
 import com.diplomado.erp.core.common.friendlyError
+import com.diplomado.erp.core.network.live.refreshOnLive
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,11 +25,13 @@ class UsersViewModel : ViewModel() {
 
     init {
         loadUsers()
+        // Cambios en vivo (web, otros usuarios) o regreso a primer plano: recarga silenciosa.
+        refreshOnLive("user") { loadUsers(silent = true) }
     }
 
-    fun loadUsers() {
+    fun loadUsers(silent: Boolean = false) {
         viewModelScope.launch {
-            _uiState.value = UsersUiState.Loading
+            if (!silent || _uiState.value !is UsersUiState.Success) _uiState.value = UsersUiState.Loading
             try {
                 val usersRes = RetrofitClient.api.getUsers()
                 val rolesRes = RetrofitClient.api.getRoles()
@@ -38,10 +41,10 @@ class UsersViewModel : ViewModel() {
                     val roles = if (rolesRes.isSuccessful) rolesRes.body()?.data ?: emptyList() else emptyList()
                     _uiState.value = UsersUiState.Success(users, roles)
                 } else {
-                    _uiState.value = UsersUiState.Error("No se pudieron cargar los usuarios.")
+                    if (!silent || _uiState.value !is UsersUiState.Success) _uiState.value = UsersUiState.Error("No se pudieron cargar los usuarios.")
                 }
             } catch (e: Exception) {
-                _uiState.value = UsersUiState.Error(friendlyError(e, "Error de red al consultar usuarios."))
+                if (!silent || _uiState.value !is UsersUiState.Success) _uiState.value = UsersUiState.Error(friendlyError(e, "Error de red al consultar usuarios."))
             }
         }
     }

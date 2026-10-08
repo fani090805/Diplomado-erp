@@ -7,8 +7,12 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.NavHostController
@@ -18,7 +22,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.diplomado.erp.BuildConfig
+import com.diplomado.erp.core.meta.AppMeta
 import com.diplomado.erp.core.network.client.RetrofitClient
+import com.diplomado.erp.core.network.live.LiveEvents
 import com.diplomado.erp.core.security.TokenStorage
 import com.diplomado.erp.feature.auth.presentation.LoginScreen
 import com.diplomado.erp.feature.configuration.presentation.AuditScreen
@@ -40,6 +47,7 @@ import com.diplomado.erp.ui.components.TTNavigationRail
 import com.diplomado.erp.ui.components.TTTopBar
 import com.diplomado.erp.ui.components.navSections
 import com.diplomado.erp.ui.theme.FaiBackground
+import com.diplomado.erp.ui.theme.FaiPrimary
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -76,6 +84,8 @@ fun NavGraph(
         composable(NavDestination.Main.route) {
             MainContainer(
                 onLogout = {
+                    LiveEvents.stop()
+                    AppMeta.clear()
                     TokenStorage.clear()
                     navController.navigate(NavDestination.Login.route) {
                         popUpTo(0) { inclusive = true }
@@ -96,7 +106,14 @@ fun MainContainer(
     // El detalle de una obra mantiene seleccionado "Obras".
     val currentRoute = if (rawRoute.startsWith("project_detail")) NavDestination.Projects.route else rawRoute
 
-    val sections = remember { navSections() }
+    // Configuración compartida (/meta) y canal en vivo mientras haya sesión.
+    LaunchedEffect(Unit) {
+        AppMeta.load()
+        LiveEvents.start()
+    }
+    val meta by AppMeta.meta.collectAsState()
+    val sections = remember(meta) { navSections(meta) }
+    var updateDismissed by rememberSaveable { mutableStateOf(false) }
     var showMore by remember { mutableStateOf(false) }
     val isWide = LocalConfiguration.current.screenWidthDp >= 600
     val scope = rememberCoroutineScope()
@@ -188,6 +205,18 @@ fun MainContainer(
                 composable(NavDestination.Audit.route) { AuditScreen() }
             }
         }
+    }
+
+    // /meta pide una versión más nueva que la instalada.
+    if (!updateDismissed && meta != null && AppMeta.needsUpdate(BuildConfig.VERSION_CODE)) {
+        AlertDialog(
+            onDismissRequest = { updateDismissed = true },
+            title = { Text("Hay una nueva versión de FAI ERP") },
+            text = { Text("Actualiza la app para usar las funciones más recientes y seguir sincronizada con la web.") },
+            confirmButton = {
+                TextButton(onClick = { updateDismissed = true }) { Text("Entendido", color = FaiPrimary) }
+            }
+        )
     }
 
     if (showMore) {

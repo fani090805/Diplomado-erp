@@ -1,6 +1,7 @@
 package com.diplomado.erp.feature.sales.presentation
 
 import com.diplomado.erp.core.common.friendlyError
+import com.diplomado.erp.core.network.live.refreshOnLive
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,22 +23,28 @@ class SalesOrdersViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<SalesOrdersUiState>(SalesOrdersUiState.Loading)
     val uiState: StateFlow<SalesOrdersUiState> = _uiState.asStateFlow()
 
+    // Últimos filtros: el refresco en vivo respeta lo que el usuario eligió.
+    private var lastStatus: String? = null
+
     init {
         loadOrders()
+        // Cambios en vivo (web, otros usuarios) o regreso a primer plano: recarga silenciosa.
+        refreshOnLive("sales-order", "customer") { loadOrders(lastStatus, silent = true) }
     }
 
-    fun loadOrders(status: String? = null) {
+    fun loadOrders(status: String? = null, silent: Boolean = false) {
+        lastStatus = status
         viewModelScope.launch {
-            _uiState.value = SalesOrdersUiState.Loading
+            if (!silent || _uiState.value !is SalesOrdersUiState.Success) _uiState.value = SalesOrdersUiState.Loading
             try {
                 val res = RetrofitClient.api.getSalesOrders(status = status)
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = SalesOrdersUiState.Success(res.body()!!.data!!)
                 } else {
-                    _uiState.value = SalesOrdersUiState.Error(res.body()?.error?.message ?: "Error al cargar pedidos de venta.")
+                    if (!silent || _uiState.value !is SalesOrdersUiState.Success) _uiState.value = SalesOrdersUiState.Error(res.body()?.error?.message ?: "Error al cargar pedidos de venta.")
                 }
             } catch (e: Exception) {
-                _uiState.value = SalesOrdersUiState.Error(friendlyError(e, "Error de red."))
+                if (!silent || _uiState.value !is SalesOrdersUiState.Success) _uiState.value = SalesOrdersUiState.Error(friendlyError(e, "Error de red."))
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.diplomado.erp.feature.dashboard.presentation
 
 import androidx.lifecycle.ViewModel
+import com.diplomado.erp.core.network.live.refreshOnLive
 import androidx.lifecycle.viewModelScope
 import com.diplomado.erp.core.common.ActivityDescriber
 import com.diplomado.erp.core.common.ActivityItem
@@ -66,15 +67,22 @@ class DashboardViewModel : ViewModel() {
 
     init {
         loadData()
+        // Igual que la web: ventas, compras, finanzas o inventario cambian ⇒ recarga silenciosa.
+        refreshOnLive("sales-order", "purchase-order", "income", "expense", "inventory", "product") {
+            loadData(silent = true)
+        }
     }
 
-    fun loadData() {
+    /** `silent`: recarga en segundo plano sin ocultar lo que se ve ni mostrar error si falla. */
+    fun loadData(silent: Boolean = false) {
         viewModelScope.launch {
-            _uiState.value = DashboardUiState.Loading
+            val shown = _uiState.value as? DashboardUiState.Success
+            if (!silent || shown == null) _uiState.value = DashboardUiState.Loading
             _uiState.value = try {
                 DashboardUiState.Success(fetchAll(range), range)
             } catch (e: Exception) {
-                DashboardUiState.Error(friendlyError(e, "No pudimos cargar el Dashboard."))
+                if (silent && shown != null) shown
+                else DashboardUiState.Error(friendlyError(e, "No pudimos cargar el Dashboard."))
             }
         }
     }

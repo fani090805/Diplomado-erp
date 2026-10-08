@@ -15,7 +15,13 @@ data class ProductDto(
     @SerializedName("maxStock") val maxStock: Double? = 0.0,
     @SerializedName("trackingMode") val trackingMode: String? = "none",
     @SerializedName("status") val status: String = "active",
-    @SerializedName("description") val description: String? = null
+    @SerializedName("description") val description: String? = null,
+    @SerializedName("hasHistory") val hasHistory: Boolean = false
+)
+
+data class ProductDeleteDto(
+    @SerializedName("_id") val id: String,
+    @SerializedName("deleted") val deleted: Boolean
 )
 
 // Almacenes

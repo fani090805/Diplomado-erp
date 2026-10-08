@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.diplomado.erp.core.common.rbac.PermissionChecker
+import com.diplomado.erp.core.network.dto.AppMetaDto
 import com.diplomado.erp.ui.theme.*
 
 /** Módulos navegables de la app (permiso = el mismo que usa la web para mostrarlos). */
@@ -51,8 +52,29 @@ sealed class NavItem(val route: String, val title: String, val icon: ImageVector
     data object Audit : NavItem("audit", "Auditoría", Icons.Outlined.History, "audit.read")
 }
 
+/** Entrada del menú ya resuelta: pantalla de la app + nombre y permiso de /meta. */
+data class NavEntry(val route: String, val title: String, val icon: ImageVector, val permission: String?)
+
 /** Reparto de módulos permitidos entre la barra (4 principales) y la hoja "Más". */
-data class NavSections(val primary: List<NavItem>, val more: List<NavItem>)
+data class NavSections(val primary: List<NavEntry>, val more: List<NavEntry>)
+
+/** Módulo de /meta (id neutral, igual que en la web) → pantalla de la app. Sólo los que existen en Android. */
+private val ANDROID_MODULES = mapOf(
+    "dashboard" to NavItem.Dashboard,
+    "sales-orders" to NavItem.Sales,
+    "stock" to NavItem.Stock,
+    "purchase-orders" to NavItem.Purchases,
+    "projects" to NavItem.Projects,
+    "products" to NavItem.Products,
+    "movements" to NavItem.Movements,
+    "accounts" to NavItem.Finance,
+    "employees" to NavItem.Employees,
+    "leads" to NavItem.Leads,
+    "users" to NavItem.Users,
+    "audit" to NavItem.Audit
+)
+
+private fun NavItem.toEntry() = NavEntry(route, title, icon, permission)
 
 private val PREFERRED_PRIMARY = listOf(NavItem.Dashboard, NavItem.Sales, NavItem.Stock, NavItem.Purchases)
 private val SECONDARY = listOf(
@@ -66,9 +88,21 @@ private val SECONDARY = listOf(
     NavItem.Audit
 )
 
-fun navSections(): NavSections {
-    val allowed = (PREFERRED_PRIMARY + SECONDARY).filter { PermissionChecker.hasPermission(it.permission) }
-    val primary = (PREFERRED_PRIMARY.filter { it in allowed } + allowed.filter { it !in PREFERRED_PRIMARY }).take(4)
+/**
+ * Menú desde /meta (orden, nombre corto y permiso compartidos con la web); si
+ * /meta no cargó, la lista local. Siempre filtrado por los permisos del usuario.
+ */
+fun navSections(meta: AppMetaDto? = null): NavSections {
+    val fromMeta = meta?.modules.orEmpty().mapNotNull { module ->
+        ANDROID_MODULES[module.id]?.let { item ->
+            NavEntry(item.route, module.shortName ?: module.name, item.icon, module.permission)
+        }
+    }
+    val entries = fromMeta.ifEmpty { (PREFERRED_PRIMARY + SECONDARY).map { it.toEntry() } }
+    val allowed = entries.filter { PermissionChecker.hasPermission(it.permission) }
+    val preferred = PREFERRED_PRIMARY.map { it.route }
+    val primary = (allowed.filter { it.route in preferred }.sortedBy { preferred.indexOf(it.route) } +
+        allowed.filter { it.route !in preferred }).take(4)
     return NavSections(primary = primary, more = allowed.filter { it !in primary })
 }
 
@@ -130,7 +164,7 @@ fun TTBottomBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TTMoreSheet(
-    items: List<NavItem>,
+    items: List<NavEntry>,
     currentRoute: String,
     onNavigate: (String) -> Unit,
     onDismiss: () -> Unit
@@ -168,7 +202,7 @@ fun TTMoreSheet(
 }
 
 @Composable
-private fun MoreSheetTile(item: NavItem, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun MoreSheetTile(item: NavEntry, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .clip(FaiShapes.Control)

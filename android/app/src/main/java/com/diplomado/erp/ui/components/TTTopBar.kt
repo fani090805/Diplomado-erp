@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.diplomado.erp.core.network.live.LiveEvents
 import com.diplomado.erp.core.security.TokenStorage
 import com.diplomado.erp.ui.theme.*
 
@@ -52,7 +53,12 @@ fun TTTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        FaiLogo(size = FaiLogoSize.Md, variant = FaiLogoVariant.Dark)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            FaiLogo(size = FaiLogoSize.Md, variant = FaiLogoVariant.Dark)
+            // Igual que la web: punto salvia "En vivo" mientras el canal está conectado.
+            val live by LiveEvents.connected.collectAsState()
+            if (live) TTLiveIndicator()
+        }
 
         Box {
             TTAvatar(
@@ -163,6 +169,30 @@ fun TTTopBar(
                     Text("Cancelar", fontFamily = FaiFontFamily, color = FaiPrimary)
                 }
             }
+        )
+    }
+}
+
+/** Indicador de cambios en vivo sobre la barra olivo (punto salvia + "En vivo"). */
+@Composable
+fun TTLiveIndicator(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier.semantics { contentDescription = "Actualización en vivo activa" },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(FaiSage)
+        )
+        Text(
+            text = "En vivo",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            fontFamily = FaiFontFamily,
+            color = FaiCream
         )
     }
 }

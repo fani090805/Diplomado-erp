@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.diplomado.erp.core.meta.AppMeta
 import com.diplomado.erp.ui.theme.*
 
 /** Tonos del badge, iguales a la web: fondo claro, borde de 1dp, texto oscuro y punto medio. */
@@ -23,7 +24,17 @@ enum class TTBadgeTone(val background: Color, val border: Color, val text: Color
     Negative(FaiStatusNegativeBg, FaiStatusNegativeBorder, FaiStatusNegativeText, FaiStatusNegativeDot)
 }
 
-private fun toneFor(status: String): TTBadgeTone = when (status.uppercase()) {
+/** Tono que manda el backend (GET /meta, igual que la web); null si no viene. */
+private fun metaTone(status: String): TTBadgeTone? = when (AppMeta.status(status)?.tone) {
+    "positive" -> TTBadgeTone.Positive
+    "pending" -> TTBadgeTone.Pending
+    "negative" -> TTBadgeTone.Negative
+    "neutral" -> TTBadgeTone.Neutral
+    else -> null
+}
+
+/** Respaldo local si /meta no cargó (mismos valores que /meta). */
+private fun toneFor(status: String): TTBadgeTone = metaTone(status) ?: when (status.uppercase()) {
     "ACTIVE", "APPROVED", "DONE", "POSTED", "WON", "SUCCESS",
     "COMPLETED", "PAID", "RECEIVED", "DELIVERED", "FINALIZADA" -> TTBadgeTone.Positive
     "PENDING", "IN_REVIEW", "IN_PROGRESS", "RELEASED", "POSTING", "PARTIAL",
@@ -32,7 +43,7 @@ private fun toneFor(status: String): TTBadgeTone = when (status.uppercase()) {
     else -> TTBadgeTone.Neutral // inactive, DRAFT, CANCELLED, VOID, PLANEADA, CANCELADA…
 }
 
-private fun labelFor(status: String): String = when (status.uppercase()) {
+private fun labelFor(status: String): String = AppMeta.status(status)?.label ?: when (status.uppercase()) {
     "ACTIVE" -> "Activo"
     "INACTIVE" -> "Inactivo"
     "PENDING" -> "Pendiente"

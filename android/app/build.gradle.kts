@@ -81,6 +81,8 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging.interceptor)
+    // Canal de cambios en vivo (Server-Sent Events)
+    implementation(libs.okhttp.sse)
     implementation(libs.kotlinx.serialization.json)
 
     // Security & DataStore

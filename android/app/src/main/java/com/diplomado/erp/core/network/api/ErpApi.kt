@@ -23,6 +23,13 @@ interface ErpApi {
     @POST("auth/logout")
     suspend fun logout(): Response<ApiResponse<Unit>>
 
+    // Sincronización web ↔ Android
+    @POST("events/ticket")
+    suspend fun getEventsTicket(): Response<ApiResponse<EventTicketDto>>
+
+    @GET("meta")
+    suspend fun getAppMeta(): Response<ApiResponse<AppMetaDto>>
+
     // Reports
     @GET("reports/kpis")
     suspend fun getKpis(
@@ -56,7 +63,8 @@ interface ErpApi {
     suspend fun getProducts(
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20,
-        @Query("search") search: String? = null
+        @Query("search") search: String? = null,
+        @Query("status") status: String? = null
     ): Response<ApiResponse<List<ProductDto>>>
 
     @POST("products")
@@ -65,8 +73,14 @@ interface ErpApi {
     @PATCH("products/{id}")
     suspend fun updateProduct(@Path("id") id: String, @Body product: Map<String, @JvmSuppressWildcards Any?>): Response<ApiResponse<ProductDto>>
 
+    @PATCH("products/{id}/deactivate")
+    suspend fun deactivateProduct(@Path("id") id: String): Response<ApiResponse<ProductDto>>
+
+    @PATCH("products/{id}/reactivate")
+    suspend fun reactivateProduct(@Path("id") id: String): Response<ApiResponse<ProductDto>>
+
     @DELETE("products/{id}")
-    suspend fun deleteProduct(@Path("id") id: String): Response<ApiResponse<Unit>>
+    suspend fun deleteProduct(@Path("id") id: String): Response<ApiResponse<ProductDeleteDto>>
 
     // Warehouses
     @GET("warehouses")

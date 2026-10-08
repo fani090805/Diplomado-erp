@@ -1,6 +1,7 @@
 package com.diplomado.erp.feature.purchases.presentation
 
 import com.diplomado.erp.core.common.friendlyError
+import com.diplomado.erp.core.network.live.refreshOnLive
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,22 +23,28 @@ class PurchaseOrdersViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<PurchaseOrdersUiState>(PurchaseOrdersUiState.Loading)
     val uiState: StateFlow<PurchaseOrdersUiState> = _uiState.asStateFlow()
 
+    // Últimos filtros: el refresco en vivo respeta lo que el usuario eligió.
+    private var lastStatus: String? = null
+
     init {
         loadOrders()
+        // Cambios en vivo (web, otros usuarios) o regreso a primer plano: recarga silenciosa.
+        refreshOnLive("purchase-order", "supplier") { loadOrders(lastStatus, silent = true) }
     }
 
-    fun loadOrders(status: String? = null) {
+    fun loadOrders(status: String? = null, silent: Boolean = false) {
+        lastStatus = status
         viewModelScope.launch {
-            _uiState.value = PurchaseOrdersUiState.Loading
+            if (!silent || _uiState.value !is PurchaseOrdersUiState.Success) _uiState.value = PurchaseOrdersUiState.Loading
             try {
                 val res = RetrofitClient.api.getPurchaseOrders(status = status)
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = PurchaseOrdersUiState.Success(res.body()!!.data!!)
                 } else {
-                    _uiState.value = PurchaseOrdersUiState.Error(res.body()?.error?.message ?: "Error al cargar órdenes de compra.")
+                    if (!silent || _uiState.value !is PurchaseOrdersUiState.Success) _uiState.value = PurchaseOrdersUiState.Error(res.body()?.error?.message ?: "Error al cargar órdenes de compra.")
                 }
             } catch (e: Exception) {
-                _uiState.value = PurchaseOrdersUiState.Error(friendlyError(e, "Error de red."))
+                if (!silent || _uiState.value !is PurchaseOrdersUiState.Success) _uiState.value = PurchaseOrdersUiState.Error(friendlyError(e, "Error de red."))
             }
         }
     }

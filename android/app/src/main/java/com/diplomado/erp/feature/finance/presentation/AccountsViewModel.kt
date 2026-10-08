@@ -1,6 +1,7 @@
 package com.diplomado.erp.feature.finance.presentation
 
 import com.diplomado.erp.core.common.friendlyError
+import com.diplomado.erp.core.network.live.refreshOnLive
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -24,20 +25,22 @@ class AccountsViewModel : ViewModel() {
 
     init {
         loadAccounts()
+        // Cambios en vivo (web, otros usuarios) o regreso a primer plano: recarga silenciosa.
+        refreshOnLive("income", "expense") { loadAccounts(silent = true) }
     }
 
-    fun loadAccounts() {
+    fun loadAccounts(silent: Boolean = false) {
         viewModelScope.launch {
-            _uiState.value = AccountsUiState.Loading
+            if (!silent || _uiState.value !is AccountsUiState.Success) _uiState.value = AccountsUiState.Loading
             try {
                 val res = RetrofitClient.api.getFinanceAccounts()
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = AccountsUiState.Success(res.body()!!.data!!)
                 } else {
-                    _uiState.value = AccountsUiState.Error(res.body()?.error?.message ?: "Error al cargar cuentas financieras.")
+                    if (!silent || _uiState.value !is AccountsUiState.Success) _uiState.value = AccountsUiState.Error(res.body()?.error?.message ?: "Error al cargar cuentas financieras.")
                 }
             } catch (e: Exception) {
-                _uiState.value = AccountsUiState.Error(friendlyError(e, "Error de red."))
+                if (!silent || _uiState.value !is AccountsUiState.Success) _uiState.value = AccountsUiState.Error(friendlyError(e, "Error de red."))
             }
         }
     }

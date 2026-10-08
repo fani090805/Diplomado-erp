@@ -16,6 +16,7 @@ object TokenStorage {
     private const val KEY_PERMISSIONS = "permissions"
     private const val KEY_COMPANY_NAME = "company_name"
     private const val KEY_BRANCH_NAME = "branch_name"
+    private const val KEY_APP_META = "app_meta"
 
     private lateinit var prefs: SharedPreferences
 
@@ -76,6 +77,13 @@ object TokenStorage {
     fun getRoleLabel(): String = prefs.getString(KEY_ROLE_LABEL, "") ?: ""
     fun getCompanyName(): String = prefs.getString(KEY_COMPANY_NAME, "FAI Solution ERP") ?: "FAI Solution ERP"
     fun getBranchName(): String = prefs.getString(KEY_BRANCH_NAME, "") ?: ""
+
+    /** Copia de GET /meta (JSON) para arrancar con el menú y los estados correctos; se borra con clear(). */
+    fun saveAppMetaJson(json: String) {
+        prefs.edit().putString(KEY_APP_META, json).apply()
+    }
+
+    fun getAppMetaJson(): String? = prefs.getString(KEY_APP_META, null)
 
     fun clear() {
         prefs.edit().clear().apply()
