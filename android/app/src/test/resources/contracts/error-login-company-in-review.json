@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "COMPANY_IN_REVIEW",
+    "message": "Tu empresa está en revisión. Te avisaremos por correo cuando esté lista."
+  },
+  "success": false
+}

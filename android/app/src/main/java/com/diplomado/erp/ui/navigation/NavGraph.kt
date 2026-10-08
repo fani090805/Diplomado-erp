@@ -27,7 +27,10 @@ import com.diplomado.erp.core.meta.AppMeta
 import com.diplomado.erp.core.network.client.RetrofitClient
 import com.diplomado.erp.core.network.live.LiveEvents
 import com.diplomado.erp.core.security.TokenStorage
+import com.diplomado.erp.feature.auth.presentation.ForgotPasswordScreen
 import com.diplomado.erp.feature.auth.presentation.LoginScreen
+import com.diplomado.erp.feature.auth.presentation.RegisterScreen
+import com.diplomado.erp.feature.auth.presentation.WelcomeScreen
 import com.diplomado.erp.feature.configuration.presentation.AuditScreen
 import com.diplomado.erp.feature.crm.presentation.LeadsScreen
 import com.diplomado.erp.feature.dashboard.presentation.DashboardScreen
@@ -61,7 +64,7 @@ fun NavGraph(
     val startDestination = if (TokenStorage.hasValidSession()) {
         NavDestination.Main.route
     } else {
-        NavDestination.Login.route
+        NavDestination.Welcome.route
     }
 
     NavHost(
@@ -71,14 +74,50 @@ fun NavGraph(
         enterTransition = { fadeIn(tween(TRANSITION_MS)) },
         exitTransition = { fadeOut(tween(TRANSITION_MS)) }
     ) {
+        // Cuentas (sin sesión), igual que la web: bienvenida → login / crear cuenta / recuperar.
+        val goWelcome: () -> Unit = {
+            if (!navController.popBackStack(NavDestination.Welcome.route, inclusive = false)) {
+                navController.navigate(NavDestination.Welcome.route) { popUpTo(0) { inclusive = true } }
+            }
+        }
+        val goLogin: () -> Unit = {
+            if (!navController.popBackStack(NavDestination.Login.route, inclusive = false)) {
+                navController.navigate(NavDestination.Login.route) {
+                    popUpTo(NavDestination.Welcome.route) { inclusive = false }
+                    launchSingleTop = true
+                }
+            }
+        }
+        val goRegister: () -> Unit = {
+            navController.navigate(NavDestination.Register.route) {
+                popUpTo(NavDestination.Welcome.route) { inclusive = false }
+                launchSingleTop = true
+            }
+        }
+
+        composable(NavDestination.Welcome.route) {
+            WelcomeScreen(onGoLogin = goLogin, onGoRegister = goRegister)
+        }
+
         composable(NavDestination.Login.route) {
             LoginScreen(
                 onLoginSuccess = {
                     navController.navigate(NavDestination.Main.route) {
-                        popUpTo(NavDestination.Login.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
-                }
+                },
+                onGoBack = goWelcome,
+                onGoRegister = goRegister,
+                onGoForgot = { navController.navigate(NavDestination.ForgotPassword.route) { launchSingleTop = true } }
             )
+        }
+
+        composable(NavDestination.Register.route) {
+            RegisterScreen(onGoLogin = goLogin, onGoBack = goWelcome)
+        }
+
+        composable(NavDestination.ForgotPassword.route) {
+            ForgotPasswordScreen(onGoLogin = goLogin, onGoBack = goWelcome)
         }
 
         composable(NavDestination.Main.route) {
@@ -87,9 +126,9 @@ fun NavGraph(
                     LiveEvents.stop()
                     AppMeta.clear()
                     TokenStorage.clear()
-                    navController.navigate(NavDestination.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                    // Igual que la web: al salir se vuelve al login (con la bienvenida detrás).
+                    navController.navigate(NavDestination.Welcome.route) { popUpTo(0) { inclusive = true } }
+                    navController.navigate(NavDestination.Login.route)
                 }
             )
         }

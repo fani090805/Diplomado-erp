@@ -1,6 +1,6 @@
 # Paridad de funcionalidades: Web ↔ Android
 
-Revisado contra el código real de `frontend/src/` y `android/app/src/main/` (8 oct 2026).
+Revisado contra el código real de `frontend/src/` y `android/app/src/main/` (8 oct 2026). Última actualización: Fase 1 (cuentas).
 ✅ = completo · Parcial = existe con faltantes (ver nota) · ❌ = no existe.
 La web es la referencia, y la paridad es en ambos sentidos: lo que Android tenga y la web no, se agrega también a la web en la misma fase (excepto "Compartir" el código de empresa).
 Se actualiza al terminar cada fase de [android/PLAN_ANDROID_FAI.md](android/PLAN_ANDROID_FAI.md).
@@ -10,16 +10,16 @@ Se actualiza al terminar cada fase de [android/PLAN_ANDROID_FAI.md](android/PLAN
 | Funcionalidad | Web | Android | Notas |
 |---|---|---|---|
 | **Cuentas** | | | |
-| Landing / bienvenida con "Iniciar sesión" y "Crear cuenta" | ✅ | ❌ | Web: `LandingScreen`. Android abre directo en el login. |
+| Landing / bienvenida con "Iniciar sesión" y "Crear cuenta" | ✅ | ✅ | Android: `WelcomeScreen` (la landing adaptada a celular, mismos textos). |
 | Login | ✅ | ✅ | |
-| Login: "¿Olvidaste tu contraseña?" | ✅ | ❌ | |
-| Login: logo FAI como botón para volver | ❌ | ❌ | En la web el logo no es botón. La Fase 1 lo agrega en Android. |
-| Avisos ámbar: cuenta pendiente / empresa en revisión | ✅ | ❌ | Android lee `body()` en respuestas de error, que en Retrofit es siempre null: muestra "Credenciales inválidas" para todo. |
-| Avisos rojos: empresa suspendida / credenciales | ✅ | Parcial | Android: texto genérico en rojo, no el mensaje del servidor. |
-| Crear cuenta: unirse con código | ✅ | ❌ | Web: `RegisterScreen` (`POST /auth/register`). |
-| Crear cuenta: registrar empresa | ✅ | ❌ | Web: `CompanyRequestForm` (`POST /auth/register-company`). |
-| Requisitos de contraseña en salvia | ✅ | ❌ | Web: `PasswordRequirements`. |
-| Recuperar / restablecer contraseña | ✅ | ❌ | Web: `ForgotPasswordScreen` y `ResetPasswordScreen`. |
+| Login: "¿Olvidaste tu contraseña?" | ✅ | ✅ | |
+| Login: logo FAI como botón para volver | ✅ | ✅ | "← Volver al inicio" en login, crear cuenta y recuperar (la tabla anterior marcaba mal la web). |
+| Avisos ámbar: cuenta pendiente / empresa en revisión | ✅ | ✅ | Por código del servidor: `ACCOUNT_PENDING`, `COMPANY_IN_REVIEW`. |
+| Avisos rojos: empresa suspendida / credenciales | ✅ | ✅ | Mensaje del servidor tal cual. |
+| Crear cuenta: unirse con código | ✅ | ✅ | `POST /auth/register`. |
+| Crear cuenta: registrar empresa | ✅ | ✅ | `POST /auth/register-company`, con giro y RFC validados como la web. |
+| Requisitos de contraseña en salvia | ✅ | ✅ | |
+| Recuperar / restablecer contraseña | ✅ | Parcial | Android pide el enlace (`POST /auth/forgot-password`); el enlace del correo abre la página web para crear la nueva contraseña. |
 | Avatar con iniciales | ✅ | ✅ | Android: `initialsOf` toma nombre y apellido. |
 | Cerrar sesión desde el avatar | ✅ | ✅ | Android pide confirmación; la web cierra sin confirmar. |
 | Mi perfil / cambiar contraseña | ❌ | ❌ | El backend tiene `POST /auth/change-password`; ninguna pantalla lo usa. Fase 2 lo agrega en web y Android. |
@@ -30,13 +30,13 @@ Se actualiza al terminar cada fase de [android/PLAN_ANDROID_FAI.md](android/PLAN
 | Dashboard: actividad reciente | ✅ | ✅ | |
 | Eventos en vivo (SSE) | ✅ | ✅ | Android: `LiveEvents` y `refreshOnLive` en las listas actuales. |
 | Configuración compartida `/meta` | ✅ | ✅ | Estados (`TTBadge`) y menú (`navSections`). |
-| Mensajes del servidor tal cual en errores | ✅ | Parcial | Solo Productos lee `errorBody()`; las otras 9 pantallas muestran un texto genérico. |
+| Mensajes del servidor tal cual en errores | ✅ | ✅ | `core/network/ServerError.kt` lee `errorBody()` en todas las pantallas. |
 | **Administración** | | | |
 | Usuarios: Activos / Pendientes / Inactivos | ✅ | ❌ | Android: una sola lista, sin total real ni paginación. |
 | Usuarios: crear y editar | ✅ | Parcial | Android solo crea, y el formulario trae `Password123!` ya escrita. |
 | Usuarios: aprobar con rol / rechazar | ✅ | ❌ | |
 | Usuarios: desactivar / reactivar | ✅ | ❌ | |
-| Usuarios: eliminar con 409 informativo | ✅ | Parcial | Android elimina, pero no muestra el 409 del servidor. |
+| Usuarios: eliminar con 409 informativo | ✅ | Parcial | Ya muestra el mensaje del servidor; falta el flujo de la Fase 2 (pestañas, desactivar). |
 | Código de tu empresa: Copiar / Generar nuevo | ✅ | ❌ | Web: `CompanyJoinCodeCard`. |
 | Código de tu empresa: Compartir | n/a | ❌ | Solo Android (decisión); en la web basta "Copiar". |
 | Roles | ✅ | ❌ | Web: crear, editar y eliminar. Android: solo lectura (Fase 2). |
@@ -108,5 +108,5 @@ Sin contar las filas con "n/a" ("Compartir" el código, que es solo de Android, 
 
 | | ✅ | Parcial | ❌ |
 |---|---|---|---|
-| Web | 72 | 1 | 7 |
-| Android | 15 | 15 | 50 |
+| Web | 73 | 1 | 6 |
+| Android | 24 | 14 | 42 |

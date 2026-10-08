@@ -17,6 +17,11 @@ import com.diplomado.erp.core.network.dto.KpisDataDto
 import com.diplomado.erp.core.network.dto.LeadDto
 import com.diplomado.erp.core.network.dto.LoginResponse
 import com.diplomado.erp.core.network.dto.MeResponse
+import com.diplomado.erp.core.network.dto.MessageDto
+import com.diplomado.erp.core.network.serverError
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
+import retrofit2.Response
 import com.diplomado.erp.core.network.dto.MovementDto
 import com.diplomado.erp.core.network.dto.ProductDto
 import com.diplomado.erp.core.network.dto.ProductionOrderDto
@@ -61,6 +66,9 @@ class ApiContractsTest {
         "auth-me" to MeResponse::class.java,
         "meta" to AppMetaDto::class.java,
         "events-ticket" to EventTicketDto::class.java,
+        "auth-register" to MessageDto::class.java,
+        "auth-register-company" to MessageDto::class.java,
+        "auth-forgot-password" to MessageDto::class.java,
         "sales-orders" to listOf(SalesOrderDto::class.java),
         "purchase-orders" to listOf(PurchaseOrderDto::class.java),
         "products" to listOf(ProductDto::class.java),
@@ -115,11 +123,38 @@ class ApiContractsTest {
         else -> emptyList()
     }
 
+    /** Respuestas de ERROR reales (fixture → status HTTP, código y si la web lo muestra en ámbar). */
+    private data class ErrorContract(val status: Int, val code: String)
+
+    private val errorContracts: Map<String, ErrorContract> = mapOf(
+        "error-login-invalid-credentials" to ErrorContract(401, "INVALID_CREDENTIALS"),
+        "error-login-account-pending" to ErrorContract(403, "ACCOUNT_PENDING"),
+        "error-login-company-in-review" to ErrorContract(403, "COMPANY_IN_REVIEW"),
+        "error-login-company-suspended" to ErrorContract(401, "COMPANY_SUSPENDED"),
+        "error-validation" to ErrorContract(422, "VALIDATION_ERROR")
+    )
+
     @Test
     fun `cada fixture del backend tiene su DTO y viceversa`() {
         val fixtures = fixtureDir().listFiles { f -> f.extension == "json" }.orEmpty().map { it.nameWithoutExtension }.toSet()
-        assertEquals("Fixtures sin DTO en esta prueba", emptySet<String>(), fixtures - contracts.keys)
-        assertEquals("DTOs sin fixture (¿falta sincronizar?)", emptySet<String>(), contracts.keys - fixtures)
+        val known = contracts.keys + errorContracts.keys
+        assertEquals("Fixtures sin DTO en esta prueba", emptySet<String>(), fixtures - known)
+        assertEquals("DTOs sin fixture (¿falta sincronizar?)", emptySet<String>(), known - fixtures)
+    }
+
+    @Test
+    fun `los errores reales del servidor se leen de errorBody con su codigo y mensaje`() {
+        errorContracts.forEach { (name, expected) ->
+            val response = Response.error<Any>(expected.status, read(name).toResponseBody("application/json".toMediaType()))
+            val error = response.serverError()
+            assertEquals(name, expected.status, error.status)
+            assertEquals(name, expected.code, error.code)
+            assertTrue("$name: sin mensaje", !error.message.isNullOrBlank())
+        }
+        val validation = Response.error<Any>(422, read("error-validation").toResponseBody("application/json".toMediaType()))
+            .serverError()
+        assertTrue(validation.detailMessages.contains("Correo electrónico inválido."))
+        assertTrue(validation.fullMessage("x").startsWith("Los datos enviados no son válidos. "))
     }
 
     @Test

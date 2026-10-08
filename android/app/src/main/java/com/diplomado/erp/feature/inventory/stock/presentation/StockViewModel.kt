@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.inventory.stock.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.friendlyError
 import com.diplomado.erp.core.network.live.refreshOnLive
 
@@ -56,7 +58,7 @@ class StockViewModel : ViewModel() {
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = StockUiState.Success(res.body()!!.data!!, minStock)
                 } else {
-                    if (!silent || _uiState.value !is StockUiState.Success) _uiState.value = StockUiState.Error(res.body()?.error?.message ?: "Error al cargar existencias.")
+                    if (!silent || _uiState.value !is StockUiState.Success) _uiState.value = StockUiState.Error(res.errorMessage("Error al cargar existencias."))
                 }
             } catch (e: Exception) {
                 if (!silent || _uiState.value !is StockUiState.Success) _uiState.value = StockUiState.Error(friendlyError(e, "No pudimos cargar las existencias."))

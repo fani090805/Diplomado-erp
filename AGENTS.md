@@ -47,6 +47,8 @@ docs/       Arquitectura, decisiones (ADR), API, base de datos, design system y 
 ### android/
 - Kotlin + Jetpack Compose; tema en `app/src/main/java/com/diplomado/erp/ui/theme/` (`FaiTheme`, `Color.kt`, `Type.kt`, `Shape.kt`).
 - Consume la misma API REST del backend. Los DTO (Gson) viven en `core/network/dto/`.
+- Por defecto el build debug usa la API de Render. Para un backend local: `.\gradlew.bat assembleDebug -PapiBaseUrl=http://10.0.2.2:4000/api/v1/` (sólo debug permite HTTP a `10.0.2.2`/`localhost`).
+- Mensajes de error: siempre con `response.errorMessage(...)` / `serverError()` (`core/network/ServerError.kt`); en Retrofit `body()` es null cuando la respuesta no es 2xx.
 - Errores: `friendlyError()` (`core/common/ErrorMessages.kt`) separa los de red (sin conexión, timeout) de los de lectura de datos (DTO distinto a la respuesta), que se registran con `Log.e("FAI-API", …)`.
 
 ## Paridad API ↔ Android (contratos)

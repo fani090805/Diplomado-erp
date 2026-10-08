@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.configuration.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.friendlyError
 
 import androidx.lifecycle.ViewModel
@@ -34,7 +36,7 @@ class AuditViewModel : ViewModel() {
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = AuditUiState.Success(res.body()!!.data!!)
                 } else {
-                    _uiState.value = AuditUiState.Error(res.body()?.error?.message ?: "Error al cargar registros de auditoría.")
+                    _uiState.value = AuditUiState.Error(res.errorMessage("Error al cargar registros de auditoría."))
                 }
             } catch (e: Exception) {
                 _uiState.value = AuditUiState.Error(friendlyError(e, "Error de red."))

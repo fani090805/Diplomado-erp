@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.crm.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.orDash
 import com.diplomado.erp.core.common.formatMoney
 
@@ -49,7 +51,7 @@ class LeadsViewModel : ViewModel() {
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = LeadsUiState.Success(res.body()!!.data!!)
                 } else {
-                    _uiState.value = LeadsUiState.Error("No se pudieron cargar los leads.")
+                    _uiState.value = LeadsUiState.Error(res.errorMessage("No se pudieron cargar los leads."))
                 }
             } catch (e: Exception) {
                 _uiState.value = LeadsUiState.Error(friendlyError(e, "Error de red al consultar prospectos."))

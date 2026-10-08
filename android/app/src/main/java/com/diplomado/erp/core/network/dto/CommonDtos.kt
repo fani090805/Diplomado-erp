@@ -1,5 +1,6 @@
 package com.diplomado.erp.core.network.dto
 
+import com.google.gson.JsonElement
 import com.google.gson.annotations.SerializedName
 
 data class ApiResponse<T>(
@@ -19,12 +20,8 @@ data class MetaDto(
 data class ApiErrorDto(
     @SerializedName("code") val code: String = "ERROR",
     @SerializedName("message") val message: String = "Ocurrió un error inesperado.",
-    @SerializedName("details") val details: List<ErrorDetailDto>? = null
-)
-
-data class ErrorDetailDto(
-    @SerializedName("field") val field: String? = null,
-    @SerializedName("message") val message: String? = null
+    /** Lista u objeto (`{ body: [...] }` en validaciones): se lee con serverError(). */
+    @SerializedName("details") val details: JsonElement? = null
 )
 
 // Auth DTOs

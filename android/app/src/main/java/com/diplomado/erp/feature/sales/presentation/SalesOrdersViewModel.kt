@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.sales.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.friendlyError
 import com.diplomado.erp.core.network.live.refreshOnLive
 
@@ -41,7 +43,7 @@ class SalesOrdersViewModel : ViewModel() {
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = SalesOrdersUiState.Success(res.body()!!.data!!)
                 } else {
-                    if (!silent || _uiState.value !is SalesOrdersUiState.Success) _uiState.value = SalesOrdersUiState.Error(res.body()?.error?.message ?: "Error al cargar pedidos de venta.")
+                    if (!silent || _uiState.value !is SalesOrdersUiState.Success) _uiState.value = SalesOrdersUiState.Error(res.errorMessage("Error al cargar pedidos de venta."))
                 }
             } catch (e: Exception) {
                 if (!silent || _uiState.value !is SalesOrdersUiState.Success) _uiState.value = SalesOrdersUiState.Error(friendlyError(e, "Error de red."))
@@ -56,7 +58,7 @@ class SalesOrdersViewModel : ViewModel() {
                 if (res.isSuccessful) {
                     loadOrders()
                 } else {
-                    _uiState.value = SalesOrdersUiState.Error(res.body()?.error?.message ?: "Stock insuficiente para aprobar pedido.")
+                    _uiState.value = SalesOrdersUiState.Error(res.errorMessage("No se pudo aprobar el pedido."))
                 }
             } catch (e: Exception) {
                 _uiState.value = SalesOrdersUiState.Error(friendlyError(e, "Error de conexión."))

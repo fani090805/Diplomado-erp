@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "ACCOUNT_PENDING",
+    "message": "Tu cuenta está pendiente de aprobación por el administrador."
+  },
+  "success": false
+}

@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.projects.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.friendlyError
 
 import androidx.lifecycle.ViewModel
@@ -33,7 +35,7 @@ class ProjectsViewModel : ViewModel() {
                 if (res.isSuccessful) {
                     _uiState.value = ProjectsUiState.Success(res.body()?.data ?: emptyList())
                 } else {
-                    _uiState.value = ProjectsUiState.Error("No se pudieron cargar las obras.")
+                    _uiState.value = ProjectsUiState.Error(res.errorMessage("No se pudieron cargar las obras."))
                 }
             } catch (e: Exception) {
                 _uiState.value = ProjectsUiState.Error(friendlyError(e, "Error de red al consultar obras."))

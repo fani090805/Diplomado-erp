@@ -22,6 +22,7 @@ const path = require('path');
 const request = require('supertest');
 const { describeIfDb, connectTestDb, closeTestDb, app } = require('../helpers/setup');
 const { createTenant, createUser, login, auth } = require('../helpers/fixtures');
+const companyRepository = require('../../src/modules/companies/company.repository');
 
 const FIXTURES_DIR = path.join(__dirname, 'fixtures');
 const UPDATE = process.env.UPDATE_CONTRACTS === '1';
@@ -116,9 +117,13 @@ function forbiddenKeys(value, at = '$') {
   ]);
 }
 
-/** Guarda (UPDATE_CONTRACTS=1) o compara la respuesta con su fixture. */
-function checkContract(name, res) {
-  expect(res.status).toBeLessThan(300);
+/**
+ * Guarda (UPDATE_CONTRACTS=1) o compara la respuesta con su fixture.
+ * `expectStatus`: para contratos de ERROR (p. ej. 401/403/422), que Android lee de errorBody().
+ */
+function checkContract(name, res, { expectStatus } = {}) {
+  if (expectStatus) expect(res.status).toBe(expectStatus);
+  else expect(res.status).toBeLessThan(300);
   const body = normalize(res.body);
   expect(forbiddenKeys(body)).toEqual([]);
 
@@ -248,6 +253,54 @@ describeIfDb('Contratos API ↔ Android (fixtures JSON)', () => {
     ['cost-centers', '/cost-centers'],
   ])('%s', async (name, url) => {
     checkContract(name, await get(url));
+  });
+
+  // --- Cuentas públicas (Fase 1 de Android) ---
+  const publicPost = (url, body) => request(app).post(`/api/v1${url}`).send(body);
+
+  test('auth-register (unirse con código) y su login pendiente', async () => {
+    const { joinCode } = (await get('/companies/me/join-code')).body.data;
+    checkContract('auth-register', await publicPost('/auth/register', {
+      name: 'Pedro', lastName: 'Pendiente', companyCode: joinCode, email: 'pedro@contratos.local', password: 'Clave1234',
+    }));
+    checkContract('error-login-account-pending', await publicPost('/auth/login', {
+      email: 'pedro@contratos.local', password: 'Clave1234',
+    }), { expectStatus: 403 });
+  });
+
+  test('auth-register-company y su login en revisión', async () => {
+    checkContract('auth-register-company', await publicPost('/auth/register-company', {
+      companyName: 'Empresa Nueva', industry: 'comercio', name: 'Rita', lastName: 'Revisión',
+      email: 'rita@nueva.local', password: 'Clave1234',
+    }));
+    checkContract('error-login-company-in-review', await publicPost('/auth/login', {
+      email: 'rita@nueva.local', password: 'Clave1234',
+    }), { expectStatus: 403 });
+  });
+
+  test('auth-forgot-password', async () => {
+    checkContract('auth-forgot-password', await publicPost('/auth/forgot-password', { email: 'admin@contratos.local' }));
+  });
+
+  test('errores de login: credenciales y empresa suspendida', async () => {
+    checkContract('error-login-invalid-credentials', await publicPost('/auth/login', {
+      email: 'admin@contratos.local', password: 'Incorrecta1',
+    }), { expectStatus: 401 });
+
+    const suspended = await createTenant({ name: 'Suspendida SA' });
+    await createUser({
+      company: suspended.company, branch: suspended.branch, role: suspended.roles.administrador, email: 'sofia@suspendida.local',
+    });
+    await companyRepository.updateById(suspended.company._id, { status: 'suspended' });
+    checkContract('error-login-company-suspended', await publicPost('/auth/login', {
+      email: 'sofia@suspendida.local', password: 'Clave1234',
+    }), { expectStatus: 401 });
+  });
+
+  test('error de validación (422 con details.body)', async () => {
+    checkContract('error-validation', await publicPost('/auth/register-company', {
+      companyName: 'X', industry: 'comercio', name: 'Ro', email: 'no-es-correo', password: 'corta',
+    }), { expectStatus: 422 });
   });
 
   test('events-ticket', async () => {

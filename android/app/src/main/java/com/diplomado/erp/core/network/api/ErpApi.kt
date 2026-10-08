@@ -10,6 +10,18 @@ interface ErpApi {
     @Headers("No-Authentication: true")
     suspend fun login(@Body request: LoginRequest): Response<ApiResponse<LoginResponse>>
 
+    @POST("auth/register")
+    @Headers("No-Authentication: true")
+    suspend fun register(@Body request: RegisterRequest): Response<ApiResponse<MessageDto>>
+
+    @POST("auth/register-company")
+    @Headers("No-Authentication: true")
+    suspend fun registerCompany(@Body request: RegisterCompanyRequest): Response<ApiResponse<MessageDto>>
+
+    @POST("auth/forgot-password")
+    @Headers("No-Authentication: true")
+    suspend fun forgotPassword(@Body request: ForgotPasswordRequest): Response<ApiResponse<MessageDto>>
+
     @POST("auth/refresh")
     @Headers("No-Authentication: true")
     suspend fun refresh(@Body request: RefreshRequest): Response<ApiResponse<RefreshResponse>>

@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.projects.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.friendlyError
 
 import androidx.lifecycle.ViewModel
@@ -37,7 +39,7 @@ class ProjectDetailViewModel : ViewModel() {
                     val costCenters = if (costCentersRes.isSuccessful) costCentersRes.body()?.data ?: emptyList() else emptyList()
                     _uiState.value = ProjectDetailUiState.Success(project, costCenters)
                 } else {
-                    _uiState.value = ProjectDetailUiState.Error("No se pudo obtener el detalle de la obra.")
+                    _uiState.value = ProjectDetailUiState.Error(projectRes.errorMessage("No se pudo obtener el detalle de la obra."))
                 }
             } catch (e: Exception) {
                 _uiState.value = ProjectDetailUiState.Error(friendlyError(e, "Error de red al consultar la obra."))

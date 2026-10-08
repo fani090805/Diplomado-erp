@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Visibility
@@ -29,14 +30,21 @@ fun TTTextField(
     isPassword: Boolean = false,
     enabled: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    singleLine: Boolean = true
+    singleLine: Boolean = true,
+    /** Agrega " *" a la etiqueta, como TTInput de la web. */
+    required: Boolean = false,
+    /** Texto de ayuda bajo el campo (se oculta si hay error). */
+    hint: String? = null,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    /** Sólo cambia cómo se VE (p. ej. UppercaseTransformation); el valor guardado no se toca. */
+    visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
     var passwordVisible by remember { mutableStateOf(!isPassword) }
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (label.isNotEmpty()) {
             Text(
-                text = label,
+                text = if (required) "$label *" else label,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = FaiFontFamily,
@@ -54,8 +62,9 @@ fun TTTextField(
             singleLine = singleLine,
             isError = error != null,
             keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
             textStyle = MaterialTheme.typography.bodyLarge.copy(color = FaiTextPrimary),
-            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else visualTransformation,
             trailingIcon = if (isPassword) {
                 {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -91,6 +100,26 @@ fun TTTextField(
                 fontSize = 12.sp,
                 fontFamily = FaiFontFamily
             )
+        } else if (hint != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = hint,
+                color = FaiTextMuted,
+                fontSize = 12.sp,
+                fontFamily = FaiFontFamily
+            )
         }
     }
+}
+
+/**
+ * Muestra el texto en MAYÚSCULAS sin modificar el valor (códigos de empresa, RFC).
+ * Cambiar el texto dentro de onValueChange rompe la composición del teclado y se pierden letras.
+ */
+object UppercaseTransformation : VisualTransformation {
+    override fun filter(text: androidx.compose.ui.text.AnnotatedString) =
+        androidx.compose.ui.text.input.TransformedText(
+            androidx.compose.ui.text.AnnotatedString(text.text.uppercase()),
+            androidx.compose.ui.text.input.OffsetMapping.Identity
+        )
 }

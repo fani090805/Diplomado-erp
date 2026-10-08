@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.inventory.products.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.friendlyError
 import com.diplomado.erp.core.network.live.refreshOnLive
 import androidx.lifecycle.ViewModel
@@ -13,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 import retrofit2.Response
 
 sealed class ProductsUiState {
@@ -67,7 +68,7 @@ class ProductsViewModel : ViewModel() {
                 val response = RetrofitClient.api.getProducts(page = 1, limit = 50, search = searchParam, status = status)
                 if (!response.isSuccessful || response.body()?.data == null) {
                     if (!silent || _uiState.value !is ProductsUiState.Success) {
-                        _uiState.value = ProductsUiState.Error(response.body()?.error?.message ?: "Error al cargar productos.")
+                        _uiState.value = ProductsUiState.Error(response.errorMessage("Error al cargar productos."))
                     }
                     return@launch
                 }
@@ -110,7 +111,7 @@ class ProductsViewModel : ViewModel() {
                 if (response.isSuccessful) {
                     loadProducts(silent = true)
                 } else {
-                    onError(errorMessage(response))
+                    onError(response.errorMessage("No se pudo actualizar el producto."))
                 }
             } catch (e: Exception) {
                 onError(friendlyError(e, "Error de conexión."))
@@ -118,10 +119,4 @@ class ProductsViewModel : ViewModel() {
         }
     }
 
-    private fun errorMessage(response: Response<*>): String {
-        val body = response.errorBody()?.string().orEmpty()
-        return runCatching {
-            JSONObject(body).optJSONObject("error")?.optString("message")
-        }.getOrNull()?.takeIf(String::isNotBlank) ?: "No se pudo actualizar el producto."
-    }
 }

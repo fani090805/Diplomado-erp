@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.hr.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.orDash
 import com.diplomado.erp.core.common.friendlyError
 
@@ -47,7 +49,7 @@ class EmployeesViewModel : ViewModel() {
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = EmployeesUiState.Success(res.body()!!.data!!)
                 } else {
-                    _uiState.value = EmployeesUiState.Error("No se pudieron cargar los empleados.")
+                    _uiState.value = EmployeesUiState.Error(res.errorMessage("No se pudieron cargar los empleados."))
                 }
             } catch (e: Exception) {
                 _uiState.value = EmployeesUiState.Error(friendlyError(e, "Error de red al consultar personal."))

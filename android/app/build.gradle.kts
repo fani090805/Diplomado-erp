@@ -26,7 +26,9 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"https://diplomado-erp-d6su.onrender.com/api/v1/\"")
+            // Por defecto Render. Para un backend local: gradlew.bat assembleDebug -PapiBaseUrl=http://10.0.2.2:4000/api/v1/
+            val apiBaseUrl = (project.findProperty("apiBaseUrl") as String?) ?: "https://diplomado-erp-d6su.onrender.com/api/v1/"
+            buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
             isMinifyEnabled = false
         }
         release {

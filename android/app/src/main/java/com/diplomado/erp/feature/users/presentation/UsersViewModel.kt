@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.users.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.friendlyError
 import com.diplomado.erp.core.network.live.refreshOnLive
 
@@ -64,7 +66,7 @@ class UsersViewModel : ViewModel() {
                     loadUsers()
                     onComplete(true, null)
                 } else {
-                    onComplete(false, res.body()?.error?.message ?: "Error al crear usuario.")
+                    onComplete(false, res.errorMessage("Error al crear usuario."))
                 }
             } catch (e: Exception) {
                 onComplete(false, friendlyError(e, "Error de conexión."))
@@ -80,7 +82,7 @@ class UsersViewModel : ViewModel() {
                     loadUsers()
                     onComplete(true, null)
                 } else {
-                    onComplete(false, res.body()?.error?.message ?: "Error al eliminar usuario.")
+                    onComplete(false, res.errorMessage("Error al eliminar usuario."))
                 }
             } catch (e: Exception) {
                 onComplete(false, friendlyError(e, "Error de conexión."))

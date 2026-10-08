@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "COMPANY_SUSPENDED",
+    "message": "Tu empresa está suspendida. Contacta al soporte."
+  },
+  "success": false
+}

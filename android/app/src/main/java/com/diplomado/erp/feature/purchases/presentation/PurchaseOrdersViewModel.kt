@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.purchases.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.friendlyError
 import com.diplomado.erp.core.network.live.refreshOnLive
 
@@ -41,7 +43,7 @@ class PurchaseOrdersViewModel : ViewModel() {
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = PurchaseOrdersUiState.Success(res.body()!!.data!!)
                 } else {
-                    if (!silent || _uiState.value !is PurchaseOrdersUiState.Success) _uiState.value = PurchaseOrdersUiState.Error(res.body()?.error?.message ?: "Error al cargar órdenes de compra.")
+                    if (!silent || _uiState.value !is PurchaseOrdersUiState.Success) _uiState.value = PurchaseOrdersUiState.Error(res.errorMessage("Error al cargar órdenes de compra."))
                 }
             } catch (e: Exception) {
                 if (!silent || _uiState.value !is PurchaseOrdersUiState.Success) _uiState.value = PurchaseOrdersUiState.Error(friendlyError(e, "Error de red."))
@@ -56,7 +58,7 @@ class PurchaseOrdersViewModel : ViewModel() {
                 if (res.isSuccessful) {
                     loadOrders()
                 } else {
-                    _uiState.value = PurchaseOrdersUiState.Error(res.body()?.error?.message ?: "No se pudo aprobar la orden.")
+                    _uiState.value = PurchaseOrdersUiState.Error(res.errorMessage("No se pudo aprobar la orden."))
                 }
             } catch (e: Exception) {
                 _uiState.value = PurchaseOrdersUiState.Error(friendlyError(e, "Error de conexión."))
@@ -71,7 +73,7 @@ class PurchaseOrdersViewModel : ViewModel() {
                 if (res.isSuccessful) {
                     loadOrders()
                 } else {
-                    _uiState.value = PurchaseOrdersUiState.Error(res.body()?.error?.message ?: "No se pudo rechazar la orden.")
+                    _uiState.value = PurchaseOrdersUiState.Error(res.errorMessage("No se pudo rechazar la orden."))
                 }
             } catch (e: Exception) {
                 _uiState.value = PurchaseOrdersUiState.Error(friendlyError(e, "Error de conexión."))

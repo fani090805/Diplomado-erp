@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.inventory.movements.presentation
 
+import com.diplomado.erp.core.network.errorMessage
+
 import com.diplomado.erp.core.common.friendlyError
 import com.diplomado.erp.core.network.live.refreshOnLive
 
@@ -43,7 +45,7 @@ class MovementsViewModel : ViewModel() {
                     val total = res.body()!!.meta?.total ?: list.size
                     _uiState.value = MovementsUiState.Success(list, total)
                 } else {
-                    if (!silent || _uiState.value !is MovementsUiState.Success) _uiState.value = MovementsUiState.Error(res.body()?.error?.message ?: "Error al cargar movimientos.")
+                    if (!silent || _uiState.value !is MovementsUiState.Success) _uiState.value = MovementsUiState.Error(res.errorMessage("Error al cargar movimientos."))
                 }
             } catch (e: Exception) {
                 if (!silent || _uiState.value !is MovementsUiState.Success) _uiState.value = MovementsUiState.Error(friendlyError(e, "Error de red."))

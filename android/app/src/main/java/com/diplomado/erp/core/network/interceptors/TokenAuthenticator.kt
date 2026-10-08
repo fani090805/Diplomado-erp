@@ -18,6 +18,10 @@ class TokenAuthenticator(private val baseUrl: String) : Authenticator {
     private val lock = Any()
 
     override fun authenticate(route: Route?, response: Response): Request? {
+        // Peticiones públicas (login, registro, recuperar contraseña) no llevan token:
+        // un 401 ahí es "credenciales incorrectas", no una sesión que refrescar.
+        if (response.request.header("Authorization") == null) return null
+
         // Evitar loops si la propia llamada de refresh devuelve 401
         if (response.request.url.encodedPath.contains("/auth/refresh")) {
             TokenStorage.clear()

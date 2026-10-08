@@ -1,7 +1,10 @@
 package com.diplomado.erp.ui.navigation
 
 sealed class NavDestination(val route: String) {
+    data object Welcome : NavDestination("welcome")
     data object Login : NavDestination("login")
+    data object Register : NavDestination("register")
+    data object ForgotPassword : NavDestination("forgot_password")
     data object Main : NavDestination("main")
     data object Dashboard : NavDestination("dashboard")
     data object Projects : NavDestination("projects")
