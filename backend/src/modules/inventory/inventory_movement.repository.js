@@ -17,6 +17,12 @@ class InventoryMovementRepository extends BaseRepository {
     return this.model.findOne({ companyId, reference }).lean();
   }
 
+  async productIdsWithMovements(companyId, productIds) {
+    this._guard({ companyId });
+    if (!productIds.length) return [];
+    return this.model.distinct('productId', { companyId, productId: { $in: productIds } });
+  }
+
   async findByIdempotencyKey(companyId, idempotencyKey) {
     this._guard({ companyId });
     return this.model.findOne({ companyId, idempotencyKey }).lean();

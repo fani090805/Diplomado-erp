@@ -134,6 +134,18 @@ describeIfDb('API /products, /warehouses e /inventory (integración FASE 3)', ()
     expect(deactivated.status).toBe(200);
     expect(deactivated.body.data.status).toBe('inactive');
 
+    const audited = await waitFor(async () => {
+      const logs = await request(app).get('/api/v1/audit?module=products&limit=100').set(auth(adminAToken));
+      return logs.body.data?.some((entry) =>
+        entry.action === 'PATCH_PRODUCTS' &&
+        entry.resourceId === id &&
+        entry.result === 'SUCCESS' &&
+        entry.before?.status === 'active' &&
+        entry.after?.status === 'inactive'
+      );
+    });
+    expect(audited).toBe(true);
+
     const active = await request(app).get('/api/v1/products').set(auth(adminAToken));
     expect(active.body.data.some((product) => product._id === id)).toBe(false);
 

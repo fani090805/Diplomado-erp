@@ -55,5 +55,6 @@ purchaseOrderSchema.index({ companyId: 1, supplierId: 1, createdAt: -1 });
 purchaseOrderSchema.index({ companyId: 1, createdAt: -1 });
 // Orden de la lista: fecha y folio descendentes (desempate estable).
 purchaseOrderSchema.index({ companyId: 1, createdAt: -1, code: -1 });
+purchaseOrderSchema.index({ companyId: 1, 'lines.productId': 1 });
 
 module.exports = mongoose.model('PurchaseOrder', purchaseOrderSchema);

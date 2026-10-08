@@ -96,6 +96,11 @@ const withSupplierNames = (items) =>
   attachNames(items, { repository: supplierRepository, idField: 'supplierId', nameField: 'supplierName' });
 
 const purchaseOrderService = {
+  async productIdsWithHistory(productIds, companyId) {
+    const ids = await purchaseOrderRepository.productIdsWithHistory(companyId, productIds);
+    return ids.map(String);
+  },
+
   async hasProductHistory(productId, companyId) {
     return Boolean(await purchaseOrderRepository.exists({ companyId, 'lines.productId': productId }));
   },

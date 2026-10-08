@@ -258,7 +258,7 @@ export default function StockScreen() {
         rowActions={can('products.update') ? (row) => [
           {
             label: 'Editar producto',
-            onPress: () => setNewProduct(productById.get(row.productKey) || null),
+            onPress: () => setNewProduct(productById.get(row.productKey) || row.product || null),
           },
           ...(productById.get(row.productKey)?.status === 'active' ? [{
             label: 'Desactivar producto',

@@ -76,6 +76,16 @@ class StockLevelRepository extends BaseRepository {
     return this.model.exists({ companyId, productId, quantity: { $gt: 0 } });
   }
 
+  async productIdsWithStock(companyId, productIds) {
+    this._guard({ companyId });
+    if (!productIds.length) return [];
+    return this.model.distinct('productId', {
+      companyId,
+      productId: { $in: productIds },
+      quantity: { $gt: 0 },
+    });
+  }
+
   /** ¿Existe fila con existencias > 0 en este almacén? (guardia de borrado) */
   async hasStockInWarehouse(companyId, warehouseId) {
     this._guard({ companyId });

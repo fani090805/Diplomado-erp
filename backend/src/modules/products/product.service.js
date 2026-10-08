@@ -24,10 +24,20 @@ async function getHistoryFlags(productId, companyId) {
 }
 
 async function withHistory(items, companyId) {
-  return Promise.all(items.map(async (item) => {
-    const history = await getHistoryFlags(String(item._id), companyId);
-    return { ...item, hasHistory: Object.values(history).some(Boolean) };
-  }));
+  const ids = items.map((item) => item._id);
+  const [withStock, withMovements, withTraces, withSales, withPurchases] = await Promise.all([
+    stockLevelRepository.productIdsWithStock(companyId, ids),
+    inventoryMovementRepository.productIdsWithMovements(companyId, ids),
+    inventoryTraceRepository.productIdsWithRecords(companyId, ids),
+    salesOrderService.productIdsWithHistory(ids, companyId),
+    purchaseOrderService.productIdsWithHistory(ids, companyId),
+  ]);
+  const historySets = [withStock, withMovements, withTraces, withSales, withPurchases]
+    .map((values) => new Set(values.map(String)));
+  return items.map((item) => {
+    const id = String(item._id);
+    return { ...item, hasHistory: historySets.some((history) => history.has(id)) };
+  });
 }
 
 const MASTER_REFERENCES = [
@@ -123,7 +133,7 @@ const productService = {
   },
 
   /**
-   * Borrado físico sólo si el producto nunca tuvo existencias ni movimientos.
+   * Borrado físico sólo si el producto nunca tuvo existencias, movimientos u órdenes.
    * Si no: 409 con mensaje de acción (desactivar en su lugar).
    */
   async remove(id, companyId) {

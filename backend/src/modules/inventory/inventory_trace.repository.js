@@ -105,6 +105,12 @@ class InventoryTraceRepository extends BaseRepository {
     return this.model.exists({ companyId, productId });
   }
 
+  async productIdsWithRecords(companyId, productIds) {
+    this._guard({ companyId });
+    if (!productIds.length) return [];
+    return this.model.distinct('productId', { companyId, productId: { $in: productIds } });
+  }
+
   async removeById(id, companyId) {
     return this.deleteById(id, { companyId });
   }

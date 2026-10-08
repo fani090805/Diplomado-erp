@@ -49,7 +49,7 @@ module.exports = function auditMiddleware(req, res, next) {
         action: `${req.method}_${extractModule(req).toUpperCase()}`,
         resourceId: extractResourceId(req),
         before: req.auditBefore || null,
-        after: okResponse && req.body ? sanitize(req.body) : null,
+        after: okResponse ? req.auditAfter || (req.body ? sanitize(req.body) : null) : null,
         ip: req.ip,
         userAgent: req.headers['user-agent'],
         result: okResponse ? 'SUCCESS' : 'FAILURE',

@@ -56,6 +56,7 @@ const changeStatus = (method) => asyncHandler(async (req, res) => {
   if (!before) throw ApiError.notFound('Recurso no encontrado.');
   req.auditBefore = before;
   const product = await productService[method](req.params.id, req.user.companyId);
+  req.auditAfter = { status: product.status };
   return ok(res, product);
 });
 
