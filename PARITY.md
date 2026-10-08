@@ -2,7 +2,8 @@
 
 Revisado contra el código real de `frontend/src/` y `android/app/src/main/` (8 oct 2026).
 ✅ = completo · Parcial = existe con faltantes (ver nota) · ❌ = no existe.
-La web es la referencia. Se actualiza al terminar cada fase de [android/PLAN_ANDROID_FAI.md](android/PLAN_ANDROID_FAI.md).
+La web es la referencia, y la paridad es en ambos sentidos: lo que Android tenga y la web no, se agrega también a la web en la misma fase (excepto "Compartir" el código de empresa).
+Se actualiza al terminar cada fase de [android/PLAN_ANDROID_FAI.md](android/PLAN_ANDROID_FAI.md).
 
 **Reglas de LISTAS** (aplican a cada módulo): total real de registros, paginación infinita, búsqueda, filtro de estado cuando la web lo tiene, tarjetas ordenadas y detalle al tocar. En la web, todas las listas usan `TTTable` + `useList`, que ya tienen paginación, total y búsqueda.
 
@@ -21,7 +22,7 @@ La web es la referencia. Se actualiza al terminar cada fase de [android/PLAN_AND
 | Recuperar / restablecer contraseña | ✅ | ❌ | Web: `ForgotPasswordScreen` y `ResetPasswordScreen`. |
 | Avatar con iniciales | ✅ | ✅ | Android: `initialsOf` toma nombre y apellido. |
 | Cerrar sesión desde el avatar | ✅ | ✅ | Android pide confirmación; la web cierra sin confirmar. |
-| Mi perfil / cambiar contraseña | ❌ | ❌ | El backend tiene `POST /auth/change-password` y `ErpApi.changePassword`, pero ninguna pantalla los usa. |
+| Mi perfil / cambiar contraseña | ❌ | ❌ | El backend tiene `POST /auth/change-password`; ninguna pantalla lo usa. Fase 2 lo agrega en web y Android. |
 | **Inicio** | | | |
 | Dashboard: KPIs | ✅ | ✅ | |
 | Dashboard: comparativo justo (mes a la fecha vs. mismo tramo del mes anterior) | ✅ | ❌ | Android compara los dos últimos meses completos de `byMonth`. |
@@ -37,7 +38,7 @@ La web es la referencia. Se actualiza al terminar cada fase de [android/PLAN_AND
 | Usuarios: desactivar / reactivar | ✅ | ❌ | |
 | Usuarios: eliminar con 409 informativo | ✅ | Parcial | Android elimina, pero no muestra el 409 del servidor. |
 | Código de tu empresa: Copiar / Generar nuevo | ✅ | ❌ | Web: `CompanyJoinCodeCard`. |
-| Código de tu empresa: Compartir | ❌ | ❌ | La web no lo tiene. La Fase 2 lo agrega en Android. |
+| Código de tu empresa: Compartir | n/a | ❌ | Solo Android (decisión); en la web basta "Copiar". |
 | Roles | ✅ | ❌ | Web: crear, editar y eliminar. Android: solo lectura (Fase 2). |
 | Sucursales | ✅ | ❌ | Web: crear, editar y eliminar. |
 | Auditoría: lista | ✅ | Parcial | Android: solo los últimos `SUCCESS`, sin búsqueda, filtros ni detalle. |
@@ -89,7 +90,7 @@ La web es la referencia. Se actualiza al terminar cada fase de [android/PLAN_AND
 | CRM: crear / editar | ✅ | ❌ | |
 | RRHH (empleados): lista | ✅ | Parcial | Android: sin total real ni búsqueda. |
 | RRHH: crear / editar | ✅ | ❌ | |
-| Obras: lista, búsqueda, detalle | ❌ | ✅ | La web no tiene pantalla. |
+| Obras: lista, búsqueda, detalle | ❌ | ✅ | La web no tiene pantalla; Fase 5 la agrega. |
 | Obras: crear / editar | ❌ | ❌ | |
 | Centros de costo: lista en el detalle de la obra | ❌ | ✅ | |
 | Centros de costo: crear / editar | ❌ | ❌ | |
@@ -102,10 +103,10 @@ La web es la referencia. Se actualiza al terminar cada fase de [android/PLAN_AND
 | Splash | ✅ | ❌ | Web: `splash` en `app.json`. |
 | Build release listo (R8) | n/a | ❌ | `minify` activo sin `proguard-rules.pro`. |
 
-## Conteo (81 funcionalidades)
-Sin contar la fila "Build release", que no aplica a la web.
+## Conteo (80 funcionalidades comparables)
+Sin contar las filas con "n/a" ("Compartir" el código, que es solo de Android, y "Build release").
 
 | | ✅ | Parcial | ❌ |
 |---|---|---|---|
-| Web | 72 | 1 | 8 |
-| Android | 15 | 15 | 51 |
+| Web | 72 | 1 | 7 |
+| Android | 15 | 15 | 50 |

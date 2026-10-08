@@ -5,8 +5,12 @@ La web (`frontend/`) es la referencia: pantalla por pantalla, la app tiene las m
 El estado actual, funcionalidad por funcionalidad, está en [../PARITY.md](../PARITY.md).
 
 ## Reglas para todas las fases
-- **Dónde se trabaja:** solo en `android/`; `backend/` y `frontend/` se leen como referencia.
+- **Dónde se trabaja:** en `android/`; `backend/` y `frontend/` se leen como referencia.
   - Si una fase necesita un cambio en el backend, se hace con sus pruebas y con la actualización de los fixtures de contrato.
+- **Paridad en ambos sentidos:** lo que Android tenga y la web no, se agrega TAMBIÉN a la web en la misma fase, con `npx expo export --platform web` sin errores.
+  - Fase 2: "Mi perfil / cambiar contraseña".
+  - Fase 5: Obras y centros de costo.
+  - Excepción: "Compartir" el código de empresa queda solo en Android; en la web basta "Copiar".
 - **Diseño:** Kotlin nativo + Jetpack Compose, `FaiTheme`, componentes `TT*` y `ColorTokens.kt`. Los colores solo se cambian en `design/tokens.json`.
 - **Datos compartidos:** las etiquetas de estado y el menú salen de `/meta` (`AppMeta`). Cada lista se refresca con los eventos en vivo (`refreshOnLive`).
 - **Igual que la web:** permisos (`PermissionChecker.hasPermission`), textos, validaciones y mensajes.
@@ -29,21 +33,15 @@ El estado actual, funcionalidad por funcionalidad, está en [../PARITY.md](../PA
     3. `.\gradlew.bat test`.
 - **Al terminar cada fase:**
   1. `.\gradlew.bat test` y `.\gradlew.bat assembleDebug` (si `JAVA_HOME` no está, usar el `jbr` de Android Studio).
-  2. Si se tocó el backend, también `npm test` en `backend/`.
+  2. Si se tocó el backend, también `npm test` en `backend/`; si se tocó la web, `npx expo export --platform web` en `frontend/`.
   3. Actualizar `PARITY.md`.
   4. Un commit por fase, solo con los archivos tocados y agregados por nombre. Nunca `.gradle`, `local.properties`, `app/build` ni `.env`; nunca `git add .` ni `git add -A`.
   5. Push a `main` y reporte con capturas descritas de lo que se debe ver.
 
-## Base común (al inicio de la Fase 1)
-- Helper para leer `errorBody()` (`{ error: { code, message } }`) y usarlo en todos los ViewModels.
-  - Hoy solo Productos lo hace; las otras 9 pantallas leen `body()`, que es null en respuestas de error, y muestran un texto genérico.
-- Componentes reutilizables para las reglas de LISTAS:
-  - Lista paginada con carga al final.
-  - Tarjeta de documento: folio, subtítulo y fecha · monto y badge.
-  - Barra de búsqueda y filtros.
-  - Pantalla de detalle.
-
 ## Fase 1 · Cuentas (igual que la web)
+- **Base común (lo primero de la fase): mensajes reales del servidor.**
+  - Helper para leer `errorBody()` de Retrofit (`{ error: { code, message, details } }`).
+  - Se aplica a TODAS las pantallas existentes, no solo a las nuevas. Hoy solo Productos lo hace; las otras 9 pantallas leen `body()`, que es null en respuestas de error, y muestran un texto genérico.
 - **Bienvenida (landing)** con "Iniciar sesión" y "Crear cuenta".
 - **Login:**
   - "¿Olvidaste tu contraseña?".
@@ -69,9 +67,14 @@ El estado actual, funcionalidad por funcionalidad, está en [../PARITY.md](../PA
 - **Auditoría:** búsqueda, filtros y detalle con "antes" y "después".
   - **Backend:** corregir `backend/src/middlewares/audit.middleware.js`. Hoy `audit_logs.before` guarda los ObjectId como `{ buffer: {…} }` en vez de texto; debe convertirlos (y las fechas) a texto antes de guardar, con prueba del backend.
   - Quitar la normalización de `buffer` (y su `TODO(QA)`) de `backend/tests/contracts/api-contracts.test.js`, y regenerar y sincronizar los fixtures.
-- **Mi perfil y cambiar contraseña** (`POST /auth/change-password`). La web todavía no tiene esta pantalla.
+- **Mi perfil y cambiar contraseña** (`POST /auth/change-password`), en Android **y en la web** (hoy ninguna lo tiene).
 
 ## Fase 3 · Operación
+- **Componentes reutilizables para las reglas de LISTAS** (antes de las pantallas):
+  - Lista paginada con carga al final.
+  - Tarjeta de documento: folio, subtítulo y fecha · monto y badge.
+  - Barra de búsqueda y filtros.
+  - Pantalla de detalle.
 - **Ventas y Compras:**
   - Lista con las reglas de LISTAS, filtro de estado y búsqueda.
   - Detalle con líneas y totales.
@@ -84,14 +87,14 @@ El estado actual, funcionalidad por funcionalidad, está en [../PARITY.md](../PA
   - "Nuevo producto".
   - Registrar entrada y salida (`/inventory/entries`, `/inventory/exits`).
 - **Movimientos:** filtro por tipo (Entrada, Salida, Ajuste, Transferencia).
-- **Almacenes.**
-- **Inventarios físicos** (conteos), igual que `CountsScreen` de la web.
+- **Almacenes** (crear, editar, eliminar), igual que `WarehousesScreen` de la web.
+- **Conteos de inventario (inventarios físicos)**, igual que `CountsScreen` de la web.
 
 ## Fase 4 · Finanzas, analítica y reportes
 - **Finanzas:**
   - Cuentas.
   - Ingresos y gastos: registrar y anular, sin editar ni borrar.
-  - Presupuestos.
+  - Presupuestos (planeado vs ejecutado), igual que `BudgetsScreen` de la web.
 - **Analítica** con las mismas pestañas que `ReportsScreen` de la web: KPIs, Ventas, Compras, Finanzas, Presupuestos e Inventario.
 - **Gráfica del Dashboard** con `series` y `groupBy`, igual que `HomeScreen.js` (hoy reutiliza `byMonth`):
   - Semanal: `week`, 8 semanas.
@@ -102,10 +105,11 @@ El estado actual, funcionalidad por funcionalidad, está en [../PARITY.md](../PA
 - **Exportar PDF / Excel** (permiso `reports.export`, `/reports/sales/export`):
   - Timeout de 90 s.
   - Archivo vía `FileProvider` y hoja de compartir.
-  - Exportar finanzas a CSV, igual que la web.
+- **Exportar finanzas a CSV** (`/reports/finance/export`), igual que la web, con la misma hoja de compartir.
 
 ## Fase 5 · Módulos de negocio
 - CRM (leads), RRHH (empleados), Obras y Centros de costo: crear y editar, con las reglas de LISTAS.
+- **Web:** pantalla de Obras y centros de costo (hoy no existe), con las mismas funciones que Android.
 - **Producción:**
   - Listas de materiales.
   - Órdenes con liberar, terminar y cancelar (`/production/orders/:id/release|done|cancel`).
