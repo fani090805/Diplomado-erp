@@ -46,7 +46,22 @@ docs/       Arquitectura, decisiones (ADR), API, base de datos, design system y 
 
 ### android/
 - Kotlin + Jetpack Compose; tema en `app/src/main/java/com/diplomado/erp/ui/theme/` (`FaiTheme`, `Color.kt`, `Type.kt`, `Shape.kt`).
-- Consume la misma API REST del backend.
+- Consume la misma API REST del backend. Los DTO (Gson) viven en `core/network/dto/`.
+- Errores: `friendlyError()` (`core/common/ErrorMessages.kt`) separa los de red (sin conexión, timeout) de los de lectura de datos (DTO distinto a la respuesta), que se registran con `Log.e("FAI-API", …)`.
+
+## Paridad API ↔ Android (contratos)
+La app Android lee la API con DTO propios; si la API cambia y el DTO no, Gson falla y la pantalla muestra un error. Para que no vuelva a pasar hay **pruebas de contrato** en los dos lados:
+
+- **Backend:** `backend/tests/contracts/api-contracts.test.js` llama a los endpoints que usa Android y compara la forma (campos y tipos) de cada respuesta con su ejemplo en `backend/tests/contracts/fixtures/*.json`. Si la forma cambió, la prueba falla y dice qué campo.
+- **Android:** `android/app/src/test/java/com/diplomado/erp/contracts/ApiContractsTest.kt` lee esos mismos JSON (copiados en `android/app/src/test/resources/contracts/`) con el mismo Gson que Retrofit y falla si un DTO no los puede leer o si un campo no nulo quedó en `null`.
+
+**Regla: si cambias una respuesta de la API (campo nuevo, renombrado, id que pasa de objeto a texto, etc.):**
+1. Regenera los fixtures: `cd backend && UPDATE_CONTRACTS=1 npx jest tests/contracts` (en PowerShell: `$env:UPDATE_CONTRACTS='1'; npx jest tests/contracts`).
+2. Cópialos a Android: `node scripts/sync-contract-fixtures.js` (desde la raíz).
+3. Ajusta los DTO de Android y corre sus pruebas de contrato: `cd android && .\gradlew.bat test`.
+4. Sube los fixtures del backend, los de Android y los DTO en la misma tanda de commits.
+
+Un endpoint nuevo que use Android se agrega en ambas pruebas (lista de `test.each` del backend y mapa `contracts` de Android). Los fixtures no llevan datos sensibles: tokens y tickets se reemplazan por marcadores, los ObjectId por ids fijos y las fechas por una fecha fija.
 
 ## Despliegue
 - **Backend:** Render (`render.yaml`), `npm --prefix backend start`.
@@ -92,6 +107,7 @@ docs/       Arquitectura, decisiones (ADR), API, base de datos, design system y 
 8. **Antes de subir:**
    - `npm test` en `backend/`: todo en verde. No se borran ni se saltan pruebas que fallan.
    - `npx expo export --platform web` en `frontend/`: sin errores.
+   - Si tocaste `android/` o una respuesta de la API: `.\gradlew.bat test` y `.\gradlew.bat assembleDebug` en `android/` (si `JAVA_HOME` no está, usa el `jbr` de Android Studio).
    - Abrir `npm run web` y revisar que la consola no tenga errores rojos.
 9. **Dudas de negocio** (fiscal, contable): no adivinar; dejar `TODO(QA):` y reportarlo.
 
@@ -104,6 +120,7 @@ Desde `backend/`:
 npm test                       # todas las pruebas (Jest, BD en memoria)
 npm run test:unit              # sólo unitarias
 npm run test:integration       # sólo integración
+npx jest tests/contracts       # contratos API ↔ Android (UPDATE_CONTRACTS=1 regenera fixtures)
 npm run dev                    # API con recarga (nodemon)
 npm run indexes                # crea/sincroniza índices en la BD de MONGO_URI
 
