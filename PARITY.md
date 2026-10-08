@@ -2,81 +2,110 @@
 
 Revisado contra el código real de `frontend/src/` y `android/app/src/main/` (8 oct 2026).
 ✅ = completo · Parcial = existe con faltantes (ver nota) · ❌ = no existe.
-Se actualiza al terminar cada fase de [android/PLAN_ANDROID_FAI.md](android/PLAN_ANDROID_FAI.md).
+La web es la referencia. Se actualiza al terminar cada fase de [android/PLAN_ANDROID_FAI.md](android/PLAN_ANDROID_FAI.md).
+
+**Reglas de LISTAS** (aplican a cada módulo): total real de registros, paginación infinita, búsqueda, filtro de estado cuando la web lo tiene, tarjetas ordenadas y detalle al tocar. En la web, todas las listas usan `TTTable` + `useList`, que ya tienen paginación, total y búsqueda.
 
 | Funcionalidad | Web | Android | Notas |
 |---|---|---|---|
 | **Cuentas** | | | |
+| Landing / bienvenida con "Iniciar sesión" y "Crear cuenta" | ✅ | ❌ | Web: `LandingScreen`. Android abre directo en el login. |
 | Login | ✅ | ✅ | |
-| Crear cuenta: unirse con código | ✅ | ❌ | Web: `RegisterScreen` modo `join` (`POST /auth/register`). |
+| Login: "¿Olvidaste tu contraseña?" | ✅ | ❌ | |
+| Login: logo FAI como botón para volver | ❌ | ❌ | En la web el logo no es botón. La Fase 1 lo agrega en Android. |
+| Avisos ámbar: cuenta pendiente / empresa en revisión | ✅ | ❌ | Android lee `body()` en respuestas de error, que en Retrofit es siempre null: muestra "Credenciales inválidas" para todo. |
+| Avisos rojos: empresa suspendida / credenciales | ✅ | Parcial | Android: texto genérico en rojo, no el mensaje del servidor. |
+| Crear cuenta: unirse con código | ✅ | ❌ | Web: `RegisterScreen` (`POST /auth/register`). |
 | Crear cuenta: registrar empresa | ✅ | ❌ | Web: `CompanyRequestForm` (`POST /auth/register-company`). |
-| Requisitos de contraseña visibles | ✅ | ❌ | Web: `PasswordRequirements`. |
-| Recuperar contraseña | ✅ | ❌ | Web: `ForgotPasswordScreen` y `ResetPasswordScreen`. |
-| Avisos de cuenta pendiente / en revisión (ámbar) | ✅ | ❌ | Android lee `body()` en respuestas de error, que en Retrofit siempre es null: muestra "Credenciales inválidas" para todo. |
-| Avisos de empresa suspendida / credenciales (rojo) | ✅ | Parcial | Android siempre muestra el mismo texto genérico en rojo, no el mensaje del servidor. |
+| Requisitos de contraseña en salvia | ✅ | ❌ | Web: `PasswordRequirements`. |
+| Recuperar / restablecer contraseña | ✅ | ❌ | Web: `ForgotPasswordScreen` y `ResetPasswordScreen`. |
+| Avatar con iniciales | ✅ | ✅ | Android: `initialsOf` toma nombre y apellido. |
+| Cerrar sesión desde el avatar | ✅ | ✅ | Android pide confirmación; la web cierra sin confirmar. |
 | Mi perfil / cambiar contraseña | ❌ | ❌ | El backend tiene `POST /auth/change-password` y `ErpApi.changePassword`, pero ninguna pantalla los usa. |
 | **Inicio** | | | |
 | Dashboard: KPIs | ✅ | ✅ | |
-| Dashboard: gráfica semanal / mensual / anual | ✅ | Parcial | Web: `series` con `groupBy=week\|month`. Android solo usa `byMonth` y cambia el rango de días, así que "Semanal" muestra meses. |
+| Dashboard: comparativo justo (mes a la fecha vs. mismo tramo del mes anterior) | ✅ | ❌ | Android compara los dos últimos meses completos de `byMonth`. |
+| Dashboard: gráfica semanal / mensual / anual | ✅ | Parcial | Web: `series` con `groupBy=week\|month`. Android solo usa `byMonth`, así que "Semanal" muestra meses. |
 | Dashboard: actividad reciente | ✅ | ✅ | |
 | Eventos en vivo (SSE) | ✅ | ✅ | Android: `LiveEvents` y `refreshOnLive` en las listas actuales. |
-| Configuración compartida `/meta` | ✅ | ✅ | Android: estados (`TTBadge`) y menú (`navSections`). |
+| Configuración compartida `/meta` | ✅ | ✅ | Estados (`TTBadge`) y menú (`navSections`). |
+| Mensajes del servidor tal cual en errores | ✅ | Parcial | Solo Productos lee `errorBody()`; las otras 9 pantallas muestran un texto genérico. |
 | **Administración** | | | |
-| Usuarios: lista | ✅ | Parcial | Android: una sola lista, sin pestañas Activos / Pendientes / Inactivos. |
-| Usuarios: crear | ✅ | Parcial | Android abre el formulario con la contraseña `Password123!` ya escrita. |
-| Usuarios: pendientes, aprobar con rol, rechazar | ✅ | ❌ | |
+| Usuarios: Activos / Pendientes / Inactivos | ✅ | ❌ | Android: una sola lista, sin total real ni paginación. |
+| Usuarios: crear y editar | ✅ | Parcial | Android solo crea, y el formulario trae `Password123!` ya escrita. |
+| Usuarios: aprobar con rol / rechazar | ✅ | ❌ | |
 | Usuarios: desactivar / reactivar | ✅ | ❌ | |
-| Usuarios: eliminar | ✅ | Parcial | Android elimina, pero no muestra el 409 informativo del servidor. |
-| Código de empresa (copiar / generar nuevo) | ✅ | ❌ | Web: `CompanyJoinCodeCard` (Copiar y Generar nuevo; no tiene Compartir). |
-| Roles | ✅ | ❌ | Web: crear, editar y eliminar. |
+| Usuarios: eliminar con 409 informativo | ✅ | Parcial | Android elimina, pero no muestra el 409 del servidor. |
+| Código de tu empresa: Copiar / Generar nuevo | ✅ | ❌ | Web: `CompanyJoinCodeCard`. |
+| Código de tu empresa: Compartir | ❌ | ❌ | La web no lo tiene. La Fase 2 lo agrega en Android. |
+| Roles | ✅ | ❌ | Web: crear, editar y eliminar. Android: solo lectura (Fase 2). |
 | Sucursales | ✅ | ❌ | Web: crear, editar y eliminar. |
-| Auditoría | ✅ | ✅ | |
-| **Ventas y compras** | | | |
-| Ventas: lista | ✅ | ✅ | Android solo muestra la página 1 (20 pedidos). |
-| Ventas: detalle | ✅ | ❌ | |
-| Ventas: crear | ✅ | ❌ | Android muestra "Nuevo pedido", pero el botón no hace nada. |
-| Ventas: aprobar | ✅ | ✅ | |
-| Ventas: rechazar | ✅ | ❌ | |
-| Compras: lista | ✅ | ✅ | Solo página 1. |
-| Compras: detalle | ✅ | ❌ | |
-| Compras: crear | ✅ | ❌ | "Nueva orden" sin acción. |
-| Compras: aprobar / rechazar | ✅ | ✅ | |
-| Clientes | ✅ | ❌ | Web: crear, editar y eliminar. |
-| Proveedores | ✅ | ❌ | Web: crear, editar y eliminar. |
-| **Inventario** | | | |
+| Auditoría: lista | ✅ | Parcial | Android: solo los últimos `SUCCESS`, sin búsqueda, filtros ni detalle. |
+| Auditoría: "antes" / "después" legibles | Parcial | Parcial | Backend: `audit_logs.before` guarda los ObjectId como `{ buffer: {…} }`. |
+| **Ventas** | | | |
+| Lista con total real y paginación | ✅ | Parcial | Android: solo la página 1 (20) y el subtítulo cuenta los cargados, no el total. |
+| Búsqueda | ✅ | ❌ | |
+| Filtro de estado | ✅ | ❌ | El ViewModel acepta `status`, pero la pantalla no tiene el filtro. |
+| Tarjeta ordenada (folio, cliente, fecha · monto, badge) | ✅ | Parcial | Android: sin fecha; el monto va en el texto y no a la derecha. |
+| Detalle con líneas y totales | ✅ | ❌ | Web: `DetailModal`. |
+| Crear / editar borrador | ✅ | ❌ | Android muestra "Nuevo pedido", pero el botón no hace nada. |
+| Aprobar | ✅ | ✅ | |
+| Rechazar con motivo | ✅ | ❌ | |
+| Exportar PDF / Excel | ✅ | ❌ | Web: `SalesExportButton` (`/reports/sales/export`, permiso `reports.export`). |
+| **Compras** | | | |
+| Lista con total real y paginación | ✅ | Parcial | Igual que Ventas. |
+| Búsqueda / filtro de estado | ✅ | ❌ | |
+| Tarjeta ordenada | ✅ | Parcial | |
+| Detalle con líneas y totales | ✅ | ❌ | |
+| Crear / editar borrador | ✅ | ❌ | "Nueva orden" sin acción. |
+| Aprobar / rechazar | ✅ | ✅ | |
+| Exportar | ❌ | ❌ | La web solo exporta Ventas. |
+| **Catálogos** | | | |
+| Clientes (lista, búsqueda, crear, editar, eliminar) | ✅ | ❌ | |
+| Proveedores (lista, búsqueda, crear, editar, eliminar) | ✅ | ❌ | |
 | Productos: activos / inactivos (desactivar, reactivar, eliminar) | ✅ | ✅ | |
+| Productos: total, búsqueda | ✅ | ✅ | |
+| Productos: paginación | ✅ | ❌ | Android: máximo 50. |
 | Productos: crear / editar | ✅ | ❌ | "Nuevo producto" sin acción. |
-| Existencias: lista y stock bajo | ✅ | ✅ | |
+| **Inventario** | | | |
+| Existencias: lista y aviso de stock bajo | ✅ | ✅ | |
 | Existencias: tarjetas resumen | ✅ | ❌ | |
-| Existencias: registrar entrada / salida | ✅ | ❌ | Web: `MovementFormModal` (`/inventory/entries`, `/inventory/exits`). |
-| Movimientos: lista | ✅ | ✅ | |
-| Movimientos: filtro por tipo | ✅ | ❌ | El ViewModel acepta `type`, pero la pantalla no tiene el filtro. |
+| Existencias: filtros (producto / almacén) | ✅ | ❌ | |
+| Existencias: nuevo producto, entrada, salida | ✅ | ❌ | Web: `ProductFormModal` y `MovementFormModal`. |
+| Movimientos: lista con total | ✅ | Parcial | Android: máximo 50, sin paginación. |
+| Movimientos: filtro por tipo | ✅ | ❌ | |
 | Almacenes | ✅ | ❌ | |
-| Conteos de inventario | ✅ | ❌ | |
+| Inventarios físicos (conteos) | ✅ | ❌ | Web: `CountsScreen`. |
 | **Finanzas** | | | |
-| Cuentas | ✅ | Parcial | Android solo muestra la lista. |
-| Ingresos (registrar, anular) | ✅ | ❌ | |
-| Gastos (registrar, anular) | ✅ | ❌ | |
+| Cuentas: lista | ✅ | ✅ | |
+| Cuentas: crear / editar / eliminar | ✅ | ❌ | |
+| Ingresos (lista, filtro, registrar, anular) | ✅ | ❌ | |
+| Gastos (lista, filtro, registrar, anular) | ✅ | ❌ | |
 | Presupuestos | ✅ | ❌ | |
-| Analítica (KPIs, ventas, compras, finanzas, presupuestos, inventario) | ✅ | ❌ | Web: `ReportsScreen` (sin `groupBy`, que solo usa el Dashboard). |
-| Exportar ventas a PDF / Excel | ✅ | ❌ | Web: `SalesExportButton` (`/reports/sales/export`, permiso `reports.export`). |
+| Analítica: pestañas KPIs, Ventas, Compras, Finanzas, Presupuestos, Inventario | ✅ | ❌ | Web: `ReportsScreen`. |
 | Exportar movimientos financieros a CSV | ✅ | ❌ | |
 | **Módulos de negocio** | | | |
-| CRM (leads) | ✅ | Parcial | Android: solo lista. |
-| RRHH (empleados) | ✅ | Parcial | Android: solo lista. |
-| Obras y centros de costo | ❌ | Parcial | La web no tiene pantalla. Android: lista y detalle, sin crear ni editar. |
+| CRM (leads): lista | ✅ | Parcial | Android: sin total real, búsqueda ni filtro. |
+| CRM: crear / editar | ✅ | ❌ | |
+| RRHH (empleados): lista | ✅ | Parcial | Android: sin total real ni búsqueda. |
+| RRHH: crear / editar | ✅ | ❌ | |
+| Obras: lista, búsqueda, detalle | ❌ | ✅ | La web no tiene pantalla. |
+| Obras: crear / editar | ❌ | ❌ | |
+| Centros de costo: lista en el detalle de la obra | ❌ | ✅ | |
+| Centros de costo: crear / editar | ❌ | ❌ | |
 | Producción: listas de materiales | ✅ | ❌ | `ErpApi` tiene `getBoms`, pero no hay pantalla. |
 | Producción: órdenes (liberar, terminar, cancelar) | ✅ | ❌ | `ErpApi` tiene las llamadas, pero no hay pantalla. |
 | **Plataforma** | | | |
-| Panel de super admin: Solicitudes, Empresas, Rechazadas | ✅ | ❌ | Web: `CompaniesScreen` (aprobar, rechazar, suspender y reactivar). |
+| Super admin: Solicitudes, Empresas y Rechazadas (aprobar, rechazar, suspender, reactivar) | ✅ | ❌ | Web: `CompaniesScreen`. |
 | **App** | | | |
-| Ícono de la app | ✅ | Parcial | Android: `fai_logo.png` como ícono; no es adaptativo. |
+| Ícono | ✅ | Parcial | Android: `fai_logo.png`; no es adaptativo. |
 | Splash | ✅ | ❌ | Web: `splash` en `app.json`. |
-| Mensajes del servidor tal cual en errores | ✅ | Parcial | Solo Productos lee `errorBody()`; las otras 9 pantallas muestran un texto genérico. |
+| Build release listo (R8) | n/a | ❌ | `minify` activo sin `proguard-rules.pro`. |
 
-## Conteo (58 funcionalidades)
+## Conteo (81 funcionalidades)
+Sin contar la fila "Build release", que no aplica a la web.
 
 | | ✅ | Parcial | ❌ |
 |---|---|---|---|
-| Web | 56 | 0 | 2 |
-| Android | 13 | 11 | 34 |
+| Web | 72 | 1 | 8 |
+| Android | 15 | 15 | 51 |
