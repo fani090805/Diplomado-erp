@@ -3,32 +3,22 @@
 const repo = require('./project.repository');
 const ApiError = require('../../utils/ApiError');
 const { parsePagination, buildMeta } = require('../../utils/pagination');
+const { searchFilterMulti } = require('../../utils/search');
 
 class ProjectService {
   async list(companyId, query) {
-    const { page, limit, skip, sortBy, sortDir } = parsePagination(query, {
-      whitelist: ['code', 'name', 'budget', 'status', 'createdAt'],
-      defaultSortBy: 'createdAt',
-      defaultSortDir: 'desc',
-    });
-
-    const filter = { companyId };
-    if (query.status) filter.status = query.status;
-    if (query.search) {
-      const reg = new RegExp(query.search, 'i');
-      filter.$or = [{ code: reg }, { name: reg }, { location: reg }, { managerName: reg }];
-    }
-
-    const [items, total] = await Promise.all([
-      repo.find(companyId, filter, { skip, limit, sort: { [sortBy]: sortDir === 'asc' ? 1 : -1 } }),
-      repo.count(companyId, filter),
-    ]);
-
-    return { items, meta: buildMeta(total, page, limit) };
+    const { page, limit, skip, sort } = parsePagination(query);
+    const filter = {
+      companyId,
+      ...(query.status ? { status: query.status } : {}),
+      ...searchFilterMulti(['code', 'name', 'location', 'managerName'], query.search),
+    };
+    const { items, total } = await repo.find(filter, { sort, skip, limit });
+    return { items, meta: buildMeta(page, limit, total) };
   }
 
   async getById(companyId, id) {
-    const project = await repo.findById(companyId, id);
+    const project = await repo.findById(id, { companyId });
     if (!project) throw ApiError.notFound('Obra no encontrada.');
     return project;
   }
@@ -51,17 +41,18 @@ class ProjectService {
       if (dup) throw ApiError.conflict(`Ya existe otra obra con el código "${payload.code}".`);
     }
 
-    const updated = await repo.updateById(companyId, id, {
-      ...payload,
-      ...(payload.code ? { code: payload.code.toUpperCase() } : {}),
-    });
+    const updated = await repo.updateById(
+      id,
+      { ...payload, ...(payload.code ? { code: payload.code.toUpperCase() } : {}) },
+      { companyId },
+    );
     if (!updated) throw ApiError.notFound('Obra no encontrada.');
     return updated;
   }
 
   async remove(companyId, id) {
     await this.getById(companyId, id);
-    return repo.deleteById(companyId, id);
+    return repo.deleteById(id, { companyId });
   }
 }
 

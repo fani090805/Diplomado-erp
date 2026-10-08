@@ -1,0 +1,65 @@
+{
+  "data": [
+    {
+      "__v": 0,
+      "_id": "000000000000000000000001",
+      "approvedAt": null,
+      "approvedBy": null,
+      "code": "SO-000002",
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "createdBy": "000000000000000000000003",
+      "customerId": "000000000000000000000004",
+      "customerName": "Comercial Central",
+      "lines": [
+        {
+          "productId": "000000000000000000000005",
+          "quantity": 1,
+          "unitPrice": 4
+        }
+      ],
+      "notes": null,
+      "rejectedAt": null,
+      "rejectedBy": null,
+      "rejectionReason": null,
+      "status": "DRAFT",
+      "total": 4,
+      "updatedAt": "2026-01-15T18:00:00.000Z",
+      "warehouseId": "000000000000000000000006"
+    },
+    {
+      "__v": 0,
+      "_id": "000000000000000000000007",
+      "approvedAt": "2026-01-15T18:00:00.000Z",
+      "approvedBy": "000000000000000000000003",
+      "code": "SO-000001",
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "createdBy": "000000000000000000000003",
+      "customerId": "000000000000000000000004",
+      "customerName": "Comercial Central",
+      "lines": [
+        {
+          "productId": "000000000000000000000005",
+          "quantity": 4,
+          "unitPrice": 4
+        }
+      ],
+      "notes": null,
+      "rejectedAt": null,
+      "rejectedBy": null,
+      "rejectionReason": null,
+      "status": "APPROVED",
+      "total": 16,
+      "updatedAt": "2026-01-15T18:00:00.000Z",
+      "warehouseId": "000000000000000000000006"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "page": 1,
+    "total": 2,
+    "totalPages": 1
+  },
+  "success": true
+}

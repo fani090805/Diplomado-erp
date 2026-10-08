@@ -1,0 +1,41 @@
+{
+  "data": [
+    {
+      "__v": 0,
+      "_id": "000000000000000000000001",
+      "balance": 850,
+      "code": "BCO-1",
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "currency": "USD",
+      "currencyId": null,
+      "name": "Banco Principal",
+      "notes": null,
+      "status": "active",
+      "type": "bank",
+      "updatedAt": "2026-01-15T18:00:00.000Z"
+    },
+    {
+      "__v": 0,
+      "_id": "000000000000000000000003",
+      "balance": 16,
+      "code": "VENTAS",
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "currency": "MXN",
+      "currencyId": null,
+      "name": "Cobranza de ventas",
+      "notes": "Creada automáticamente para registrar los ingresos de las ventas aprobadas.",
+      "status": "active",
+      "type": "bank",
+      "updatedAt": "2026-01-15T18:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "page": 1,
+    "total": 2,
+    "totalPages": 1
+  },
+  "success": true
+}

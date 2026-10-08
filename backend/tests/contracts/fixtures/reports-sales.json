@@ -1,0 +1,37 @@
+{
+  "data": {
+    "byMonth": [
+      {
+        "count": 1,
+        "month": "2026-10",
+        "total": 16
+      }
+    ],
+    "byStatus": [
+      {
+        "count": 1,
+        "status": "APPROVED",
+        "total": 16
+      },
+      {
+        "count": 1,
+        "status": "DRAFT",
+        "total": 4
+      }
+    ],
+    "groupBy": "month",
+    "period": {
+      "from": "2026-01-15T18:00:00.000Z",
+      "to": "2026-01-15T18:00:00.000Z"
+    },
+    "series": [
+      {
+        "count": 1,
+        "period": "2026-10",
+        "start": "2026-01-15T18:00:00.000Z",
+        "total": 16
+      }
+    ]
+  },
+  "success": true
+}

@@ -1,0 +1,71 @@
+{
+  "data": [
+    {
+      "__v": 0,
+      "_id": "000000000000000000000001",
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "delta": -4,
+      "idempotencyKey": null,
+      "product": {
+        "name": "Tornillo",
+        "sku": "CT-001",
+        "unit": "pza"
+      },
+      "productId": "000000000000000000000003",
+      "quantity": 4,
+      "quantityAfter": 16,
+      "quantityBefore": 20,
+      "reason": "Aprobación de pedido de venta SO-000001",
+      "reference": "SO-000001",
+      "toWarehouse": null,
+      "toWarehouseId": null,
+      "traceability": [],
+      "type": "EXIT",
+      "updatedAt": "2026-01-15T18:00:00.000Z",
+      "userId": "000000000000000000000004",
+      "warehouse": {
+        "code": "MAIN",
+        "name": "Almacén General"
+      },
+      "warehouseId": "000000000000000000000005"
+    },
+    {
+      "__v": 0,
+      "_id": "000000000000000000000006",
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "delta": 20,
+      "idempotencyKey": null,
+      "product": {
+        "name": "Tornillo",
+        "sku": "CT-001",
+        "unit": "pza"
+      },
+      "productId": "000000000000000000000003",
+      "quantity": 20,
+      "quantityAfter": 20,
+      "quantityBefore": 0,
+      "reason": "Aprobación de orden de compra PO-000001",
+      "reference": "PO-000001",
+      "toWarehouse": null,
+      "toWarehouseId": null,
+      "traceability": [],
+      "type": "ENTRY",
+      "updatedAt": "2026-01-15T18:00:00.000Z",
+      "userId": "000000000000000000000004",
+      "warehouse": {
+        "code": "MAIN",
+        "name": "Almacén General"
+      },
+      "warehouseId": "000000000000000000000005"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "page": 1,
+    "total": 2,
+    "totalPages": 1
+  },
+  "success": true
+}

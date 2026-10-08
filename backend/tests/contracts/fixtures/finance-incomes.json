@@ -1,0 +1,55 @@
+{
+  "data": [
+    {
+      "__v": 0,
+      "_id": "000000000000000000000001",
+      "accountId": "000000000000000000000002",
+      "amount": 1000,
+      "category": "Aportación",
+      "code": "INC-000002",
+      "companyId": "000000000000000000000003",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "createdBy": "000000000000000000000004",
+      "customerId": null,
+      "date": "2026-01-15T18:00:00.000Z",
+      "description": null,
+      "method": "transfer",
+      "reference": null,
+      "salesOrderId": null,
+      "status": "POSTED",
+      "updatedAt": "2026-01-15T18:00:00.000Z",
+      "voidReason": null,
+      "voidedAt": null,
+      "voidedBy": null
+    },
+    {
+      "__v": 0,
+      "_id": "000000000000000000000005",
+      "accountId": "000000000000000000000006",
+      "amount": 16,
+      "category": "Ventas",
+      "code": "INC-000001",
+      "companyId": "000000000000000000000003",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "createdBy": "000000000000000000000004",
+      "customerId": "000000000000000000000007",
+      "date": "2026-01-15T18:00:00.000Z",
+      "description": "Venta SO-000001",
+      "method": "transfer",
+      "reference": "SO-000001",
+      "salesOrderId": "000000000000000000000008",
+      "status": "POSTED",
+      "updatedAt": "2026-01-15T18:00:00.000Z",
+      "voidReason": null,
+      "voidedAt": null,
+      "voidedBy": null
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "page": 1,
+    "total": 2,
+    "totalPages": 1
+  },
+  "success": true
+}
