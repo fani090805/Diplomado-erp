@@ -70,15 +70,15 @@ fun ProductsScreen(
                 onRetry = { viewModel.loadProducts() }
             )
             is ProductsUiState.Success -> TTDataTable(
-                title = "Productos y materiales",
-                subtitle = "${state.total} insumos registrados",
+                title = "Productos",
+                subtitle = "${state.total} productos",
                 items = state.products,
                 searchQuery = searchQuery,
                 onSearchChange = viewModel::onSearchChange,
                 onCreateClick = if (PermissionChecker.hasPermission("products.create")) {
                     { /* El formulario de alta existente se conserva en la web. */ }
                 } else null,
-                createLabel = "Nuevo material",
+                createLabel = "Nuevo producto",
                 emptyText = if (activeTab == "inactive") "No hay productos inactivos." else "Sin productos activos.",
                 modifier = Modifier.weight(1f)
             ) { product ->

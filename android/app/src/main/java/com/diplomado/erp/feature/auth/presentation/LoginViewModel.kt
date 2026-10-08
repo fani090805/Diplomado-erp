@@ -1,5 +1,8 @@
 package com.diplomado.erp.feature.auth.presentation
 
+import android.util.Log
+import com.diplomado.erp.core.common.API_LOG_TAG
+import com.diplomado.erp.core.common.isUnreadableResponse
 import com.diplomado.erp.core.common.friendlyError
 
 import androidx.lifecycle.ViewModel
@@ -74,6 +77,8 @@ class LoginViewModel : ViewModel() {
             }
             _uiState.value = LoginUiState.Success
         } catch (e: Exception) {
+            // Sin /auth/me la sesión queda sin permisos: que quede registrado si fue un DTO desactualizado.
+            if (isUnreadableResponse(e)) Log.e(API_LOG_TAG, "No se pudo leer /auth/me: ${e.message}", e)
             TokenStorage.saveSessionInfo(emailFallback, "Operador", "Usuario", emptyList(), "FAI Solution ERP", "")
             _uiState.value = LoginUiState.Success
         }

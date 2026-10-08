@@ -33,22 +33,42 @@ data class WarehouseDto(
     @SerializedName("status") val status: String = "active"
 )
 
-// Stock Level
-data class StockLevelDto(
-    @SerializedName("_id") val id: String,
-    @SerializedName("productId") val product: ProductDto? = null,
-    @SerializedName("warehouseId") val warehouse: WarehouseDto? = null,
-    @SerializedName("quantity") val quantity: Double = 0.0
+// Resumen de producto / almacén que el backend adjunta a existencias y movimientos.
+data class ProductRefDto(
+    @SerializedName("sku") val sku: String? = null,
+    @SerializedName("name") val name: String? = null,
+    @SerializedName("unit") val unit: String? = null
 )
 
-// Movimientos de Inventario
+data class WarehouseRefDto(
+    @SerializedName("code") val code: String? = null,
+    @SerializedName("name") val name: String? = null
+)
+
+// Stock Level (GET /inventory/stock): ids como texto + `product` / `warehouse` resumidos.
+data class StockLevelDto(
+    @SerializedName("_id") val id: String,
+    @SerializedName("productId") val productId: String? = null,
+    @SerializedName("warehouseId") val warehouseId: String? = null,
+    @SerializedName("quantity") val quantity: Double = 0.0,
+    @SerializedName("product") val product: ProductRefDto? = null,
+    @SerializedName("warehouse") val warehouse: WarehouseRefDto? = null
+)
+
+// Movimientos de Inventario (GET /inventory/movements)
 data class MovementDto(
     @SerializedName("_id") val id: String,
     @SerializedName("type") val type: String, // ENTRY, EXIT, ADJUSTMENT, TRANSFER
-    @SerializedName("productId") val product: ProductDto? = null,
-    @SerializedName("warehouseId") val warehouse: WarehouseDto? = null,
+    @SerializedName("productId") val productId: String? = null,
+    @SerializedName("warehouseId") val warehouseId: String? = null,
+    @SerializedName("toWarehouseId") val toWarehouseId: String? = null,
     @SerializedName("quantity") val quantity: Double = 0.0,
+    @SerializedName("delta") val delta: Double? = null,
     @SerializedName("reason") val reason: String? = null,
+    @SerializedName("reference") val reference: String? = null,
+    @SerializedName("product") val product: ProductRefDto? = null,
+    @SerializedName("warehouse") val warehouse: WarehouseRefDto? = null,
+    @SerializedName("toWarehouse") val toWarehouse: WarehouseRefDto? = null,
     @SerializedName("createdAt") val createdAt: String? = null
 )
 
@@ -72,26 +92,30 @@ data class CustomerDto(
 
 // Órdenes de Compra / Venta
 data class OrderLineDto(
-    @SerializedName("productId") val productId: Any? = null,
+    @SerializedName("productId") val productId: String? = null,
     @SerializedName("quantity") val quantity: Double = 0.0,
     @SerializedName("unitCost") val unitCost: Double? = 0.0,
     @SerializedName("unitPrice") val unitPrice: Double? = 0.0
 )
 
+/** GET /purchase-orders: `supplierId` es texto y el nombre ya viene resuelto en `supplierName`. */
 data class PurchaseOrderDto(
     @SerializedName("_id") val id: String,
     @SerializedName("code") val code: String,
-    @SerializedName("supplierId") val supplier: SupplierDto? = null,
+    @SerializedName("supplierId") val supplierId: String? = null,
+    @SerializedName("supplierName") val supplierName: String? = null,
     @SerializedName("total") val total: Double = 0.0,
     @SerializedName("status") val status: String = "DRAFT", // DRAFT, APPROVED, REJECTED
     @SerializedName("lines") val lines: List<OrderLineDto> = emptyList(),
     @SerializedName("createdAt") val createdAt: String? = null
 )
 
+/** GET /sales-orders: `customerId` es texto y el nombre ya viene resuelto en `customerName`. */
 data class SalesOrderDto(
     @SerializedName("_id") val id: String,
     @SerializedName("code") val code: String,
-    @SerializedName("customerId") val customer: CustomerDto? = null,
+    @SerializedName("customerId") val customerId: String? = null,
+    @SerializedName("customerName") val customerName: String? = null,
     @SerializedName("total") val total: Double = 0.0,
     @SerializedName("status") val status: String = "DRAFT",
     @SerializedName("lines") val lines: List<OrderLineDto> = emptyList(),
@@ -156,16 +180,25 @@ data class EmployeeDto(
 )
 
 // Producción
+data class BomComponentDto(
+    @SerializedName("productId") val productId: String? = null,
+    @SerializedName("quantity") val quantity: Double = 0.0
+)
+
+/** GET /production/boms: `productId` es texto (sin poblar). */
 data class BomDto(
     @SerializedName("_id") val id: String,
     @SerializedName("code") val code: String,
-    @SerializedName("productId") val product: ProductDto? = null,
+    @SerializedName("productId") val productId: String? = null,
+    @SerializedName("components") val components: List<BomComponentDto> = emptyList(),
     @SerializedName("status") val status: String = "active"
 )
 
 data class ProductionOrderDto(
     @SerializedName("_id") val id: String,
     @SerializedName("code") val code: String,
+    @SerializedName("bomId") val bomId: String? = null,
+    @SerializedName("productId") val productId: String? = null,
     @SerializedName("quantity") val quantity: Double = 1.0,
     @SerializedName("status") val status: String = "DRAFT", // DRAFT, RELEASED, DONE, CANCELLED
     @SerializedName("createdAt") val createdAt: String? = null
@@ -228,8 +261,9 @@ data class CountTotalDto(
 
 data class CatalogKpisDto(
     @SerializedName("products") val products: Int = 0,
-    @SerializedName("lowStock") val lowStock: Int = 0,
-    @SerializedName("totalProducts") val totalProducts: Int = 0
+    @SerializedName("customers") val customers: Int = 0,
+    @SerializedName("suppliers") val suppliers: Int = 0,
+    @SerializedName("lowStock") val lowStock: Int = 0
 )
 
 // Reportes (GET /reports/sales|purchases|inventory|finance), igual que la web.
@@ -239,8 +273,25 @@ data class MonthTotalDto(
     @SerializedName("total") val total: Double = 0.0
 )
 
+data class StatusTotalDto(
+    @SerializedName("status") val status: String? = null,
+    @SerializedName("count") val count: Int = 0,
+    @SerializedName("total") val total: Double = 0.0
+)
+
+/** Punto de `series`: `period` es "2026-10" (month), "2026-W41" (week) o "2026-10-08" (day). */
+data class SeriesPointDto(
+    @SerializedName("period") val period: String? = null,
+    @SerializedName("start") val start: String? = null,
+    @SerializedName("count") val count: Int = 0,
+    @SerializedName("total") val total: Double = 0.0
+)
+
 data class SeriesReportDto(
-    @SerializedName("byMonth") val byMonth: List<MonthTotalDto>? = null
+    @SerializedName("byStatus") val byStatus: List<StatusTotalDto>? = null,
+    @SerializedName("byMonth") val byMonth: List<MonthTotalDto>? = null,
+    @SerializedName("groupBy") val groupBy: String? = null,
+    @SerializedName("series") val series: List<SeriesPointDto>? = null
 )
 
 data class InventoryReportDto(
@@ -250,5 +301,7 @@ data class InventoryReportDto(
 )
 
 data class FinanceReportDto(
+    @SerializedName("income") val income: CountTotalDto? = null,
+    @SerializedName("expense") val expense: CountTotalDto? = null,
     @SerializedName("net") val net: Double? = null
 )

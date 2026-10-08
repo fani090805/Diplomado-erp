@@ -53,6 +53,11 @@ android {
         buildConfig = true
     }
 
+    testOptions {
+        // android.util.Log (friendlyError) devuelve valores por defecto en pruebas JVM.
+        unitTests.isReturnDefaultValues = true
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -99,6 +104,8 @@ dependencies {
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    // Pruebas de contrato: detectar campos no nulos que Gson dejó en null
+    testImplementation(libs.kotlin.reflect)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

@@ -1,5 +1,6 @@
 package com.diplomado.erp.feature.sales.presentation
 
+import com.diplomado.erp.core.common.orDash
 import com.diplomado.erp.core.common.formatMoney
 
 import androidx.compose.foundation.layout.*
@@ -30,24 +31,24 @@ fun SalesOrdersScreen(
         modifier = modifier.fillMaxSize().padding(16.dp)
     ) {
         when (val state = uiState) {
-            is SalesOrdersUiState.Loading -> TTLoading(text = "Cargando estimaciones y contratos de obra...")
+            is SalesOrdersUiState.Loading -> TTLoading(text = "Cargando ventas...")
             is SalesOrdersUiState.Error -> {
                 TTErrorState(
-                    title = "Error de contratos",
+                    title = "Error al cargar ventas",
                     message = state.message,
                     onRetry = { viewModel.loadOrders() }
                 )
             }
             is SalesOrdersUiState.Success -> {
                 TTDataTable(
-                    title = "Contratos y Estimaciones",
-                    subtitle = "${state.orders.size} estimaciones registradas",
+                    title = "Pedidos de venta",
+                    subtitle = "${state.orders.size} pedidos",
                     items = state.orders,
                     onCreateClick = if (PermissionChecker.hasPermission("sales.orders.create")) {
-                        { /* Crear contrato */ }
+                        { /* El alta de pedidos se hace en la web. */ }
                     } else null,
-                    createLabel = "Nueva estimación",
-                    emptyText = "Sin estimaciones ni contratos registrados."
+                    createLabel = "Nuevo pedido",
+                    emptyText = "Aún no hay ventas registradas."
                 ) { order ->
                     TTCard(modifier = Modifier.fillMaxWidth()) {
                         Column {
@@ -65,7 +66,7 @@ fun SalesOrdersScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "Cliente Contratante: ${order.customer?.name ?: "Desarrolladora"} • Total: ${formatMoney(order.total)}",
+                                        text = "Cliente: ${order.customerName.orDash()} • Total: ${formatMoney(order.total)}",
                                         fontSize = 13.sp,
                                         color = FaiTextMuted
                                     )
@@ -76,7 +77,7 @@ fun SalesOrdersScreen(
                             if (order.status == "DRAFT" && PermissionChecker.hasPermission("sales.orders.approve")) {
                                 Spacer(modifier = Modifier.height(12.dp))
                                 TTButton(
-                                    text = "Aprobar Estimación",
+                                    text = "Aprobar pedido",
                                     onClick = { viewModel.approveOrder(order.id) },
                                     variant = TTButtonVariant.Primary,
                                     modifier = Modifier.fillMaxWidth()

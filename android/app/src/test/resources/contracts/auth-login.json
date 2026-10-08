@@ -1,0 +1,24 @@
+{
+  "data": {
+    "accessToken": "<accessToken>",
+    "refreshToken": "<refreshToken>",
+    "user": {
+      "__v": 0,
+      "_id": "000000000000000000000001",
+      "branchId": "000000000000000000000002",
+      "companyId": "000000000000000000000003",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "email": "admin@contratos.local",
+      "failedLoginAttempts": 0,
+      "isPlatformAdmin": false,
+      "lastLoginAt": "2026-01-15T18:00:00.000Z",
+      "lastName": "Contratos",
+      "name": "Ana",
+      "roleId": "000000000000000000000004",
+      "status": "active",
+      "tokenVersion": 0,
+      "updatedAt": "2026-01-15T18:00:00.000Z"
+    }
+  },
+  "success": true
+}

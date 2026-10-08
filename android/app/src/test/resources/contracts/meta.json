@@ -1,0 +1,532 @@
+{
+  "data": {
+    "currency": "MXN",
+    "locale": "es-MX",
+    "minAndroidVersionCode": 1,
+    "modules": [
+      {
+        "icon": "almacen",
+        "id": "warehouses",
+        "name": "Almacenes",
+        "permission": "warehouses.read",
+        "section": "OPERACIONES",
+        "shortName": "Almacenes"
+      },
+      {
+        "icon": "analitica",
+        "id": "reports",
+        "name": "Analítica",
+        "permission": "reports.read",
+        "section": "PRINCIPAL",
+        "shortName": "Analítica"
+      },
+      {
+        "icon": "clientes",
+        "id": "customers",
+        "name": "Clientes",
+        "permission": "customers.read",
+        "section": "OPERACIONES",
+        "shortName": "Clientes"
+      },
+      {
+        "icon": "configuracion",
+        "id": "users",
+        "name": "Configuración",
+        "permission": "users.read",
+        "section": "PRINCIPAL",
+        "shortName": "Usuarios"
+      },
+      {
+        "icon": "dashboard",
+        "id": "dashboard",
+        "name": "Dashboard",
+        "permission": null,
+        "section": "PRINCIPAL",
+        "shortName": "Inicio"
+      },
+      {
+        "icon": "dinero",
+        "id": "incomes",
+        "name": "Ingresos",
+        "permission": "finance.income.read",
+        "section": "FINANZAS",
+        "shortName": "Ingresos"
+      },
+      {
+        "icon": "documento",
+        "id": "budgets",
+        "name": "Presupuestos",
+        "permission": "finance.budgets.read",
+        "section": "FINANZAS",
+        "shortName": "Presupuestos"
+      },
+      {
+        "icon": "documento",
+        "id": "counts",
+        "name": "Inventarios Físicos",
+        "permission": "inventory.read",
+        "section": "OPERACIONES",
+        "shortName": "Conteos"
+      },
+      {
+        "icon": "empresa",
+        "id": "companies",
+        "name": "Empresas",
+        "permission": null,
+        "platformOnly": true,
+        "section": "PLATAFORMA",
+        "shortName": "Empresas"
+      },
+      {
+        "icon": "escudo",
+        "id": "roles",
+        "name": "Roles y Permisos",
+        "permission": "roles.read",
+        "section": "ADMINISTRACIÓN",
+        "shortName": "Roles"
+      },
+      {
+        "icon": "fabrica",
+        "id": "boms",
+        "name": "Listas BOM",
+        "permission": "production.read",
+        "section": "NEGOCIO",
+        "shortName": "BOM"
+      },
+      {
+        "icon": "fabrica",
+        "id": "production-orders",
+        "name": "Órdenes Producción",
+        "permission": "production.read",
+        "section": "NEGOCIO",
+        "shortName": "Producción"
+      },
+      {
+        "icon": "finanzas",
+        "id": "accounts",
+        "name": "Finanzas",
+        "permission": "finance.accounts.read",
+        "section": "PRINCIPAL",
+        "shortName": "Finanzas"
+      },
+      {
+        "icon": "gastos",
+        "id": "expenses",
+        "name": "Gastos",
+        "permission": "finance.expenses.read",
+        "section": "FINANZAS",
+        "shortName": "Gastos"
+      },
+      {
+        "icon": "intercambio",
+        "id": "movements",
+        "name": "Movimientos",
+        "permission": "inventory.read",
+        "section": "OPERACIONES",
+        "shortName": "Movimientos"
+      },
+      {
+        "icon": "inventario",
+        "id": "stock",
+        "name": "Inventario",
+        "permission": "inventory.read",
+        "section": "PRINCIPAL",
+        "shortName": "Inventario"
+      },
+      {
+        "icon": "objetivo",
+        "id": "leads",
+        "name": "CRM / Leads",
+        "permission": "crm.read",
+        "section": "NEGOCIO",
+        "shortName": "CRM"
+      },
+      {
+        "icon": "obra",
+        "id": "projects",
+        "name": "Obras",
+        "permission": "projects.read",
+        "section": "NEGOCIO",
+        "shortName": "Obras"
+      },
+      {
+        "icon": "ordenes",
+        "id": "purchase-orders",
+        "name": "Órdenes de Compra",
+        "permission": "purchases.read",
+        "section": "OPERACIONES",
+        "shortName": "Compras"
+      },
+      {
+        "icon": "productos",
+        "id": "products",
+        "name": "Productos",
+        "permission": "products.read",
+        "section": "OPERACIONES",
+        "shortName": "Productos"
+      },
+      {
+        "icon": "proveedores",
+        "id": "suppliers",
+        "name": "Proveedores",
+        "permission": "suppliers.read",
+        "section": "OPERACIONES",
+        "shortName": "Proveedores"
+      },
+      {
+        "icon": "rrhh",
+        "id": "employees",
+        "name": "Recursos Humanos",
+        "permission": "hr.read",
+        "section": "PRINCIPAL",
+        "shortName": "RRHH"
+      },
+      {
+        "icon": "ubicacion",
+        "id": "branches",
+        "name": "Sucursales",
+        "permission": "branches.read",
+        "section": "ADMINISTRACIÓN",
+        "shortName": "Sucursales"
+      },
+      {
+        "icon": "ventas",
+        "id": "sales-orders",
+        "name": "Ventas",
+        "permission": "sales.orders.read",
+        "section": "PRINCIPAL",
+        "shortName": "Ventas"
+      },
+      {
+        "icon": "ver",
+        "id": "audit",
+        "name": "Auditoría",
+        "permission": "audit.read",
+        "section": "ADMINISTRACIÓN",
+        "shortName": "Auditoría"
+      }
+    ],
+    "statuses": {
+      "account": [
+        {
+          "code": "active",
+          "label": "Activo",
+          "tone": "positive"
+        },
+        {
+          "code": "inactive",
+          "label": "Inactivo",
+          "tone": "neutral"
+        }
+      ],
+      "audit": [
+        {
+          "code": "FAILURE",
+          "label": "Fallo",
+          "tone": "negative"
+        },
+        {
+          "code": "SUCCESS",
+          "label": "Éxito",
+          "tone": "positive"
+        }
+      ],
+      "company": [
+        {
+          "code": "active",
+          "label": "Activo",
+          "tone": "positive"
+        },
+        {
+          "code": "pending",
+          "label": "Pendiente",
+          "tone": "pending"
+        },
+        {
+          "code": "suspended",
+          "label": "Suspendido",
+          "tone": "negative"
+        }
+      ],
+      "company-request": [
+        {
+          "code": "APPROVED",
+          "label": "Aprobado",
+          "tone": "positive"
+        },
+        {
+          "code": "IN_REVIEW",
+          "label": "En revisión",
+          "tone": "pending"
+        },
+        {
+          "code": "PENDING",
+          "label": "Pendiente",
+          "tone": "pending"
+        },
+        {
+          "code": "REJECTED",
+          "label": "Rechazado",
+          "tone": "negative"
+        }
+      ],
+      "customer": [
+        {
+          "code": "active",
+          "label": "Activo",
+          "tone": "positive"
+        },
+        {
+          "code": "inactive",
+          "label": "Inactivo",
+          "tone": "neutral"
+        }
+      ],
+      "expense": [
+        {
+          "code": "PAID",
+          "label": "Pagado",
+          "tone": "positive"
+        },
+        {
+          "code": "POSTED",
+          "label": "Registrado",
+          "tone": "positive"
+        },
+        {
+          "code": "VOID",
+          "label": "Anulado",
+          "tone": "neutral"
+        }
+      ],
+      "income": [
+        {
+          "code": "PAID",
+          "label": "Pagado",
+          "tone": "positive"
+        },
+        {
+          "code": "POSTED",
+          "label": "Registrado",
+          "tone": "positive"
+        },
+        {
+          "code": "VOID",
+          "label": "Anulado",
+          "tone": "neutral"
+        }
+      ],
+      "inventory-count": [
+        {
+          "code": "DELIVERED",
+          "label": "Entregado",
+          "tone": "positive"
+        },
+        {
+          "code": "OVERDUE",
+          "label": "Vencido",
+          "tone": "negative"
+        },
+        {
+          "code": "PARTIAL",
+          "label": "Parcial",
+          "tone": "pending"
+        },
+        {
+          "code": "POSTED",
+          "label": "Registrado",
+          "tone": "positive"
+        },
+        {
+          "code": "POSTING",
+          "label": "Registrando",
+          "tone": "pending"
+        },
+        {
+          "code": "RECEIVED",
+          "label": "Recibido",
+          "tone": "positive"
+        }
+      ],
+      "lead": [
+        {
+          "code": "CONTACTED",
+          "label": "Contactado",
+          "tone": "pending"
+        },
+        {
+          "code": "LOST",
+          "label": "Perdido",
+          "tone": "negative"
+        },
+        {
+          "code": "NEW",
+          "label": "Nuevo",
+          "tone": "pending"
+        },
+        {
+          "code": "QUALIFIED",
+          "label": "Calificado",
+          "tone": "pending"
+        },
+        {
+          "code": "WON",
+          "label": "Ganado",
+          "tone": "positive"
+        }
+      ],
+      "product": [
+        {
+          "code": "active",
+          "label": "Activo",
+          "tone": "positive"
+        },
+        {
+          "code": "inactive",
+          "label": "Inactivo",
+          "tone": "neutral"
+        }
+      ],
+      "production-order": [
+        {
+          "code": "CANCELLED",
+          "label": "Cancelado",
+          "tone": "neutral"
+        },
+        {
+          "code": "COMPLETED",
+          "label": "Completado",
+          "tone": "positive"
+        },
+        {
+          "code": "DONE",
+          "label": "Finalizada",
+          "tone": "positive"
+        },
+        {
+          "code": "DRAFT",
+          "label": "Borrador",
+          "tone": "neutral"
+        },
+        {
+          "code": "IN_PROGRESS",
+          "label": "En proceso",
+          "tone": "pending"
+        },
+        {
+          "code": "RELEASED",
+          "label": "Liberada",
+          "tone": "pending"
+        }
+      ],
+      "project": [
+        {
+          "code": "CANCELADA",
+          "label": "Cancelada",
+          "tone": "neutral"
+        },
+        {
+          "code": "EN_PROCESO",
+          "label": "En proceso",
+          "tone": "pending"
+        },
+        {
+          "code": "FINALIZADA",
+          "label": "Finalizada",
+          "tone": "positive"
+        },
+        {
+          "code": "PAUSADA",
+          "label": "Pausada",
+          "tone": "pending"
+        },
+        {
+          "code": "PLANEADA",
+          "label": "Planeada",
+          "tone": "neutral"
+        }
+      ],
+      "purchase-order": [
+        {
+          "code": "APPROVED",
+          "label": "Aprobado",
+          "tone": "positive"
+        },
+        {
+          "code": "DRAFT",
+          "label": "Borrador",
+          "tone": "neutral"
+        },
+        {
+          "code": "REJECTED",
+          "label": "Rechazado",
+          "tone": "negative"
+        }
+      ],
+      "sales-order": [
+        {
+          "code": "APPROVED",
+          "label": "Aprobado",
+          "tone": "positive"
+        },
+        {
+          "code": "DRAFT",
+          "label": "Borrador",
+          "tone": "neutral"
+        },
+        {
+          "code": "REJECTED",
+          "label": "Rechazado",
+          "tone": "negative"
+        }
+      ],
+      "supplier": [
+        {
+          "code": "active",
+          "label": "Activo",
+          "tone": "positive"
+        },
+        {
+          "code": "inactive",
+          "label": "Inactivo",
+          "tone": "neutral"
+        }
+      ],
+      "user": [
+        {
+          "code": "active",
+          "label": "Activo",
+          "tone": "positive"
+        },
+        {
+          "code": "inactive",
+          "label": "Inactivo",
+          "tone": "neutral"
+        },
+        {
+          "code": "locked",
+          "label": "Bloqueado",
+          "tone": "negative"
+        },
+        {
+          "code": "pending",
+          "label": "Pendiente",
+          "tone": "pending"
+        }
+      ],
+      "warehouse": [
+        {
+          "code": "active",
+          "label": "Activo",
+          "tone": "positive"
+        },
+        {
+          "code": "inactive",
+          "label": "Inactivo",
+          "tone": "neutral"
+        }
+      ]
+    }
+  },
+  "success": true
+}

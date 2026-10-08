@@ -1,0 +1,713 @@
+{
+  "data": [
+    {
+      "_id": "000000000000000000000001",
+      "action": "LOGIN",
+      "after": null,
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "auth",
+      "resourceId": "000000000000000000000003",
+      "resourceType": "user",
+      "result": "SUCCESS",
+      "statusCode": null,
+      "userAgent": null,
+      "userEmail": "admin@contratos.local",
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000004",
+      "action": "POST_COST-CENTERS",
+      "after": {
+        "budget": 5000,
+        "category": "MATERIALES",
+        "code": "CC-1",
+        "executedAmount": 0,
+        "name": "Materiales",
+        "projectId": "000000000000000000000005",
+        "status": "active"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "cost-centers",
+      "resourceId": null,
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000006",
+      "action": "POST_PROJECTS",
+      "after": {
+        "budget": 100000,
+        "code": "OBR-1",
+        "executedAmount": 0,
+        "name": "Obra Centro",
+        "status": "PLANEADA"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "projects",
+      "resourceId": null,
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000007",
+      "action": "POST_PRODUCTION",
+      "after": {
+        "bomId": "000000000000000000000008",
+        "quantity": 1
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "production",
+      "resourceId": "000000000000000000000009",
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000010",
+      "action": "POST_PRODUCTION",
+      "after": {
+        "components": [
+          {
+            "productId": "000000000000000000000011",
+            "quantity": 2
+          }
+        ],
+        "productId": "000000000000000000000012"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "production",
+      "resourceId": "000000000000000000000008",
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000013",
+      "action": "POST_HR",
+      "after": {
+        "documentId": "EMP-001",
+        "firstName": "Luis",
+        "lastName": "Pérez",
+        "position": "Almacén"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "hr",
+      "resourceId": "000000000000000000000014",
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000015",
+      "action": "POST_CRM",
+      "after": {
+        "company": "Uno SA",
+        "expectedAmount": 5000,
+        "name": "Prospecto Uno"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "crm",
+      "resourceId": "000000000000000000000016",
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000017",
+      "action": "POST_FINANCE",
+      "after": {
+        "accountId": "000000000000000000000018",
+        "amount": 150,
+        "category": "Renta"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "finance",
+      "resourceId": "000000000000000000000019",
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000020",
+      "action": "POST_FINANCE",
+      "after": {
+        "accountId": "000000000000000000000018",
+        "amount": 1000,
+        "category": "Aportación"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "finance",
+      "resourceId": "000000000000000000000021",
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000022",
+      "action": "POST_FINANCE",
+      "after": {
+        "code": "BCO-1",
+        "name": "Banco Principal",
+        "type": "bank"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "finance",
+      "resourceId": "000000000000000000000018",
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000023",
+      "action": "POST_SALES-ORDERS",
+      "after": {
+        "customerId": "000000000000000000000024",
+        "lines": [
+          {
+            "productId": "000000000000000000000011",
+            "quantity": 1,
+            "unitPrice": 4
+          }
+        ]
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "sales-orders",
+      "resourceId": null,
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000025",
+      "action": "POST_SALES-ORDERS",
+      "before": {
+        "__v": 0,
+        "_id": {
+          "buffer": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          }
+        },
+        "approvedAt": null,
+        "approvedBy": null,
+        "code": "SO-000001",
+        "companyId": {
+          "buffer": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          }
+        },
+        "createdBy": {
+          "buffer": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          }
+        },
+        "customerId": {
+          "buffer": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          }
+        },
+        "customerName": "Comercial Central",
+        "lines": [
+          {
+            "productId": {
+              "buffer": {
+                "0": 0,
+                "1": 0,
+                "2": 0,
+                "3": 0,
+                "4": 0,
+                "5": 0,
+                "6": 0,
+                "7": 0,
+                "8": 0,
+                "9": 0,
+                "10": 0,
+                "11": 0
+              }
+            },
+            "quantity": 4,
+            "unitPrice": 4
+          }
+        ],
+        "notes": null,
+        "rejectedAt": null,
+        "rejectedBy": null,
+        "rejectionReason": null,
+        "status": "DRAFT",
+        "total": 16,
+        "warehouseId": {
+          "buffer": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          }
+        }
+      },
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "sales-orders",
+      "resourceId": "000000000000000000000026",
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 200,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000027",
+      "action": "POST_SALES-ORDERS",
+      "after": {
+        "customerId": "000000000000000000000024",
+        "lines": [
+          {
+            "productId": "000000000000000000000011",
+            "quantity": 4,
+            "unitPrice": 4
+          }
+        ]
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "sales-orders",
+      "resourceId": null,
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000028",
+      "action": "POST_PURCHASE-ORDERS",
+      "after": {
+        "lines": [
+          {
+            "productId": "000000000000000000000011",
+            "quantity": 3,
+            "unitCost": 2.5
+          }
+        ],
+        "supplierId": "000000000000000000000029"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "purchase-orders",
+      "resourceId": null,
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000030",
+      "action": "POST_PURCHASE-ORDERS",
+      "before": {
+        "__v": 0,
+        "_id": {
+          "buffer": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          }
+        },
+        "approvedAt": null,
+        "approvedBy": null,
+        "code": "PO-000001",
+        "companyId": {
+          "buffer": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          }
+        },
+        "createdBy": {
+          "buffer": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          }
+        },
+        "lines": [
+          {
+            "productId": {
+              "buffer": {
+                "0": 0,
+                "1": 0,
+                "2": 0,
+                "3": 0,
+                "4": 0,
+                "5": 0,
+                "6": 0,
+                "7": 0,
+                "8": 0,
+                "9": 0,
+                "10": 0,
+                "11": 0
+              }
+            },
+            "quantity": 20,
+            "unitCost": 2.5
+          }
+        ],
+        "notes": null,
+        "rejectedAt": null,
+        "rejectedBy": null,
+        "rejectionReason": null,
+        "status": "DRAFT",
+        "supplierId": {
+          "buffer": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          }
+        },
+        "supplierName": "Distribuidora Norte",
+        "total": 50,
+        "warehouseId": {
+          "buffer": {
+            "0": 0,
+            "1": 0,
+            "2": 0,
+            "3": 0,
+            "4": 0,
+            "5": 0,
+            "6": 0,
+            "7": 0,
+            "8": 0,
+            "9": 0,
+            "10": 0,
+            "11": 0
+          }
+        }
+      },
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "purchase-orders",
+      "resourceId": "000000000000000000000031",
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 200,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000032",
+      "action": "POST_PURCHASE-ORDERS",
+      "after": {
+        "lines": [
+          {
+            "productId": "000000000000000000000011",
+            "quantity": 20,
+            "unitCost": 2.5
+          }
+        ],
+        "supplierId": "000000000000000000000029"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "purchase-orders",
+      "resourceId": null,
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000033",
+      "action": "POST_CUSTOMERS",
+      "after": {
+        "code": "CLI-1",
+        "name": "Comercial Central"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "customers",
+      "resourceId": null,
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000034",
+      "action": "POST_SUPPLIERS",
+      "after": {
+        "code": "PROV-1",
+        "name": "Distribuidora Norte"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "suppliers",
+      "resourceId": null,
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000035",
+      "action": "POST_PRODUCTS",
+      "after": {
+        "name": "Kit armado",
+        "sku": "CT-003",
+        "unit": "pza"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "products",
+      "resourceId": null,
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    },
+    {
+      "_id": "000000000000000000000036",
+      "action": "POST_PRODUCTS",
+      "after": {
+        "name": "Tuerca sin uso",
+        "sku": "CT-002",
+        "unit": "pza"
+      },
+      "before": null,
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "expiresAt": null,
+      "ip": "::ffff:127.0.0.1",
+      "message": null,
+      "module": "products",
+      "resourceId": null,
+      "resourceType": null,
+      "result": "SUCCESS",
+      "statusCode": 201,
+      "userAgent": null,
+      "userEmail": null,
+      "userId": "000000000000000000000003"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "page": 1,
+    "total": 22,
+    "totalPages": 2
+  },
+  "success": true
+}

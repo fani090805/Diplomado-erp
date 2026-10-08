@@ -21,7 +21,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.Response
-import java.io.IOException
+import android.util.Log
+import com.diplomado.erp.core.common.API_LOG_TAG
+import com.diplomado.erp.core.common.isUnreadableResponse
+import kotlinx.coroutines.CancellationException
 import java.time.Instant
 import java.time.LocalDate
 
@@ -116,11 +119,17 @@ class DashboardViewModel : ViewModel() {
     /** Desempaqueta la respuesta; un 4xx/5xx de un reporte deja el dato vacío (estado vacío en la UI). */
     private fun <T> Response<ApiResponse<T>>.dataOrNull(): T? = if (isSuccessful) body()?.data else null
 
-    /** Un reporte que falla no tumba el Dashboard; sólo un fallo de red generalizado lo hace. */
+    /**
+     * Un reporte que falla (red o respuesta ilegible) no tumba el Dashboard; sólo si fallan
+     * todos se muestra el error, con el mensaje que corresponda (ver friendlyError).
+     */
     private suspend fun <T> safe(block: suspend () -> T?): Result<T?> =
         try {
             Result.success(block())
-        } catch (e: IOException) {
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            if (isUnreadableResponse(e)) Log.e(API_LOG_TAG, "Reporte del Dashboard ilegible: ${e.message}", e)
             Result.failure(e)
         }
 

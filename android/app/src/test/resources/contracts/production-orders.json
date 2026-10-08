@@ -1,0 +1,34 @@
+{
+  "data": [
+    {
+      "__v": 0,
+      "_id": "000000000000000000000001",
+      "bomId": "000000000000000000000002",
+      "cancelReason": null,
+      "cancelledAt": null,
+      "cancelledBy": null,
+      "code": "MO-000001",
+      "companyId": "000000000000000000000003",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "createdBy": "000000000000000000000004",
+      "doneAt": null,
+      "doneBy": null,
+      "lines": [],
+      "notes": null,
+      "productId": "000000000000000000000005",
+      "quantity": 1,
+      "releasedAt": null,
+      "releasedBy": null,
+      "status": "DRAFT",
+      "updatedAt": "2026-01-15T18:00:00.000Z",
+      "warehouseId": "000000000000000000000006"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "page": 1,
+    "total": 1,
+    "totalPages": 1
+  },
+  "success": true
+}

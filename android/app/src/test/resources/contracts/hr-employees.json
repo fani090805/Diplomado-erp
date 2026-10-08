@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "__v": 0,
+      "_id": "000000000000000000000001",
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "createdBy": "000000000000000000000003",
+      "department": null,
+      "documentId": "EMP-001",
+      "email": null,
+      "firstName": "Luis",
+      "hireDate": "2026-01-15T18:00:00.000Z",
+      "lastName": "Pérez",
+      "notes": null,
+      "position": "Almacén",
+      "salary": 0,
+      "status": "active",
+      "terminationDate": null,
+      "updatedAt": "2026-01-15T18:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "page": 1,
+    "total": 1,
+    "totalPages": 1
+  },
+  "success": true
+}

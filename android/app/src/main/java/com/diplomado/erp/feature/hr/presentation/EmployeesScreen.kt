@@ -1,5 +1,6 @@
 package com.diplomado.erp.feature.hr.presentation
 
+import com.diplomado.erp.core.common.orDash
 import com.diplomado.erp.core.common.friendlyError
 
 import androidx.compose.foundation.layout.*
@@ -46,7 +47,7 @@ class EmployeesViewModel : ViewModel() {
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = EmployeesUiState.Success(res.body()!!.data!!)
                 } else {
-                    _uiState.value = EmployeesUiState.Error("No se pudo cargar el personal de obra.")
+                    _uiState.value = EmployeesUiState.Error("No se pudieron cargar los empleados.")
                 }
             } catch (e: Exception) {
                 _uiState.value = EmployeesUiState.Error(friendlyError(e, "Error de red al consultar personal."))
@@ -68,20 +69,20 @@ fun EmployeesScreen(
         modifier = modifier.fillMaxSize().padding(16.dp)
     ) {
         when (val state = uiState) {
-            is EmployeesUiState.Loading -> TTLoading(text = "Cargando personal y cuadrillas de obra...")
+            is EmployeesUiState.Loading -> TTLoading(text = "Cargando empleados...")
             is EmployeesUiState.Error -> {
                 TTErrorState(
-                    title = "Error de personal",
+                    title = "Error al cargar empleados",
                     message = state.message,
                     onRetry = { viewModel.loadEmployees() }
                 )
             }
             is EmployeesUiState.Success -> {
                 TTDataTable(
-                    title = "RRHH & Cuadrillas de Obra",
-                    subtitle = "${state.employees.size} trabajadores registrados",
+                    title = "Empleados",
+                    subtitle = "${state.employees.size} empleados",
                     items = state.employees,
-                    emptyText = "Sin personal de obra registrado."
+                    emptyText = "Aún no hay empleados registrados."
                 ) { emp ->
                     TTCard(modifier = Modifier.fillMaxWidth()) {
                         Row(
@@ -98,7 +99,7 @@ fun EmployeesScreen(
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Doc: ${emp.documentId} • Puesto: ${emp.position ?: "Operativo"} • Cuadrilla: ${emp.department ?: "General"}",
+                                    text = "Doc: ${emp.documentId} • Puesto: ${emp.position.orDash()} • Departamento: ${emp.department.orDash()}",
                                     fontSize = 12.sp,
                                     color = FaiTextMuted
                                 )

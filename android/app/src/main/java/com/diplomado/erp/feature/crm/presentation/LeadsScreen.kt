@@ -1,5 +1,6 @@
 package com.diplomado.erp.feature.crm.presentation
 
+import com.diplomado.erp.core.common.orDash
 import com.diplomado.erp.core.common.formatMoney
 
 import com.diplomado.erp.core.common.friendlyError
@@ -48,7 +49,7 @@ class LeadsViewModel : ViewModel() {
                 if (res.isSuccessful && res.body()?.data != null) {
                     _uiState.value = LeadsUiState.Success(res.body()!!.data!!)
                 } else {
-                    _uiState.value = LeadsUiState.Error("No se pudieron cargar los prospectos de obra.")
+                    _uiState.value = LeadsUiState.Error("No se pudieron cargar los leads.")
                 }
             } catch (e: Exception) {
                 _uiState.value = LeadsUiState.Error(friendlyError(e, "Error de red al consultar prospectos."))
@@ -70,20 +71,20 @@ fun LeadsScreen(
         modifier = modifier.fillMaxSize().padding(16.dp)
     ) {
         when (val state = uiState) {
-            is LeadsUiState.Loading -> TTLoading(text = "Cargando prospectos y proyectos comerciales...")
+            is LeadsUiState.Loading -> TTLoading(text = "Cargando leads...")
             is LeadsUiState.Error -> {
                 TTErrorState(
-                    title = "Error de prospectos",
+                    title = "Error al cargar leads",
                     message = state.message,
                     onRetry = { viewModel.loadLeads() }
                 )
             }
             is LeadsUiState.Success -> {
                 TTDataTable(
-                    title = "CRM Prospectos de Obra",
-                    subtitle = "${state.leads.size} proyectos en negociación",
+                    title = "Leads",
+                    subtitle = "${state.leads.size} leads",
                     items = state.leads,
-                    emptyText = "Sin prospectos de obra registrados."
+                    emptyText = "Aún no hay leads registrados."
                 ) { lead ->
                     TTCard(modifier = Modifier.fillMaxWidth()) {
                         Row(
@@ -100,7 +101,7 @@ fun LeadsScreen(
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Empresa: ${lead.company ?: "Particular"} • Email: ${lead.email ?: "—"}",
+                                    text = "Empresa: ${lead.company.orDash()} • Email: ${lead.email.orDash()}",
                                     fontSize = 12.sp,
                                     color = FaiTextMuted
                                 )

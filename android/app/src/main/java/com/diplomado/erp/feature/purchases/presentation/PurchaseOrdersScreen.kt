@@ -1,5 +1,6 @@
 package com.diplomado.erp.feature.purchases.presentation
 
+import com.diplomado.erp.core.common.orDash
 import com.diplomado.erp.core.common.formatMoney
 
 import androidx.compose.foundation.layout.*
@@ -30,24 +31,24 @@ fun PurchaseOrdersScreen(
         modifier = modifier.fillMaxSize().padding(16.dp)
     ) {
         when (val state = uiState) {
-            is PurchaseOrdersUiState.Loading -> TTLoading(text = "Cargando órdenes de compra de materiales...")
+            is PurchaseOrdersUiState.Loading -> TTLoading(text = "Cargando compras...")
             is PurchaseOrdersUiState.Error -> {
                 TTErrorState(
-                    title = "Error de compras de obra",
+                    title = "Error al cargar compras",
                     message = state.message,
                     onRetry = { viewModel.loadOrders() }
                 )
             }
             is PurchaseOrdersUiState.Success -> {
                 TTDataTable(
-                    title = "Órdenes de Compra para Obra",
-                    subtitle = "${state.orders.size} compras de insumos registradas",
+                    title = "Órdenes de compra",
+                    subtitle = "${state.orders.size} órdenes",
                     items = state.orders,
                     onCreateClick = if (PermissionChecker.hasPermission("purchases.create")) {
                         { /* Crear orden de compra */ }
                     } else null,
-                    createLabel = "Nueva compra",
-                    emptyText = "Sin órdenes de compra para obra registradas."
+                    createLabel = "Nueva orden",
+                    emptyText = "Aún no hay órdenes de compra registradas."
                 ) { order ->
                     TTCard(modifier = Modifier.fillMaxWidth()) {
                         Column {
@@ -65,7 +66,7 @@ fun PurchaseOrdersScreen(
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
-                                        text = "Proveedor: ${order.supplier?.name ?: "Proveedor de Insumos"} • Total: ${formatMoney(order.total)}",
+                                        text = "Proveedor: ${order.supplierName.orDash()} • Total: ${formatMoney(order.total)}",
                                         fontSize = 13.sp,
                                         color = FaiTextMuted
                                     )
@@ -80,7 +81,7 @@ fun PurchaseOrdersScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     TTButton(
-                                        text = "Aprobar y Recibir",
+                                        text = "Aprobar y recibir",
                                         onClick = { viewModel.approveOrder(order.id) },
                                         variant = TTButtonVariant.Primary,
                                         modifier = Modifier.weight(1f)

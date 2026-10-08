@@ -1,5 +1,6 @@
 package com.diplomado.erp.feature.inventory.stock.presentation
 
+import com.diplomado.erp.core.common.orDash
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,20 +28,20 @@ fun StockScreen(
         modifier = modifier.fillMaxSize().padding(16.dp)
     ) {
         when (val state = uiState) {
-            is StockUiState.Loading -> TTLoading(text = "Cargando existencias en bodegas de obra...")
+            is StockUiState.Loading -> TTLoading(text = "Cargando existencias...")
             is StockUiState.Error -> {
                 TTErrorState(
-                    title = "Error de existencias",
+                    title = "Error al cargar existencias",
                     message = state.message,
                     onRetry = { viewModel.loadStock() }
                 )
             }
             is StockUiState.Success -> {
                 TTDataTable(
-                    title = "Existencias en Bodegas",
-                    subtitle = "${state.stockLevels.size} insumos disponibles en obra",
+                    title = "Existencias",
+                    subtitle = "${state.stockLevels.size} registros",
                     items = state.stockLevels,
-                    emptyText = "Sin existencias de materiales en bodegas."
+                    emptyText = "Aún no hay existencias registradas."
                 ) { stock ->
                     TTCard(modifier = Modifier.fillMaxWidth()) {
                         Row(
@@ -50,29 +51,29 @@ fun StockScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = stock.product?.name ?: "Material sin nombre",
+                                    text = stock.product?.name.orDash(),
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = FaiTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "SKU: ${stock.product?.sku ?: "—"} • Bodega: ${stock.warehouse?.name ?: "Bodega Central"}",
+                                    text = "SKU: ${stock.product?.sku.orDash()} • Almacén: ${stock.warehouse?.name.orDash()}",
                                     fontSize = 12.sp,
                                     color = FaiTextMuted
                                 )
                             }
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(
-                                    text = "${stock.quantity} ${stock.product?.unit ?: "ud"}",
+                                    text = "${stock.quantity} ${stock.product?.unit.orEmpty()}".trim(),
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.ExtraBold,
                                     color = FaiPrimary
                                 )
-                                val min = stock.product?.minStock ?: 0.0
+                                val min = stock.productId?.let { state.minStockByProduct[it] } ?: 0.0
                                 if (stock.quantity <= min && min > 0) {
                                     Spacer(modifier = Modifier.height(2.dp))
-                                    TTBadge(status = "LOCKED", customLabel = "Stock Bajo")
+                                    TTBadge(status = "LOCKED", customLabel = "Stock bajo")
                                 }
                             }
                         }

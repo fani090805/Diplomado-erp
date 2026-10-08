@@ -1,0 +1,7 @@
+{
+  "data": {
+    "expiresInSeconds": 60,
+    "ticket": "<ticket>"
+  },
+  "success": true
+}

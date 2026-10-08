@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "__v": 0,
+      "_id": "000000000000000000000001",
+      "actualEndDate": null,
+      "budget": 100000,
+      "code": "OBR-1",
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "customerId": null,
+      "description": "",
+      "estimatedEndDate": null,
+      "executedAmount": 0,
+      "location": "",
+      "managerName": "",
+      "name": "Obra Centro",
+      "startDate": null,
+      "status": "PLANEADA",
+      "updatedAt": "2026-01-15T18:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "page": 1,
+    "total": 1,
+    "totalPages": 1
+  },
+  "success": true
+}

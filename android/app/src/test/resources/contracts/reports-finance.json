@@ -1,0 +1,58 @@
+{
+  "data": {
+    "cash": {
+      "accounts": [
+        {
+          "_id": "000000000000000000000001",
+          "balance": 850,
+          "code": "BCO-1",
+          "currency": "USD",
+          "name": "Banco Principal",
+          "status": "active"
+        },
+        {
+          "_id": "000000000000000000000002",
+          "balance": 16,
+          "code": "VENTAS",
+          "currency": "MXN",
+          "name": "Cobranza de ventas",
+          "status": "active"
+        }
+      ],
+      "accountsBalance": 866
+    },
+    "expense": {
+      "count": 1,
+      "total": 150
+    },
+    "expenseByCategory": [
+      {
+        "category": "Renta",
+        "count": 1,
+        "total": 150
+      }
+    ],
+    "income": {
+      "count": 2,
+      "total": 1016
+    },
+    "incomeByCategory": [
+      {
+        "category": "Aportación",
+        "count": 1,
+        "total": 1000
+      },
+      {
+        "category": "Ventas",
+        "count": 1,
+        "total": 16
+      }
+    ],
+    "net": 866,
+    "period": {
+      "from": "2026-01-15T18:00:00.000Z",
+      "to": "2026-01-15T18:00:00.000Z"
+    }
+  },
+  "success": true
+}

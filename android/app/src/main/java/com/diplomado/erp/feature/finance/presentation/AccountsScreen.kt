@@ -29,18 +29,18 @@ fun AccountsScreen(
         modifier = modifier.fillMaxSize().padding(16.dp)
     ) {
         when (val state = uiState) {
-            is AccountsUiState.Loading -> TTLoading(text = "Cargando cajas chicas y cuentas de tesorería...")
+            is AccountsUiState.Loading -> TTLoading(text = "Cargando cuentas...")
             is AccountsUiState.Error -> {
                 TTErrorState(
-                    title = "Error de finanzas de obra",
+                    title = "Error al cargar cuentas",
                     message = state.message,
                     onRetry = { viewModel.loadAccounts() }
                 )
             }
             is AccountsUiState.Success -> {
                 TTDataTable(
-                    title = "Finanzas & Cajas Chicas",
-                    subtitle = "${state.accounts.size} cuentas de tesorería y fondos de obra",
+                    title = "Cuentas",
+                    subtitle = "${state.accounts.size} cuentas",
                     items = state.accounts,
                     emptyText = "Sin cuentas ni cajas chicas registradas."
                 ) { account ->

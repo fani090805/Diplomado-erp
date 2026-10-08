@@ -37,16 +37,19 @@ interface ErpApi {
         @Query("to") to: String? = null
     ): Response<ApiResponse<KpisDataDto>>
 
+    /** `groupBy`: day | week | month (default del backend: month) → campo `series`. */
     @GET("reports/sales")
     suspend fun getSalesReport(
         @Query("from") from: String? = null,
-        @Query("to") to: String? = null
+        @Query("to") to: String? = null,
+        @Query("groupBy") groupBy: String? = null
     ): Response<ApiResponse<SeriesReportDto>>
 
     @GET("reports/purchases")
     suspend fun getPurchasesReport(
         @Query("from") from: String? = null,
-        @Query("to") to: String? = null
+        @Query("to") to: String? = null,
+        @Query("groupBy") groupBy: String? = null
     ): Response<ApiResponse<SeriesReportDto>>
 
     @GET("reports/inventory")
@@ -90,7 +93,9 @@ interface ErpApi {
     @GET("inventory/stock")
     suspend fun getStock(
         @Query("warehouseId") warehouseId: String? = null,
-        @Query("productId") productId: String? = null
+        @Query("productId") productId: String? = null,
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 100
     ): Response<ApiResponse<List<StockLevelDto>>>
 
     @GET("inventory/movements")

@@ -1,5 +1,7 @@
 package com.diplomado.erp.feature.inventory.movements.presentation
 
+import com.diplomado.erp.core.common.orDash
+import com.diplomado.erp.core.common.movementTypeLabel
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,20 +29,20 @@ fun MovementsScreen(
         modifier = modifier.fillMaxSize().padding(16.dp)
     ) {
         when (val state = uiState) {
-            is MovementsUiState.Loading -> TTLoading(text = "Cargando Kardex de movimientos de materiales...")
+            is MovementsUiState.Loading -> TTLoading(text = "Cargando movimientos...")
             is MovementsUiState.Error -> {
                 TTErrorState(
-                    title = "Error de Kardex",
+                    title = "Error al cargar movimientos",
                     message = state.message,
                     onRetry = { viewModel.loadMovements() }
                 )
             }
             is MovementsUiState.Success -> {
                 TTDataTable(
-                    title = "Kardex de Materiales",
-                    subtitle = "${state.total} movimientos de insumos registrados",
+                    title = "Movimientos de inventario",
+                    subtitle = "${state.total} movimientos",
                     items = state.movements,
-                    emptyText = "Sin movimientos de materiales registrados."
+                    emptyText = "Aún no hay movimientos registrados."
                 ) { movement ->
                     TTCard(modifier = Modifier.fillMaxWidth()) {
                         Row(
@@ -50,14 +52,14 @@ fun MovementsScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "${movement.type} · ${movement.product?.name ?: "Material"}",
+                                    text = "${movementTypeLabel(movement.type)} · ${movement.product?.name.orDash()}",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = FaiTextPrimary
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Bodega: ${movement.warehouse?.name ?: "Bodega Central"} • Cantidad: ${movement.quantity}",
+                                    text = "Almacén: ${movement.warehouse?.name.orDash()} • Cantidad: ${movement.quantity}",
                                     fontSize = 12.sp,
                                     color = FaiTextMuted
                                 )

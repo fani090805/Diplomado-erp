@@ -80,3 +80,15 @@ fun initialsOf(nameOrEmail: String?): String {
     val words = clean.split(Regex("[\\s._-]+")).filter { it.isNotEmpty() }
     return words.take(2).joinToString("") { it.first().uppercase() }
 }
+
+/** Texto del backend o "—" si de verdad viene vacío (nunca un valor inventado). */
+fun String?.orDash(): String = this?.takeIf { it.isNotBlank() } ?: "—"
+
+/** Tipo de movimiento de inventario en español (igual que la web). */
+fun movementTypeLabel(type: String?): String = when (type?.uppercase()) {
+    "ENTRY" -> "Entrada"
+    "EXIT" -> "Salida"
+    "ADJUSTMENT" -> "Ajuste"
+    "TRANSFER" -> "Transferencia"
+    else -> type.orDash()
+}

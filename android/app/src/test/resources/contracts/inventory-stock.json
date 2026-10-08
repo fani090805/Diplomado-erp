@@ -1,0 +1,30 @@
+{
+  "data": [
+    {
+      "__v": 0,
+      "_id": "000000000000000000000001",
+      "companyId": "000000000000000000000002",
+      "createdAt": "2026-01-15T18:00:00.000Z",
+      "product": {
+        "name": "Tornillo",
+        "sku": "CT-001",
+        "unit": "pza"
+      },
+      "productId": "000000000000000000000003",
+      "quantity": 16,
+      "updatedAt": "2026-01-15T18:00:00.000Z",
+      "warehouse": {
+        "code": "MAIN",
+        "name": "Almacén General"
+      },
+      "warehouseId": "000000000000000000000004"
+    }
+  ],
+  "meta": {
+    "limit": 20,
+    "page": 1,
+    "total": 1,
+    "totalPages": 1
+  },
+  "success": true
+}
